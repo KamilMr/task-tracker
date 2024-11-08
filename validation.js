@@ -30,7 +30,10 @@ const projectSchema = string().min(2).max(24).required();
 
 const clientSchema = string().min(2).max(24).required();
 
+const confirmationSchema = string().min(1).max(3).oneOf(['yes','no','y','n']).required();
+
 export const isTaskInvalid = d => isInvalidYup(taskSchema, d);
 export const isDateInvalid = d => isInvalidYup(dateSchema, d);
 export const isProjectInvalid = d => isInvalidYup(projectSchema, d);
 export const isClientInvalid = d => isInvalidYup(clientSchema, d);
+export const isConfirmationInvalid = d => isInvalidYup(confirmationSchema, d);
