@@ -35,6 +35,6 @@ export const mapToCamel = obj => {
 
 export const getFormatedDate = (now = new Date()) => {
   const date = now.toISOString().split('T')[0]; // format YYYY-MM-DD
-  const time = now.toTimeString().split(' ')[0].slice(0, 5); // format HH:mm
+  const time = now.toTimeString().split(' ')[0]; // format HH:mm
   return `${date} ${time}`;
 };
