@@ -19,11 +19,12 @@ const task = {
     return db(PROJECT_TABLE).select().where('id', id);
   },
 
-  edit: ({id, start, end, title, projectId}) => {
+  edit: ({id, start, end, title,time, projectId}) => {
     return db(PROJECT_TABLE).where({id}).update({
       title,
       end,
       start,
+      time,
       project_id: projectId,
     });
   },
