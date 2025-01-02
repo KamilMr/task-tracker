@@ -20,11 +20,13 @@ import {
   deleteTask,
   editTask,
   selectAllTasks,
+  timer,
 } from './commands/task.js';
 
 program.version('1.0.0');
 
 const mappedActions = {
+  'Start timer': timer,
   'Add client': createClient,
   'Add project': createProject,
   'Add task': createTask,
@@ -41,7 +43,6 @@ const mappedActions = {
     process.exit();
   },
 };
-
 
 const main = async () => {
   try {
@@ -65,6 +66,7 @@ const main = async () => {
 
       console.log(`Executing ${func.name}...`);
       await func();
+      // process.exit();
     }
   } catch (err) {
     console.error('An error occurred:', err);
