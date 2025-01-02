@@ -6,6 +6,13 @@ const task = {
     return db(PROJECT_TABLE).select();
   },
 
+  listAllByDate: date => {
+    return db(PROJECT_TABLE)
+      .select()
+      .where('start', '>=', date)
+      .andWhere('end', '<', `${date} 23:59:59`);
+  },
+
   create: ({start, end, title, projectId}) => {
     return db(PROJECT_TABLE).insert({
       title,
@@ -19,7 +26,7 @@ const task = {
     return db(PROJECT_TABLE).select().where('id', id);
   },
 
-  edit: ({id, start, end, title,time, projectId}) => {
+  edit: ({id, start, end, title, time, projectId}) => {
     return db(PROJECT_TABLE).where({id}).update({
       title,
       end,

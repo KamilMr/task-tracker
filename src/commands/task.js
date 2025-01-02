@@ -4,10 +4,7 @@ import projectModel from '../models/project.js';
 import taskService from '../services/taskService.js';
 import {isDateInvalid, isTaskInvalid} from '../../validation.js';
 import {selectAllProjects} from './project.js';
-import {getFormatedDate} from '../utils.js';
-const clearTerminal = () => {
-  process.stdout.write('\x1Bc'); // This escape character clears the terminal
-};
+import {getFormatedDate, clearTerminal, formatNumbToHHMMss} from '../utils.js';
 
 const createTask = async earlyStop => {
   if (!(await projectModel.isProject())) return;
@@ -284,7 +281,7 @@ const timer = async () => {
         Math.floor(new Date().getTime() / 1000) -
         Math.floor(new Date(task.start).getTime() / 1000);
       clearTerminal();
-      console.log(currTime);
+      console.log(`task: ${task} and time: ${formatNumbToHHMMss(currTime)}`);
     }, 1000);
 
     process.stdin.resume();
