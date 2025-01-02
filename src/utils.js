@@ -45,3 +45,7 @@ export const formatNumbToHHMMss = time => {
 
   return `${hours} h ${minutes} min ${seconds} sec`;
 };
+
+export const clearTerminal = () => {
+  process.stdout.write('\x1Bc'); // This escape character clears the terminal
+};

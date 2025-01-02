@@ -3,8 +3,11 @@ import {formatNumbToHHMMss, mapToCamel} from '../utils.js';
 import projectService from './projectService.js';
 
 const summaryService = {
-  summaryByTask: async () => {
-    let tasks = await task.listAll();
+  summaryByTask: async date => {
+    if (!date) {
+      date = new Date().toISOString().split('T')[0];
+    }
+    let tasks = await task.listAllByDate(date);
     tasks = tasks.map(task => mapToCamel(task));
 
     const total = {start: 0, end: 0, time: 0};

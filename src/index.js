@@ -23,12 +23,13 @@ import {
   timer,
 } from './commands/task.js';
 import {summary} from './commands/summary.js';
+import {clearTerminal} from './utils.js';
 
 program.version('1.0.0');
 
 const mappedActions = {
   'Start timer': timer,
-  'Summary today': summary,
+  'Summary selected date': summary,
   'Add client': createClient,
   'Add project': createProject,
   'Add task': createTask,
@@ -47,6 +48,7 @@ const mappedActions = {
 };
 
 const main = async () => {
+  clearTerminal();
   try {
     while (true) {
       const action = await search({
