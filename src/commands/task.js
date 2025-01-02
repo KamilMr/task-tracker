@@ -281,7 +281,7 @@ const timer = async () => {
         Math.floor(new Date().getTime() / 1000) -
         Math.floor(new Date(task.start).getTime() / 1000);
       clearTerminal();
-      console.log(`task: ${task} and time: ${formatNumbToHHMMss(currTime)}`);
+      console.log(`task: ${task.title} and time: ${formatNumbToHHMMss(currTime)}`);
     }, 1000);
 
     process.stdin.resume();
