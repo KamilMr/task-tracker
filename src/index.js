@@ -22,11 +22,13 @@ import {
   selectAllTasks,
   timer,
 } from './commands/task.js';
+import {summary} from './commands/summary.js';
 
 program.version('1.0.0');
 
 const mappedActions = {
   'Start timer': timer,
+  'Summary today': summary,
   'Add client': createClient,
   'Add project': createProject,
   'Add task': createTask,
