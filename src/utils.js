@@ -49,3 +49,8 @@ export const formatNumbToHHMMss = time => {
 export const clearTerminal = () => {
   process.stdout.write('\x1Bc'); // This escape character clears the terminal
 };
+
+export const convToTss = (date = new Date()) => {
+  return Math.floor(new Date(date).getTime() / 1000);
+};
+

@@ -1,5 +1,5 @@
 import task from '../models/task.js';
-import {formatNumbToHHMMss, mapToCamel} from '../utils.js';
+import {convToTss, formatNumbToHHMMss, mapToCamel} from '../utils.js';
 import projectService from './projectService.js';
 
 const summaryService = {
@@ -18,6 +18,7 @@ const summaryService = {
 
       task.start = task.start.toString().slice(0, 24);
       task.end = task.end.toString().slice(0, 24);
+      task.time = convToTss(task.end) - convToTss(task.start);
 
       total.time += task.time;
       task.time = formatNumbToHHMMss(task.time);
@@ -26,8 +27,7 @@ const summaryService = {
     }
     total.time = formatNumbToHHMMss(total.time);
 
-    tasks.push(total);
-    console.table(tasks);
+    return {tasks, total: total.time};
   },
 };
 

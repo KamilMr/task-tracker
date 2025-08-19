@@ -6,11 +6,18 @@
   "author": "kamil.mrowka@gmail.com",
   "type": "module",
   "license": "ISC",
+  "bin": "dist/cli.js",
   "main": "index.js",
   "scripts": {
     "migrate": "npx knex migrate:latest --knexfile src/db/knexfile.js",
+    "build": "babel --out-dir=dist --watch src",
+    "start": "node --watch dist/app.js",
+    "dev": "./scripts/start.sh",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "files": [
+    "dist"
+  ],
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/KamilMr/task-tracker.git"
@@ -24,12 +31,20 @@
     "url": "https://github.com/KamilMr/task-tracker/issues"
   },
   "dependencies": {
-    "@inquirer/prompts": "^5.3.8",
+    "@inquirer/prompts": "^5.5.0",
     "commander": "^12.1.0",
-    "dotenv": "^16.4.5",
+    "dotenv": "^16.5.0",
+    "ink": "^5.2.1",
+    "ink-select-input": "^6.2.0",
+    "ink-table": "^3.1.0",
     "knex": "^3.1.0",
     "lodash": "^4.17.21",
-    "mysql2": "^3.11.0",
-    "yup": "^1.4.0"
+    "mysql2": "^3.14.1",
+    "react": "^18.3.1",
+    "yup": "^1.6.1"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.27.2",
+    "@babel/preset-react": "^7.27.1"
   }
 }

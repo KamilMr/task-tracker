@@ -22,6 +22,10 @@ const task = {
     });
   },
 
+  selectActiveTask: () => {
+    return db(PROJECT_TABLE).select().whereNull('end').first();
+  },
+
   selectById: id => {
     return db(PROJECT_TABLE).select().where('id', id);
   },
