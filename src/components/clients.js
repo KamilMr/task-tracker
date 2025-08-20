@@ -1,7 +1,7 @@
 import React from 'react';
 import {Text, Box} from 'ink';
 
-const CommandsView = () => {
+const Clients = () => {
   return (
     <Box flexDirection="column" padding={1}>
       <Text bold>Basic Commands:</Text>
@@ -13,4 +13,4 @@ const CommandsView = () => {
   );
 };
 
-export default CommandsView;
+export default Clients;

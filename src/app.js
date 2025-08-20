@@ -1,16 +1,51 @@
-#!/usr/bin/env node
+import React, {useEffect} from 'react';
+import {Text, Box} from 'ink';
+import Client from './components/clients.js';
+import DetailsView from './components/detailsView.js';
+import {NavigationProvider, useNavigation} from './contexts/NavigationContext.js';
 
-import React from 'react';
+const Clock = () => {
+  const [time, setTime] = React.useState(new Date().toLocaleTimeString());
+  useEffect(() => {
+    // create a simle clock here
+    const interval = setInterval(() => {
+      setTime(new Date().toLocaleTimeString());
+    }, 1000);
 
-import {program} from 'commander';
+    return () => {
+      clearInterval(interval);
+    };
+  }, []);
 
-import {clearTerminal} from './utils.js';
+  return <Text color="green">{time}</Text>;
+};
 
-program.version('1.0.0');
+const AppContent = () => {
+  const {isCommandsFocused, isSummaryFocused} = useNavigation();
+  
+  return (
+    <Box flexDirection="column">
+      <Box>
+        <Box 
+          marginLeft={1} 
+          borderStyle={isCommandsFocused ? 'round' : 'single'} 
+          borderColor={isCommandsFocused ? 'green' : 'gray'}> 
+          <Client />
+        </Box>
+      </Box>
+      <Box marginTop={2} borderStyle={isSummaryFocused ? 'round' : 'single'} borderColor={isSummaryFocused ? 'green' : 'gray'}>
+        <DetailsView />
+      </Box>
+    </Box>
+  );
+};
 
-import {render} from 'ink';
-import Main from './views/main.js';
+const App = () => {
+  return (
+    <NavigationProvider>
+      <AppContent />
+    </NavigationProvider>
+  );
+};
 
-
-clearTerminal();
-render(<Main />);
+export default App;
