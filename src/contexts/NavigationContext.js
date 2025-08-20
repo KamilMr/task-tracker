@@ -1,6 +1,6 @@
 import React, {createContext, useContext, useState} from 'react';
 import {useInput, useApp} from 'ink';
-import {COMMANDS, SUMMARY, mapViewsToNum} from '../consts.js';
+import {VIEW, CLIENT, PROJECTS, TASKS, mapViewsToNum} from '../consts.js';
 
 const NavigationContext = createContext();
 
@@ -13,7 +13,7 @@ export const useNavigation = () => {
 };
 
 export const NavigationProvider = ({children}) => {
-  const [focusedSection, setFocusedSection] = useState(COMMANDS);
+  const [focusedSection, setFocusedSection] = useState(CLIENT);
   const {exit} = useApp();
 
   useInput((input, key) => {
@@ -22,23 +22,36 @@ export const NavigationProvider = ({children}) => {
     }
 
     if (key.tab) {
-      setFocusedSection(prev => (prev === COMMANDS ? SUMMARY : COMMANDS));
+      const sections = [VIEW, CLIENT, PROJECTS, TASKS];
+      const currentIndex = sections.indexOf(focusedSection);
+      const nextIndex = (currentIndex + 1) % sections.length;
+      setFocusedSection(sections[nextIndex]);
+    }
+
+    if (input === '0') {
+      setFocusedSection(VIEW);
     }
 
     if (input === '1') {
-      setFocusedSection(COMMANDS);
+      setFocusedSection(CLIENT);
     }
 
     if (input === '2') {
-      setFocusedSection(SUMMARY);
+      setFocusedSection(PROJECTS);
+    }
+
+    if (input === '3') {
+      setFocusedSection(TASKS);
     }
   });
 
   const value = {
     focusedSection,
     currentView: mapViewsToNum[focusedSection],
-    isCommandsFocused: focusedSection === COMMANDS,
-    isSummaryFocused: focusedSection === SUMMARY,
+    isViewFocused: focusedSection === VIEW,
+    isClientFocused: focusedSection === CLIENT,
+    isProjectsFocused: focusedSection === PROJECTS,
+    isTasksFocused: focusedSection === TASKS,
   };
 
   return (

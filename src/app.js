@@ -33,7 +33,6 @@ const RightColumn = ({children}) => {
 };
 
 const AppContent = () => {
-  const {isCommandsFocused, isSummaryFocused} = useNavigation();
 
   return (
     <Box>

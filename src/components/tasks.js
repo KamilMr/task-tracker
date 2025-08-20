@@ -1,9 +1,14 @@
 import React from 'react';
 import {Text, Box} from 'ink';
+import {useNavigation} from '../contexts/NavigationContext.js';
+import {BORDER_COLOR_DEFAULT, BORDER_COLOR_FOCUSED} from '../consts.js';
 
 const Tasks = () => {
+  const {isTasksFocused} = useNavigation();
+  const borderColor = isTasksFocused ? BORDER_COLOR_FOCUSED : BORDER_COLOR_DEFAULT;
+
   return (
-    <Box borderColor="blue" borderStyle={'round'} height={20}>
+    <Box borderColor={borderColor} borderStyle={'round'} height={20}>
       <Text bold>Tasks:</Text>
     </Box>
   );
