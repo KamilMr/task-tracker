@@ -1,16 +1,12 @@
 import React from 'react';
 import {Text, Box} from 'ink';
 
-const Clients = () => {
+const Client = () => {
   return (
-    <Box flexDirection="column" padding={1}>
-      <Text bold>Basic Commands:</Text>
-      <Text>• Create task: task create</Text>
-      <Text>• Remove task: task remove</Text>
-      <Text>• List tasks: task list</Text>
-      <Text>• Update task: task update</Text>
+    <Box borderColor="gray" borderStyle={'round'}>
+      <Text>Client</Text>
     </Box>
   );
 };
 
-export default Clients;
+export default Client;

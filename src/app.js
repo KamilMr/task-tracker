@@ -1,7 +1,9 @@
 import React, {useEffect} from 'react';
 import {Text, Box} from 'ink';
 import Client from './components/clients.js';
-import DetailsView from './components/detailsView.js';
+import Projects from './components/projects.js';
+import Tasks from './components/tasks.js';
+import View from './components/view.js';
 import {
   NavigationProvider,
   useNavigation,
@@ -23,27 +25,28 @@ const Clock = () => {
   return <Text color="green">{time}</Text>;
 };
 
+const LeftColumn = ({children}) => {
+  return <Box width={'40%'}>{children}</Box>;
+};
+const RightColumn = ({children}) => {
+  return <Box width={'100%'}>{children}</Box>;
+};
+
 const AppContent = () => {
   const {isCommandsFocused, isSummaryFocused} = useNavigation();
 
   return (
-    <Box flexDirection="column">
-      <Box>
-        <Box
-          marginLeft={1}
-          borderStyle={isCommandsFocused ? 'round' : 'single'}
-          borderColor={isCommandsFocused ? 'green' : 'gray'}
-        >
+    <Box>
+      <LeftColumn>
+        <Box flexDirection="column" width={'100%'}>
           <Client />
+          <Projects />
+          <Tasks />
         </Box>
-      </Box>
-      <Box
-        marginTop={2}
-        borderStyle={isSummaryFocused ? 'round' : 'single'}
-        borderColor={isSummaryFocused ? 'green' : 'gray'}
-      >
-        <DetailsView />
-      </Box>
+      </LeftColumn>
+      <RightColumn>
+        <View />
+      </RightColumn>
     </Box>
   );
 };
