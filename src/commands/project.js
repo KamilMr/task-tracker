@@ -15,12 +15,10 @@ const createProject = async () => {
   const name = await inquirer.input({
     message: 'What is the name of the project?',
     validate: input => {
-      
       let resp;
       if ((resp = isProjectInvalid(input))) return resp;
 
       return true;
-
     },
   });
 
@@ -82,8 +80,7 @@ const editProject = async () => {
       if ((resp = isProjectInvalid(input))) return resp;
 
       return true;
-
-    }
+    },
   });
 
   const project = data.find(c => c.name === name);
@@ -121,15 +118,15 @@ const deleteProject = async () => {
       if ((resp = isConfirmationInvalid(input.toLowerCase()))) return resp;
 
       return true;
-
     },
   });
-  
-  if(confirmation.toLowerCase()==='yes' || confirmation.toLowerCase()==='y')
-  {
+
+  if (
+    confirmation.toLowerCase() === 'yes' ||
+    confirmation.toLowerCase() === 'y'
+  ) {
     const project = data.find(c => c.name === name);
     await projectService.delete(project);
-      
   }
 };
 

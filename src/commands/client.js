@@ -3,7 +3,6 @@ import * as inquirer from '@inquirer/prompts';
 import clientService from '../services/clientService.js';
 import {isClientInvalid, isConfirmationInvalid} from '../../validation.js';
 
-
 const createClient = async () => {
   const name = await inquirer.input({
     message: 'What is the client name?',
@@ -17,7 +16,6 @@ const createClient = async () => {
 
       return true;
     },
-
   });
   if (!name) return;
   await clientService.create(name);
@@ -60,12 +58,13 @@ const deleteClient = async () => {
       if ((resp = isConfirmationInvalid(input.toLowerCase()))) return resp;
 
       return true;
-
     },
   });
-  
-  if(confirmation.toLowerCase()==='yes' || confirmation.toLowerCase()==='y')
-  {
+
+  if (
+    confirmation.toLowerCase() === 'yes' ||
+    confirmation.toLowerCase() === 'y'
+  ) {
     const resp = await clientService.delete(clients.find(c => c.name === name));
     return resp;
   }
@@ -82,7 +81,8 @@ const editClient = async () => {
         .map(f => ({
           name: f,
           value: f,
-        })).concat({name: 'Stop', value: 'Stop'});
+        }))
+        .concat({name: 'Stop', value: 'Stop'});
       if (!input) return choices;
       return choices.filter(choice =>
         choice.name.toLowerCase().includes(input.toLowerCase()),
@@ -104,7 +104,6 @@ const editClient = async () => {
       if ((resp = isClientInvalid(input))) return resp;
 
       return true;
-
     },
   });
 

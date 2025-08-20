@@ -53,4 +53,3 @@ export const clearTerminal = () => {
 export const convToTss = (date = new Date()) => {
   return Math.floor(new Date(date).getTime() / 1000);
 };
-

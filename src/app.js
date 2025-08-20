@@ -2,7 +2,10 @@ import React, {useEffect} from 'react';
 import {Text, Box} from 'ink';
 import Client from './components/clients.js';
 import DetailsView from './components/detailsView.js';
-import {NavigationProvider, useNavigation} from './contexts/NavigationContext.js';
+import {
+  NavigationProvider,
+  useNavigation,
+} from './contexts/NavigationContext.js';
 
 const Clock = () => {
   const [time, setTime] = React.useState(new Date().toLocaleTimeString());
@@ -22,18 +25,23 @@ const Clock = () => {
 
 const AppContent = () => {
   const {isCommandsFocused, isSummaryFocused} = useNavigation();
-  
+
   return (
     <Box flexDirection="column">
       <Box>
-        <Box 
-          marginLeft={1} 
-          borderStyle={isCommandsFocused ? 'round' : 'single'} 
-          borderColor={isCommandsFocused ? 'green' : 'gray'}> 
+        <Box
+          marginLeft={1}
+          borderStyle={isCommandsFocused ? 'round' : 'single'}
+          borderColor={isCommandsFocused ? 'green' : 'gray'}
+        >
           <Client />
         </Box>
       </Box>
-      <Box marginTop={2} borderStyle={isSummaryFocused ? 'round' : 'single'} borderColor={isSummaryFocused ? 'green' : 'gray'}>
+      <Box
+        marginTop={2}
+        borderStyle={isSummaryFocused ? 'round' : 'single'}
+        borderColor={isSummaryFocused ? 'green' : 'gray'}
+      >
         <DetailsView />
       </Box>
     </Box>

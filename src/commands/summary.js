@@ -14,14 +14,14 @@ const buildDateChoices = () => {
   }
 
   return dates;
-}
+};
 
 const summary = async () => {
   const choices = buildDateChoices();
   const date = await inquirer.select({
     message: 'Select date for summary',
     choices,
-  })
+  });
 
   await summaryService.summaryByTask(date);
 };

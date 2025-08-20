@@ -20,9 +20,9 @@ export const NavigationProvider = ({children}) => {
     if (input === 'q') {
       exit();
     }
-    
+
     if (key.tab) {
-      setFocusedSection(prev => prev === COMMANDS ? SUMMARY : COMMANDS);
+      setFocusedSection(prev => (prev === COMMANDS ? SUMMARY : COMMANDS));
     }
 
     if (input === '1') {
@@ -38,7 +38,7 @@ export const NavigationProvider = ({children}) => {
     focusedSection,
     currentView: mapViewsToNum[focusedSection],
     isCommandsFocused: focusedSection === COMMANDS,
-    isSummaryFocused: focusedSection === SUMMARY
+    isSummaryFocused: focusedSection === SUMMARY,
   };
 
   return (

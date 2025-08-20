@@ -13,6 +13,7 @@
     "build": "babel --out-dir=dist --watch src",
     "start": "node --watch dist/index.js",
     "dev": "./scripts/start.sh",
+    "format": "prettier --write .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "files": [
@@ -45,6 +46,7 @@
   },
   "devDependencies": {
     "@babel/cli": "^7.27.2",
-    "@babel/preset-react": "^7.27.1"
+    "@babel/preset-react": "^7.27.1",
+    "prettier": "^3.6.2"
   }
 }
