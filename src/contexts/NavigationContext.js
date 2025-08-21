@@ -1,4 +1,4 @@
-import React, {createContext, useContext, useState, useRef} from 'react';
+import React, {createContext, useContext, useState, useRef, useEffect} from 'react';
 import {useInput, useApp} from 'ink';
 import {
   VIEW,
@@ -8,6 +8,7 @@ import {
   mapViewsToNum,
   componentTitles,
 } from '../consts.js';
+import clientService from '../services/clientService.js';
 
 const NavigationContext = createContext();
 
@@ -22,8 +23,26 @@ export const useNavigation = () => {
 export const NavigationProvider = ({children}) => {
   const [focusedSection, setFocusedSection] = useState(CLIENT);
   const [mode, setMode] = useState('normal'); // 'normal' or 'insert'
+  const [clients, setClients] = useState([]);
+  const [selectedClientId, setSelectedClientId] = useState(null);
   const {exit} = useApp();
   const componentKeyHandlers = useRef(new Map());
+
+  // Load clients on mount
+  useEffect(() => {
+    const loadClients = async () => {
+      try {
+        const clientData = await clientService.selectAll();
+        setClients(clientData);
+        if (clientData.length > 0) {
+          setSelectedClientId(clientData[0].id);
+        }
+      } catch (error) {
+        console.error('Failed to load clients:', error);
+      }
+    };
+    loadClients();
+  }, []);
 
   useInput((input, key) => {
     // Global vim-like mode switching (always works)
@@ -88,6 +107,38 @@ export const NavigationProvider = ({children}) => {
     return `[${navKey}] ${title}`;
   };
 
+  const getSelectedClient = () => {
+    return clients.find(client => client.id === selectedClientId) || null;
+  };
+
+  const selectNextClient = () => {
+    const currentIndex = clients.findIndex(client => client.id === selectedClientId);
+    const nextIndex = currentIndex < clients.length - 1 ? currentIndex + 1 : 0;
+    if (clients[nextIndex]) {
+      setSelectedClientId(clients[nextIndex].id);
+    }
+  };
+
+  const selectPreviousClient = () => {
+    const currentIndex = clients.findIndex(client => client.id === selectedClientId);
+    const prevIndex = currentIndex > 0 ? currentIndex - 1 : clients.length - 1;
+    if (clients[prevIndex]) {
+      setSelectedClientId(clients[prevIndex].id);
+    }
+  };
+
+  const reloadClients = async () => {
+    try {
+      const clientData = await clientService.selectAll();
+      setClients(clientData);
+      if (clientData.length > 0 && !selectedClientId) {
+        setSelectedClientId(clientData[0].id);
+      }
+    } catch (error) {
+      console.error('Failed to reload clients:', error);
+    }
+  };
+
   const value = {
     focusedSection,
     currentView: mapViewsToNum[focusedSection],
@@ -100,6 +151,13 @@ export const NavigationProvider = ({children}) => {
     registerKeyHandler,
     unregisterKeyHandler,
     getBorderTitle,
+    clients,
+    selectedClientId,
+    getSelectedClient,
+    selectNextClient,
+    selectPreviousClient,
+    setSelectedClientId,
+    reloadClients,
   };
 
   return (
