@@ -19,6 +19,7 @@ const Client = () => {
   } = useNavigation();
   const [message, setMessage] = useState('');
   const [isAdding, setIsAdding] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const selectedClient = getSelectedClient();
 
   const borderColor = isClientFocused
@@ -36,7 +37,12 @@ const Client = () => {
   };
 
   const handleDeleteClient = () => {
-    setMessage('Delete client action triggered');
+    if (selectedClient) {
+      setIsDeleting(true);
+      setMessage('');
+    } else {
+      setMessage('No client selected to delete');
+    }
   };
 
   const handleClientSubmit = async (clientName) => {
@@ -60,6 +66,32 @@ const Client = () => {
   const handleClientCancel = () => {
     setIsAdding(false);
     setMessage('');
+  };
+
+  const handleDeleteConfirm = async (confirmation) => {
+    if (confirmation.toLowerCase() === 'y' || confirmation.toLowerCase() === 'yes') {
+      try {
+        await clientService.delete(selectedClient);
+        await reloadClients();
+        const updatedClients = await clientService.selectAll();
+        if (updatedClients.length > 0) {
+          setSelectedClientId(updatedClients[0].id);
+        } else {
+          setSelectedClientId(null);
+        }
+        setMessage('Client deleted successfully');
+      } catch (error) {
+        setMessage('Failed to delete client');
+      }
+    } else {
+      setMessage('Delete cancelled');
+    }
+    setIsDeleting(false);
+  };
+
+  const handleDeleteCancel = () => {
+    setIsDeleting(false);
+    setMessage('Delete cancelled');
   };
 
   const handleNavigateDown = () => {
@@ -109,6 +141,14 @@ const Client = () => {
           <BasicTextInput
             onSubmit={handleClientSubmit}
             onCancel={handleClientCancel}
+          />
+        </Box>
+      ) : isDeleting ? (
+        <Box flexDirection="column">
+          <Text color="red">Delete "{selectedClient?.name}"? (y/n):</Text>
+          <BasicTextInput
+            onSubmit={handleDeleteConfirm}
+            onCancel={handleDeleteCancel}
           />
         </Box>
       ) : (
