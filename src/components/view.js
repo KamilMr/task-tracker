@@ -3,18 +3,22 @@ import {Text, Box} from 'ink';
 import {useNavigation} from '../contexts/NavigationContext.js';
 import {BORDER_COLOR_DEFAULT, BORDER_COLOR_FOCUSED, VIEW} from '../consts.js';
 import projectService from '../services/projectService.js';
+import taskService from '../services/taskService.js';
 
 const View = () => {
   const {
     isViewFocused,
     isClientFocused,
     isProjectsFocused,
+    isTasksFocused,
     getBorderTitle,
     clients,
     selectedClientId,
     selectedProjectId,
+    selectedTaskId,
   } = useNavigation();
   const [allProjects, setAllProjects] = useState([]);
+  const [allTasks, setAllTasks] = useState([]);
 
   // Load all projects when projects section is focused
   useEffect(() => {
@@ -30,6 +34,25 @@ const View = () => {
       loadAllProjects();
     }
   }, [isProjectsFocused]);
+
+  // Load all tasks when tasks section is focused
+  useEffect(() => {
+    if (isTasksFocused) {
+      const loadAllTasks = async () => {
+        try {
+          const [taskData, projectData] = await Promise.all([
+            taskService.selectAll(),
+            projectService.selectAll()
+          ]);
+          setAllTasks(taskData);
+          setAllProjects(projectData);
+        } catch (error) {
+          console.error('Failed to load all tasks:', error);
+        }
+      };
+      loadAllTasks();
+    }
+  }, [isTasksFocused]);
 
   const borderColor = isViewFocused
     ? BORDER_COLOR_FOCUSED
@@ -76,6 +99,35 @@ const View = () => {
                 {project.id === selectedProjectId ? '• ' : '  '}
                 {project.name}
                 {client && <Text dimColor> ({client.name})</Text>}
+              </Text>
+            );
+          })}
+        </Box>
+      );
+    }
+
+    if (isTasksFocused) {
+      if (allTasks.length === 0) {
+        return <Text dimColor>No tasks found</Text>;
+      }
+      
+      return (
+        <Box flexDirection="column">
+          <Text color="cyan" bold>
+            All Tasks:
+          </Text>
+          {allTasks.map(task => {
+            const project = allProjects.find(p => p.id === task.project_id);
+            const client = clients.find(c => c.id === project?.client_id);
+            return (
+              <Text
+                key={task.id}
+                color={task.id === selectedTaskId ? 'green' : 'white'}
+              >
+                {task.id === selectedTaskId ? '• ' : '  '}
+                {task.title}
+                {project && <Text dimColor> ({project.name}</Text>}
+                {client && <Text dimColor> - {client.name})</Text>}
               </Text>
             );
           })}

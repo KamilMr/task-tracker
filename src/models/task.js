@@ -30,6 +30,10 @@ const task = {
     return db(PROJECT_TABLE).select().where('id', id);
   },
 
+  selectByProjectId: projectId => {
+    return db(PROJECT_TABLE).select().where('project_id', projectId);
+  },
+
   edit: ({id, start, end, title, time, projectId}) => {
     return db(PROJECT_TABLE).where({id}).update({
       title,

@@ -36,6 +36,10 @@ const taskService = {
     return taskModel.selectById(id);
   },
 
+  selectByProjectId: projectId => {
+    return taskModel.selectByProjectId(projectId);
+  },
+
   update: async data => {
     const project = await projectModel.selectProject(data.projectId);
     if (!project) throw 'Project does not exist';

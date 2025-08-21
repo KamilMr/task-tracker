@@ -10,6 +10,7 @@ import {
 } from '../consts.js';
 import clientService from '../services/clientService.js';
 import projectService from '../services/projectService.js';
+import taskService from '../services/taskService.js';
 
 const NavigationContext = createContext();
 
@@ -28,6 +29,8 @@ export const NavigationProvider = ({children}) => {
   const [selectedClientId, setSelectedClientId] = useState(null);
   const [projects, setProjects] = useState([]);
   const [selectedProjectId, setSelectedProjectId] = useState(null);
+  const [tasks, setTasks] = useState([]);
+  const [selectedTaskId, setSelectedTaskId] = useState(null);
   const {exit} = useApp();
   const componentKeyHandlers = useRef(new Map());
 
@@ -69,6 +72,29 @@ export const NavigationProvider = ({children}) => {
     };
     loadProjects();
   }, [selectedClientId]);
+
+  // Load tasks when selected project changes
+  useEffect(() => {
+    const loadTasks = async () => {
+      if (selectedProjectId) {
+        try {
+          const taskData = await taskService.selectByProjectId(selectedProjectId);
+          setTasks(taskData);
+          if (taskData.length > 0) {
+            setSelectedTaskId(taskData[0].id);
+          } else {
+            setSelectedTaskId(null);
+          }
+        } catch (error) {
+          console.error('Failed to load tasks:', error);
+        }
+      } else {
+        setTasks([]);
+        setSelectedTaskId(null);
+      }
+    };
+    loadTasks();
+  }, [selectedProjectId]);
 
   useInput((input, key) => {
     // Global vim-like mode switching (always works)
@@ -199,6 +225,40 @@ export const NavigationProvider = ({children}) => {
     }
   };
 
+  const getSelectedTask = () => {
+    return tasks.find(task => task.id === selectedTaskId) || null;
+  };
+
+  const selectNextTask = () => {
+    const currentIndex = tasks.findIndex(task => task.id === selectedTaskId);
+    const nextIndex = currentIndex < tasks.length - 1 ? currentIndex + 1 : 0;
+    if (tasks[nextIndex]) {
+      setSelectedTaskId(tasks[nextIndex].id);
+    }
+  };
+
+  const selectPreviousTask = () => {
+    const currentIndex = tasks.findIndex(task => task.id === selectedTaskId);
+    const prevIndex = currentIndex > 0 ? currentIndex - 1 : tasks.length - 1;
+    if (tasks[prevIndex]) {
+      setSelectedTaskId(tasks[prevIndex].id);
+    }
+  };
+
+  const reloadTasks = async () => {
+    if (selectedProjectId) {
+      try {
+        const taskData = await taskService.selectByProjectId(selectedProjectId);
+        setTasks(taskData);
+        if (taskData.length > 0 && !selectedTaskId) {
+          setSelectedTaskId(taskData[0].id);
+        }
+      } catch (error) {
+        console.error('Failed to reload tasks:', error);
+      }
+    }
+  };
+
   const value = {
     focusedSection,
     currentView: mapViewsToNum[focusedSection],
@@ -225,6 +285,13 @@ export const NavigationProvider = ({children}) => {
     selectPreviousProject,
     setSelectedProjectId,
     reloadProjects,
+    tasks,
+    selectedTaskId,
+    getSelectedTask,
+    selectNextTask,
+    selectPreviousTask,
+    setSelectedTaskId,
+    reloadTasks,
   };
 
   return (
