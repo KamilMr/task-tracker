@@ -2,14 +2,14 @@ import React, {useState, useEffect} from 'react';
 import {Text, useInput} from 'ink';
 import {useNavigation} from '../contexts/NavigationContext.js';
 
-const BasicTextInput = ({onSubmit, onCancel}) => {
-  const [value, setValue] = useState('');
+const BasicTextInput = ({defaultValue = '', onSubmit, onCancel}) => {
+  const [value, setValue] = useState(defaultValue);
   const {setMode} = useNavigation();
 
   useEffect(() => {
     setMode('insert');
-    setValue('');
-  }, [setMode]);
+    setValue(defaultValue);
+  }, [setMode, defaultValue]);
 
   useInput((input, key) => {
     if (key.return) {

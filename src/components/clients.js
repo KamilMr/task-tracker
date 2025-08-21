@@ -20,6 +20,7 @@ const Client = () => {
   const [message, setMessage] = useState('');
   const [isAdding, setIsAdding] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const selectedClient = getSelectedClient();
 
   const borderColor = isClientFocused
@@ -33,7 +34,12 @@ const Client = () => {
   };
 
   const handleEditClient = () => {
-    setMessage('Edit client action triggered');
+    if (selectedClient) {
+      setIsEditing(true);
+      setMessage('');
+    } else {
+      setMessage('No client selected to edit');
+    }
   };
 
   const handleDeleteClient = () => {
@@ -94,6 +100,31 @@ const Client = () => {
     setMessage('Delete cancelled');
   };
 
+  const handleEditSubmit = async (newName) => {
+    if (newName.trim() && selectedClient) {
+      try {
+        await clientService.update(selectedClient.id, newName.trim());
+        await reloadClients();
+        const updatedClients = await clientService.selectAll();
+        const updatedClient = updatedClients.find(c => c.id === selectedClient.id);
+        if (updatedClient) {
+          setSelectedClientId(updatedClient.id);
+        }
+        setMessage('Client renamed successfully');
+      } catch (error) {
+        setMessage('Failed to rename client');
+      }
+    } else {
+      setMessage('Invalid client name');
+    }
+    setIsEditing(false);
+  };
+
+  const handleEditCancel = () => {
+    setIsEditing(false);
+    setMessage('Edit cancelled');
+  };
+
   const handleNavigateDown = () => {
     selectNextClient();
     setMessage('');
@@ -149,6 +180,15 @@ const Client = () => {
           <BasicTextInput
             onSubmit={handleDeleteConfirm}
             onCancel={handleDeleteCancel}
+          />
+        </Box>
+      ) : isEditing ? (
+        <Box flexDirection="column">
+          <Text>Edit client name:</Text>
+          <BasicTextInput
+            defaultValue={selectedClient?.name || ''}
+            onSubmit={handleEditSubmit}
+            onCancel={handleEditCancel}
           />
         </Box>
       ) : (
