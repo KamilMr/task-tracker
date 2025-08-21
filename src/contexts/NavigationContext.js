@@ -9,6 +9,7 @@ import {
   componentTitles,
 } from '../consts.js';
 import clientService from '../services/clientService.js';
+import projectService from '../services/projectService.js';
 
 const NavigationContext = createContext();
 
@@ -25,6 +26,8 @@ export const NavigationProvider = ({children}) => {
   const [mode, setMode] = useState('normal'); // 'normal' or 'insert'
   const [clients, setClients] = useState([]);
   const [selectedClientId, setSelectedClientId] = useState(null);
+  const [projects, setProjects] = useState([]);
+  const [selectedProjectId, setSelectedProjectId] = useState(null);
   const {exit} = useApp();
   const componentKeyHandlers = useRef(new Map());
 
@@ -43,6 +46,29 @@ export const NavigationProvider = ({children}) => {
     };
     loadClients();
   }, []);
+
+  // Load projects when selected client changes
+  useEffect(() => {
+    const loadProjects = async () => {
+      if (selectedClientId) {
+        try {
+          const projectData = await projectService.selectByCliId(selectedClientId);
+          setProjects(projectData);
+          if (projectData.length > 0) {
+            setSelectedProjectId(projectData[0].id);
+          } else {
+            setSelectedProjectId(null);
+          }
+        } catch (error) {
+          console.error('Failed to load projects:', error);
+        }
+      } else {
+        setProjects([]);
+        setSelectedProjectId(null);
+      }
+    };
+    loadProjects();
+  }, [selectedClientId]);
 
   useInput((input, key) => {
     // Global vim-like mode switching (always works)
@@ -139,6 +165,40 @@ export const NavigationProvider = ({children}) => {
     }
   };
 
+  const getSelectedProject = () => {
+    return projects.find(project => project.id === selectedProjectId) || null;
+  };
+
+  const selectNextProject = () => {
+    const currentIndex = projects.findIndex(project => project.id === selectedProjectId);
+    const nextIndex = currentIndex < projects.length - 1 ? currentIndex + 1 : 0;
+    if (projects[nextIndex]) {
+      setSelectedProjectId(projects[nextIndex].id);
+    }
+  };
+
+  const selectPreviousProject = () => {
+    const currentIndex = projects.findIndex(project => project.id === selectedProjectId);
+    const prevIndex = currentIndex > 0 ? currentIndex - 1 : projects.length - 1;
+    if (projects[prevIndex]) {
+      setSelectedProjectId(projects[prevIndex].id);
+    }
+  };
+
+  const reloadProjects = async () => {
+    if (selectedClientId) {
+      try {
+        const projectData = await projectService.selectByCliId(selectedClientId);
+        setProjects(projectData);
+        if (projectData.length > 0 && !selectedProjectId) {
+          setSelectedProjectId(projectData[0].id);
+        }
+      } catch (error) {
+        console.error('Failed to reload projects:', error);
+      }
+    }
+  };
+
   const value = {
     focusedSection,
     currentView: mapViewsToNum[focusedSection],
@@ -158,6 +218,13 @@ export const NavigationProvider = ({children}) => {
     selectPreviousClient,
     setSelectedClientId,
     reloadClients,
+    projects,
+    selectedProjectId,
+    getSelectedProject,
+    selectNextProject,
+    selectPreviousProject,
+    setSelectedProjectId,
+    reloadProjects,
   };
 
   return (
