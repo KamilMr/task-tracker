@@ -1,4 +1,4 @@
-import React, {createContext, useContext, useState} from 'react';
+import React, {createContext, useContext, useState, useRef} from 'react';
 import {useInput, useApp} from 'ink';
 import {
   VIEW,
@@ -21,13 +21,28 @@ export const useNavigation = () => {
 
 export const NavigationProvider = ({children}) => {
   const [focusedSection, setFocusedSection] = useState(CLIENT);
+  const [mode, setMode] = useState('normal'); // 'normal' or 'insert'
   const {exit} = useApp();
+  const componentKeyHandlers = useRef(new Map());
 
   useInput((input, key) => {
-    if (input === 'q') {
-      exit();
+    // Global vim-like mode switching (always works)
+    if (key.escape) {
+      setMode('normal');
+      return;
     }
 
+    if (input === 'i') {
+      setMode('insert');
+      return;
+    }
+
+    if (input === 'q' && mode === 'normal') exit();
+
+    // All other keys only work in normal mode
+    if (mode !== 'normal') return;
+
+    // Navigation keys (normal mode only)
     if (key.tab) {
       const sections = [VIEW, CLIENT, PROJECTS, TASKS];
       const currentIndex = sections.indexOf(focusedSection);
@@ -50,7 +65,22 @@ export const NavigationProvider = ({children}) => {
     if (input === '3') {
       setFocusedSection(TASKS);
     }
+
+    // Component-specific handlers (normal mode only)
+    const currentHandler = componentKeyHandlers.current.get(focusedSection);
+    if (currentHandler && currentHandler[input]) {
+      currentHandler[input]();
+      return;
+    }
   });
+
+  const registerKeyHandler = (componentId, keyHandler) => {
+    componentKeyHandlers.current.set(componentId, keyHandler);
+  };
+
+  const unregisterKeyHandler = componentId => {
+    componentKeyHandlers.current.delete(componentId);
+  };
 
   const getBorderTitle = componentName => {
     const navKey = mapViewsToNum[componentName];
@@ -65,6 +95,10 @@ export const NavigationProvider = ({children}) => {
     isClientFocused: focusedSection === CLIENT,
     isProjectsFocused: focusedSection === PROJECTS,
     isTasksFocused: focusedSection === TASKS,
+    mode,
+    setMode,
+    registerKeyHandler,
+    unregisterKeyHandler,
     getBorderTitle,
   };
 
