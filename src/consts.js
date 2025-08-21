@@ -10,5 +10,12 @@ export const mapViewsToNum = {
   [TASKS]: 3,
 };
 
+export const componentTitles = {
+  [VIEW]: 'View',
+  [CLIENT]: 'Clients',
+  [PROJECTS]: 'Projects',
+  [TASKS]: 'Tasks',
+};
+
 export const BORDER_COLOR_DEFAULT = 'gray';
 export const BORDER_COLOR_FOCUSED = 'greenBright';

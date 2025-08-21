@@ -33,7 +33,6 @@ const RightColumn = ({children}) => {
 };
 
 const AppContent = () => {
-
   return (
     <Box>
       <LeftColumn>

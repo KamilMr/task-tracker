@@ -1,6 +1,13 @@
 import React, {createContext, useContext, useState} from 'react';
 import {useInput, useApp} from 'ink';
-import {VIEW, CLIENT, PROJECTS, TASKS, mapViewsToNum} from '../consts.js';
+import {
+  VIEW,
+  CLIENT,
+  PROJECTS,
+  TASKS,
+  mapViewsToNum,
+  componentTitles,
+} from '../consts.js';
 
 const NavigationContext = createContext();
 
@@ -45,6 +52,12 @@ export const NavigationProvider = ({children}) => {
     }
   });
 
+  const getBorderTitle = componentName => {
+    const navKey = mapViewsToNum[componentName];
+    const title = componentTitles[componentName];
+    return `[${navKey}] ${title}`;
+  };
+
   const value = {
     focusedSection,
     currentView: mapViewsToNum[focusedSection],
@@ -52,6 +65,7 @@ export const NavigationProvider = ({children}) => {
     isClientFocused: focusedSection === CLIENT,
     isProjectsFocused: focusedSection === PROJECTS,
     isTasksFocused: focusedSection === TASKS,
+    getBorderTitle,
   };
 
   return (
