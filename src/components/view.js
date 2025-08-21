@@ -4,11 +4,40 @@ import {useNavigation} from '../contexts/NavigationContext.js';
 import {BORDER_COLOR_DEFAULT, BORDER_COLOR_FOCUSED, VIEW} from '../consts.js';
 
 const View = () => {
-  const {isViewFocused, getBorderTitle} = useNavigation();
+  const {
+    isViewFocused,
+    isClientFocused,
+    getBorderTitle,
+    clients,
+    selectedClientId,
+  } = useNavigation();
   const borderColor = isViewFocused
     ? BORDER_COLOR_FOCUSED
     : BORDER_COLOR_DEFAULT;
   const title = getBorderTitle(VIEW);
+
+  const renderContent = () => {
+    if (isClientFocused && clients.length > 0) {
+      return (
+        <Box flexDirection="column">
+          <Text color="cyan" bold>
+            All Clients:
+          </Text>
+          {clients.map(client => (
+            <Text
+              key={client.id}
+              color={client.id === selectedClientId ? 'green' : 'white'}
+            >
+              {client.id === selectedClientId ? '• ' : '  '}
+              {client.name}
+            </Text>
+          ))}
+        </Box>
+      );
+    }
+    
+    return <Text>View content here</Text>;
+  };
 
   return (
     <Box
@@ -20,7 +49,7 @@ const View = () => {
       <Text color={borderColor} bold>
         {title}
       </Text>
-      <Text>View content here</Text>
+      {renderContent()}
     </Box>
   );
 };
