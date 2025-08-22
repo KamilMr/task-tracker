@@ -53,6 +53,24 @@ const taskService = {
   deleteByProject: id => {
     return taskModel.delete({col: 'project_id', val: id});
   },
+
+  getTodayHours: async (projectId = null) => {
+    const tasks = await taskModel.getTodayHours(projectId);
+    let totalSeconds = 0;
+    
+    tasks.forEach(task => {
+      if (task.start && task.end) {
+        const startTime = new Date(task.start).getTime();
+        const endTime = new Date(task.end).getTime();
+        totalSeconds += Math.floor((endTime - startTime) / 1000);
+      }
+    });
+    
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    
+    return { hours, minutes, totalSeconds };
+  },
 };
 
 export default taskService;
