@@ -34,6 +34,10 @@ const task = {
     return db(PROJECT_TABLE).select().where('project_id', projectId);
   },
 
+  findByNameAndProject: (title, projectId) => {
+    return db(PROJECT_TABLE).select().where('title', title).andWhere('project_id', projectId).first();
+  },
+
   edit: ({id, start, end, title, time, projectId}) => {
     return db(PROJECT_TABLE).where({id}).update({
       title,
@@ -46,6 +50,20 @@ const task = {
 
   delete: ({col, val}) => {
     return db(PROJECT_TABLE).where(col, val).del();
+  },
+
+  getTodayHours: (projectId = null) => {
+    const today = new Date().toISOString().split('T')[0];
+    let query = db(PROJECT_TABLE)
+      .select('start', 'end')
+      .where(db.raw('DATE(start)'), today)
+      .whereNotNull('end');
+    
+    if (projectId) {
+      query = query.where('project_id', projectId);
+    }
+    
+    return query;
   },
 };
 

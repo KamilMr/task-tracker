@@ -8,6 +8,11 @@ const taskService = {
     const project = await projectModel.selectProject(projectId);
     if (!project) throw 'Project does not exist';
 
+    const existingTask = await taskModel.findByNameAndProject(title, projectId);
+    if (existingTask) {
+      throw new Error(`Task "${title}" already exists in this project`);
+    }
+
     return taskModel.create({start, end, title, projectId});
   },
 
@@ -43,6 +48,13 @@ const taskService = {
   update: async data => {
     const project = await projectModel.selectProject(data.projectId);
     if (!project) throw 'Project does not exist';
+    if (data.title) {
+      const existingTask = await taskModel.findByNameAndProject(data.title, data.projectId);
+      if (existingTask && existingTask.id !== data.id) {
+        throw new Error(`Task "${data.title}" already exists in this project`);
+      }
+    }
+
     return taskModel.edit(convToSnake(data));
   },
 
