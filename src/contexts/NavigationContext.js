@@ -31,6 +31,7 @@ export const NavigationProvider = ({children}) => {
   const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [selectedTaskId, setSelectedTaskId] = useState(null);
+  const [activeTask, setActiveTask] = useState(null);
   const {exit} = useApp();
   const componentKeyHandlers = useRef(new Map());
 
@@ -48,6 +49,19 @@ export const NavigationProvider = ({children}) => {
       }
     };
     loadClients();
+  }, []);
+
+  // Load active task on mount
+  useEffect(() => {
+    const loadActiveTask = async () => {
+      try {
+        const activeTaskData = await taskService.selectActiveTask();
+        setActiveTask(activeTaskData);
+      } catch (error) {
+        console.error('Failed to load active task:', error);
+      }
+    };
+    loadActiveTask();
   }, []);
 
   // Load projects when selected client changes
@@ -259,6 +273,65 @@ export const NavigationProvider = ({children}) => {
     }
   };
 
+  const startTask = async (taskIdOrData) => {
+    try {
+      // Stop any currently active task first
+      if (activeTask) {
+        await taskService.endTask({ id: activeTask.id });
+      }
+
+      let taskData;
+      if (typeof taskIdOrData === 'object') {
+        // Direct task data provided
+        taskData = taskIdOrData;
+      } else {
+        // Task ID provided, get task data
+        const task = tasks.find(t => t.id === taskIdOrData);
+        if (!task) {
+          throw new Error('Task not found');
+        }
+        taskData = {
+          title: task.title,
+          projectId: task.project_id
+        };
+      }
+
+      // Start the new task
+      const newTaskId = await taskService.startTask(taskData);
+
+      // Reload active task
+      const activeTaskData = await taskService.selectActiveTask();
+      setActiveTask(activeTaskData);
+
+      // Reload tasks to show updated state
+      await reloadTasks();
+
+      return true;
+    } catch (error) {
+      console.error('Failed to start task:', error);
+      throw error;
+    }
+  };
+
+  const stopTask = async () => {
+    try {
+      if (!activeTask) {
+        throw new Error('No active task to stop');
+      }
+
+      await taskService.endTask({ id: activeTask.id });
+      setActiveTask(null);
+
+      // Reload tasks to show updated state
+      await reloadTasks();
+
+      return true;
+    } catch (error) {
+      console.error('Failed to stop task:', error);
+      throw error;
+    }
+  };
+
   const value = {
     focusedSection,
     currentView: mapViewsToNum[focusedSection],
@@ -292,6 +365,9 @@ export const NavigationProvider = ({children}) => {
     selectPreviousTask,
     setSelectedTaskId,
     reloadTasks,
+    activeTask,
+    startTask,
+    stopTask,
   };
 
   return (
