@@ -48,9 +48,7 @@ const TextInput = ({title, placeholder = '', onSubmit, onCancel}) => {
       <Text bold color="yellow">
         {title}
       </Text>
-      <Text dimColor>
-        {placeholder}
-      </Text>
+      <Text dimColor>{placeholder}</Text>
       <Box borderStyle="single" borderColor="gray" marginTop={1} padding={1}>
         <Text>
           {value}

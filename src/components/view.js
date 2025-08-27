@@ -42,7 +42,7 @@ const View = () => {
         try {
           const [taskData, projectData] = await Promise.all([
             taskService.selectAll(),
-            projectService.selectAll()
+            projectService.selectAll(),
           ]);
           setAllTasks(taskData);
           setAllProjects(projectData);
@@ -83,7 +83,7 @@ const View = () => {
       if (allProjects.length === 0) {
         return <Text dimColor>No projects found</Text>;
       }
-      
+
       return (
         <Box flexDirection="column">
           <Text color="cyan" bold>
@@ -110,7 +110,7 @@ const View = () => {
       if (allTasks.length === 0) {
         return <Text dimColor>No tasks found</Text>;
       }
-      
+
       return (
         <Box flexDirection="column">
           <Text color="cyan" bold>
@@ -134,7 +134,7 @@ const View = () => {
         </Box>
       );
     }
-    
+
     return <Text>View content here</Text>;
   };
 

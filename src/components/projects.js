@@ -27,7 +27,7 @@ const Projects = () => {
   const [message, setMessage] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  
+
   const borderColor = isProjectsFocused
     ? BORDER_COLOR_FOCUSED
     : BORDER_COLOR_DEFAULT;
@@ -66,7 +66,7 @@ const Projects = () => {
     }
   };
 
-  const handleCreateSubmit = async (name) => {
+  const handleCreateSubmit = async name => {
     if (!name.trim()) return;
     try {
       await projectService.create(name.trim(), selectedClientId);
@@ -83,7 +83,7 @@ const Projects = () => {
     setMessage('');
   };
 
-  const handleEditSubmit = async (name) => {
+  const handleEditSubmit = async name => {
     if (!name.trim()) return;
     try {
       await projectService.update(selectedProjectId, name.trim());
@@ -134,7 +134,10 @@ const Projects = () => {
       return (
         <Box flexDirection="column">
           <Text>New project name:</Text>
-          <BasicTextInput onSubmit={handleCreateSubmit} onCancel={handleCreateCancel} />
+          <BasicTextInput
+            onSubmit={handleCreateSubmit}
+            onCancel={handleCreateCancel}
+          />
         </Box>
       );
     }
@@ -187,7 +190,7 @@ const Projects = () => {
     <Box
       borderColor={borderColor}
       borderStyle={'round'}
-      height={25}
+      minHeight={20}
       flexDirection="column"
     >
       <Text color={borderColor} bold>

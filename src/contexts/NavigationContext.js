@@ -1,4 +1,10 @@
-import React, {createContext, useContext, useState, useRef, useEffect} from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useRef,
+  useEffect,
+} from 'react';
 import {useInput, useApp} from 'ink';
 import {
   VIEW,
@@ -69,7 +75,8 @@ export const NavigationProvider = ({children}) => {
     const loadProjects = async () => {
       if (selectedClientId) {
         try {
-          const projectData = await projectService.selectByCliId(selectedClientId);
+          const projectData =
+            await projectService.selectByCliId(selectedClientId);
           setProjects(projectData);
           if (projectData.length > 0) {
             setSelectedProjectId(projectData[0].id);
@@ -92,7 +99,8 @@ export const NavigationProvider = ({children}) => {
     const loadTasks = async () => {
       if (selectedProjectId) {
         try {
-          const taskData = await taskService.selectByProjectId(selectedProjectId);
+          const taskData =
+            await taskService.selectByProjectId(selectedProjectId);
           setTasks(taskData);
           if (taskData.length > 0) {
             setSelectedTaskId(taskData[0].id);
@@ -178,7 +186,9 @@ export const NavigationProvider = ({children}) => {
   };
 
   const selectNextClient = () => {
-    const currentIndex = clients.findIndex(client => client.id === selectedClientId);
+    const currentIndex = clients.findIndex(
+      client => client.id === selectedClientId,
+    );
     const nextIndex = currentIndex < clients.length - 1 ? currentIndex + 1 : 0;
     if (clients[nextIndex]) {
       setSelectedClientId(clients[nextIndex].id);
@@ -186,7 +196,9 @@ export const NavigationProvider = ({children}) => {
   };
 
   const selectPreviousClient = () => {
-    const currentIndex = clients.findIndex(client => client.id === selectedClientId);
+    const currentIndex = clients.findIndex(
+      client => client.id === selectedClientId,
+    );
     const prevIndex = currentIndex > 0 ? currentIndex - 1 : clients.length - 1;
     if (clients[prevIndex]) {
       setSelectedClientId(clients[prevIndex].id);
@@ -210,7 +222,9 @@ export const NavigationProvider = ({children}) => {
   };
 
   const selectNextProject = () => {
-    const currentIndex = projects.findIndex(project => project.id === selectedProjectId);
+    const currentIndex = projects.findIndex(
+      project => project.id === selectedProjectId,
+    );
     const nextIndex = currentIndex < projects.length - 1 ? currentIndex + 1 : 0;
     if (projects[nextIndex]) {
       setSelectedProjectId(projects[nextIndex].id);
@@ -218,7 +232,9 @@ export const NavigationProvider = ({children}) => {
   };
 
   const selectPreviousProject = () => {
-    const currentIndex = projects.findIndex(project => project.id === selectedProjectId);
+    const currentIndex = projects.findIndex(
+      project => project.id === selectedProjectId,
+    );
     const prevIndex = currentIndex > 0 ? currentIndex - 1 : projects.length - 1;
     if (projects[prevIndex]) {
       setSelectedProjectId(projects[prevIndex].id);
@@ -228,7 +244,8 @@ export const NavigationProvider = ({children}) => {
   const reloadProjects = async () => {
     if (selectedClientId) {
       try {
-        const projectData = await projectService.selectByCliId(selectedClientId);
+        const projectData =
+          await projectService.selectByCliId(selectedClientId);
         setProjects(projectData);
         if (projectData.length > 0 && !selectedProjectId) {
           setSelectedProjectId(projectData[0].id);
@@ -273,11 +290,11 @@ export const NavigationProvider = ({children}) => {
     }
   };
 
-  const startTask = async (taskIdOrData) => {
+  const startTask = async taskIdOrData => {
     try {
       // Stop any currently active task first
       if (activeTask) {
-        await taskService.endTask({ id: activeTask.id });
+        await taskService.endTask({id: activeTask.id});
       }
 
       let taskData;
@@ -292,7 +309,7 @@ export const NavigationProvider = ({children}) => {
         }
         taskData = {
           title: task.title,
-          projectId: task.project_id
+          projectId: task.project_id,
         };
       }
 
@@ -319,7 +336,7 @@ export const NavigationProvider = ({children}) => {
         throw new Error('No active task to stop');
       }
 
-      await taskService.endTask({ id: activeTask.id });
+      await taskService.endTask({id: activeTask.id});
       setActiveTask(null);
 
       // Reload tasks to show updated state

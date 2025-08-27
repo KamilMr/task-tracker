@@ -49,7 +49,10 @@ const taskService = {
     const project = await projectModel.selectProject(data.projectId);
     if (!project) throw 'Project does not exist';
     if (data.title) {
-      const existingTask = await taskModel.findByNameAndProject(data.title, data.projectId);
+      const existingTask = await taskModel.findByNameAndProject(
+        data.title,
+        data.projectId,
+      );
       if (existingTask && existingTask.id !== data.id) {
         throw new Error(`Task "${data.title}" already exists in this project`);
       }
@@ -69,7 +72,7 @@ const taskService = {
   getTodayHours: async (projectId = null) => {
     const tasks = await taskModel.getTodayHours(projectId);
     let totalSeconds = 0;
-    
+
     tasks.forEach(task => {
       if (task.start && task.end) {
         const startTime = new Date(task.start).getTime();
@@ -77,11 +80,11 @@ const taskService = {
         totalSeconds += Math.floor((endTime - startTime) / 1000);
       }
     });
-    
+
     const hours = Math.floor(totalSeconds / 3600);
     const minutes = Math.floor((totalSeconds % 3600) / 60);
-    
-    return { hours, minutes, totalSeconds };
+
+    return {hours, minutes, totalSeconds};
   },
 };
 

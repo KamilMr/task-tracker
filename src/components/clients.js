@@ -51,13 +51,15 @@ const Client = () => {
     }
   };
 
-  const handleClientSubmit = async (clientName) => {
+  const handleClientSubmit = async clientName => {
     if (clientName.trim()) {
       try {
         await clientService.create(clientName.trim());
         await reloadClients();
         const updatedClients = await clientService.selectAll();
-        const newClient = updatedClients.find(c => c.name === clientName.trim());
+        const newClient = updatedClients.find(
+          c => c.name === clientName.trim(),
+        );
         if (newClient) {
           setSelectedClientId(newClient.id);
         }
@@ -74,8 +76,11 @@ const Client = () => {
     setMessage('');
   };
 
-  const handleDeleteConfirm = async (confirmation) => {
-    if (confirmation.toLowerCase() === 'y' || confirmation.toLowerCase() === 'yes') {
+  const handleDeleteConfirm = async confirmation => {
+    if (
+      confirmation.toLowerCase() === 'y' ||
+      confirmation.toLowerCase() === 'yes'
+    ) {
       try {
         await clientService.delete(selectedClient);
         await reloadClients();
@@ -100,13 +105,15 @@ const Client = () => {
     setMessage('Delete cancelled');
   };
 
-  const handleEditSubmit = async (newName) => {
+  const handleEditSubmit = async newName => {
     if (newName.trim() && selectedClient) {
       try {
         await clientService.update(selectedClient.id, newName.trim());
         await reloadClients();
         const updatedClients = await clientService.selectAll();
-        const updatedClient = updatedClients.find(c => c.id === selectedClient.id);
+        const updatedClient = updatedClients.find(
+          c => c.id === selectedClient.id,
+        );
         if (updatedClient) {
           setSelectedClientId(updatedClient.id);
         }

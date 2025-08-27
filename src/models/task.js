@@ -35,7 +35,11 @@ const task = {
   },
 
   findByNameAndProject: (title, projectId) => {
-    return db(PROJECT_TABLE).select().where('title', title).andWhere('project_id', projectId).first();
+    return db(PROJECT_TABLE)
+      .select()
+      .where('title', title)
+      .andWhere('project_id', projectId)
+      .first();
   },
 
   edit: ({id, start, end, title, time, projectId}) => {
@@ -58,11 +62,11 @@ const task = {
       .select('start', 'end')
       .where(db.raw('DATE(start)'), today)
       .whereNotNull('end');
-    
+
     if (projectId) {
       query = query.where('project_id', projectId);
     }
-    
+
     return query;
   },
 };
