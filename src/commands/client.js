@@ -24,7 +24,6 @@ const createClient = async () => {
 
 const selectAllClients = async () => {
   const data = await clientService.selectAll();
-  console.log(data.map(o => o.name));
   return data;
 };
 

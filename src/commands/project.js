@@ -44,7 +44,6 @@ const createProject = async () => {
 
 const selectAllProjects = async () => {
   const projects = await projectService.selectAll();
-  console.log(projects.map(d => d.name));
   return projects;
 };
 

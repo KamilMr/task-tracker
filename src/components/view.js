@@ -116,7 +116,7 @@ const View = () => {
           <Text color="cyan" bold>
             All Tasks:
           </Text>
-          {allTasks.map(task => {
+          {allTasks.slice(0, 10).map(task => {
             const project = allProjects.find(p => p.id === task.project_id);
             const client = clients.find(c => c.id === project?.client_id);
             return (

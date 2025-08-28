@@ -1,10 +1,9 @@
 import taskModel from '../models/task.js';
 import projectModel from '../models/project.js';
-import {convToSnake, getFormatedDate} from '../utils.js';
+import {getFormatedDate, retriveYYYYMMDD} from '../utils.js';
 
 const taskService = {
   create: async ({start, end, title, projectId}) => {
-    // TODO: consider importance of this
     const project = await projectModel.selectProject(projectId);
     if (!project) throw 'Project does not exist';
 
@@ -20,9 +19,42 @@ const taskService = {
     const project = await projectModel.selectProject(projectId);
     if (!project) throw 'Project does not exist';
 
+    const activeTask = await taskModel.selectActiveTask();
+    if (activeTask) {
+      await taskModel.edit({id: activeTask.id, end: getFormatedDate()});
+    }
+
     const id = await taskModel.create({title, projectId, start});
 
     return id[0];
+  },
+
+  toggleTask: async ({title, projectId, start = getFormatedDate()}) => {
+    const project = await projectModel.selectProject(projectId);
+    if (!project) throw 'Project does not exist';
+
+    const activeTask = await taskModel.selectActiveTask();
+
+    if (!activeTask) {
+      // No active task, start the requested task
+      const id = await taskModel.create({title, projectId, start});
+      return {action: 'started', id: id[0]};
+    }
+
+    // Check if the requested task matches the active task
+    const isSameTask =
+      activeTask.title === title && activeTask.project_id === projectId;
+
+    if (isSameTask) {
+      // Same task is active, stop it
+      await taskModel.edit({id: activeTask.id, end: getFormatedDate()});
+      return {action: 'stopped', id: activeTask.id};
+    } else {
+      // Different task requested, stop current and start new one
+      await taskModel.edit({id: activeTask.id, end: getFormatedDate()});
+      const id = await taskModel.create({title, projectId, start});
+      return {action: 'switched', stoppedId: activeTask.id, startedId: id[0]};
+    }
   },
 
   selectActiveTask: () => {
@@ -30,6 +62,12 @@ const taskService = {
   },
 
   endTask: async ({id, end = getFormatedDate()}) => {
+    const activeTask = await taskModel.selectActiveTask();
+    if (!activeTask) throw new Error('No active task found');
+
+    if (activeTask.id !== id)
+      throw new Error('Provided task ID does not match the active task');
+
     return taskModel.edit({id, end});
   },
 
@@ -45,24 +83,39 @@ const taskService = {
     return taskModel.selectByProjectId(projectId);
   },
 
-  update: async data => {
-    const project = await projectModel.selectProject(data.projectId);
-    if (!project) throw 'Project does not exist';
-    if (data.title) {
-      const existingTask = await taskModel.findByNameAndProject(
-        data.title,
-        data.projectId,
-      );
-      if (existingTask && existingTask.id !== data.id) {
-        throw new Error(`Task "${data.title}" already exists in this project`);
-      }
-    }
+  update: async (oldTitle, title, pId) => {
+    const existingTasks = await taskModel.findAllByNameAndProject(
+      oldTitle,
+      pId,
+    );
 
-    return taskModel.edit(convToSnake(data));
+    if (!existingTasks.length)
+      throw new Error(
+        `No tasks found with title "${oldTitle}" in this project`,
+      );
+
+    const updatePromises = existingTasks.map(task =>
+      taskModel.edit({id: task.id, title}),
+    );
+
+    return Promise.all(updatePromises);
   },
 
   delete: id => {
     return taskModel.delete({col: 'id', val: id});
+  },
+
+  deleteAllByTitle: async (title, projectId) => {
+    const existingTasks = await taskModel.findAllByNameAndProject(
+      title,
+      projectId,
+    );
+
+    if (!existingTasks.length) {
+      throw new Error(`No tasks found with title "${title}" in this project`);
+    }
+
+    return taskModel.deleteAllByTitle(title, projectId);
   },
 
   deleteByProject: id => {
@@ -71,6 +124,16 @@ const taskService = {
 
   getTodayHours: async (projectId = null) => {
     const tasks = await taskModel.getTodayHours(projectId);
+    return taskService.calculateTimeSpend(tasks);
+  },
+
+  getTasksByProjectAndDate: async (projectId, date = null) => {
+    const targetDate = date || retriveYYYYMMDD();
+    const tasks = await taskModel.listAllByDate(targetDate);
+    return tasks.filter(task => task.project_id === projectId);
+  },
+
+  calculateTimeSpend: tasks => {
     let totalSeconds = 0;
 
     tasks.forEach(task => {
@@ -85,6 +148,48 @@ const taskService = {
     const minutes = Math.floor((totalSeconds % 3600) / 60);
 
     return {hours, minutes, totalSeconds};
+  },
+
+  getAllTasksFromToday: async (date = new Date(), pId = null) => {
+    const filteredTasks = await taskService.getTasksByProjectAndDate(pId, date);
+    // Group tasks by title and project_id
+    const groupedTasks = filteredTasks.reduce((acc, task) => {
+      const key = `${task.title}_${task.project_id}`;
+
+      if (!acc[key]) {
+        acc[key] = {
+          id: task.id,
+          title: task.title,
+          projectId: task.project_id,
+          totalSec: 0,
+          segments: [],
+        };
+      }
+
+      const startTime = new Date(task.start);
+      const endTime = task.end ? new Date(task.end) : null;
+      const durationTime = endTime
+        ? Math.floor((endTime - startTime) / 1000)
+        : 0;
+      acc[key].totalSec += durationTime;
+
+      if (!task.end) acc[key].isActive = true;
+
+      acc[key].segments.push({
+        id: task.id,
+        startTime: task.start,
+        endTime: task.end,
+        durationTime,
+      });
+
+      return acc;
+    }, {});
+
+    return Object.values(groupedTasks);
+  },
+
+  getActiveTask: () => {
+    return taskModel.selectActiveTask();
   },
 };
 

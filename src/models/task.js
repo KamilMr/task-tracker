@@ -42,6 +42,20 @@ const task = {
       .first();
   },
 
+  findAllByNameAndProject: (title, projectId) => {
+    return db(PROJECT_TABLE)
+      .select()
+      .where('title', title)
+      .andWhere('project_id', projectId);
+  },
+
+  deleteAllByTitle: (title, projectId) => {
+    return db(PROJECT_TABLE)
+      .where('title', title)
+      .andWhere('project_id', projectId)
+      .del();
+  },
+
   edit: ({id, start, end, title, time, projectId}) => {
     return db(PROJECT_TABLE).where({id}).update({
       title,

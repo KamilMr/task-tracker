@@ -1,54 +1,42 @@
 import {useState, useEffect, useRef, useCallback} from 'react';
 
-const useTimer = (interval = 1000) => {
+const interval = 1000;
+
+const useTimer = () => {
   const [currentValue, setCurrentValue] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const intervalRef = useRef(null);
-  const startTimeRef = useRef(null);
 
-  const start = useCallback(() => {
-    if (!isRunning) {
-      setIsRunning(true);
-      startTimeRef.current = Date.now();
-    }
-  }, [isRunning]);
+  const start = () => {
+    setIsRunning(true);
+  };
 
-  const stop = useCallback(() => {
+  const stop = () => {
     setIsRunning(false);
-    setCurrentValue(0);
-    startTimeRef.current = null;
-  }, []);
-
-  const pause = useCallback(() => {
-    setIsRunning(false);
-  }, []);
+  };
 
   useEffect(() => {
-    if (isRunning && startTimeRef.current) {
+    if (isRunning) {
       intervalRef.current = setInterval(() => {
-        const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
-        setCurrentValue(elapsed);
+        setCurrentValue(val => (val += interval));
       }, interval);
-    } else {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
     }
 
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
+        setCurrentValue(0);
       }
     };
-  }, [isRunning, interval]);
+  }, [isRunning]);
 
   return {
-    currentValue,
-    isRunning,
+    currentValue: Math.floor(currentValue / 1000),
     start,
     stop,
-    pause,
+    initialValue: arg => {
+      setCurrentValue(arg);
+    },
   };
 };
 

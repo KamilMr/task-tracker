@@ -31,15 +31,24 @@ export const useNavigation = () => {
 export const NavigationProvider = ({children}) => {
   const [focusedSection, setFocusedSection] = useState(CLIENT);
   const [mode, setMode] = useState('normal'); // 'normal' or 'insert'
+
   const [clients, setClients] = useState([]);
   const [selectedClientId, setSelectedClientId] = useState(null);
+
   const [projects, setProjects] = useState([]);
   const [selectedProjectId, setSelectedProjectId] = useState(null);
-  const [tasks, setTasks] = useState([]);
+
   const [selectedTaskId, setSelectedTaskId] = useState(null);
-  const [activeTask, setActiveTask] = useState(null);
+  const [reload, setReload] = useState();
+
   const {exit} = useApp();
   const componentKeyHandlers = useRef(new Map());
+
+  const handleReload = () => {
+    setTimeout(() => {
+      setReload(!reload);
+    }, 500);
+  };
 
   // Load clients on mount
   useEffect(() => {
@@ -55,19 +64,6 @@ export const NavigationProvider = ({children}) => {
       }
     };
     loadClients();
-  }, []);
-
-  // Load active task on mount
-  useEffect(() => {
-    const loadActiveTask = async () => {
-      try {
-        const activeTaskData = await taskService.selectActiveTask();
-        setActiveTask(activeTaskData);
-      } catch (error) {
-        console.error('Failed to load active task:', error);
-      }
-    };
-    loadActiveTask();
   }, []);
 
   // Load projects when selected client changes
@@ -95,28 +91,28 @@ export const NavigationProvider = ({children}) => {
   }, [selectedClientId]);
 
   // Load tasks when selected project changes
-  useEffect(() => {
-    const loadTasks = async () => {
-      if (selectedProjectId) {
-        try {
-          const taskData =
-            await taskService.selectByProjectId(selectedProjectId);
-          setTasks(taskData);
-          if (taskData.length > 0) {
-            setSelectedTaskId(taskData[0].id);
-          } else {
-            setSelectedTaskId(null);
-          }
-        } catch (error) {
-          console.error('Failed to load tasks:', error);
-        }
-      } else {
-        setTasks([]);
-        setSelectedTaskId(null);
-      }
-    };
-    loadTasks();
-  }, [selectedProjectId]);
+  // useEffect(() => {
+  //   const loadTasks = async () => {
+  //     if (selectedProjectId) {
+  //       try {
+  //         const taskData =
+  //           await taskService.getAllTasksFromToday(selectedProjectId);
+  //         setTasks(taskData);
+  //         if (taskData.length > 0) {
+  //           setSelectedTaskId(taskData[0].id);
+  //         } else {
+  //           setSelectedTaskId(null);
+  //         }
+  //       } catch (error) {
+  //         console.error('Failed to load tasks:', error);
+  //       }
+  //     } else {
+  //       setTasks([]);
+  //       setSelectedTaskId(null);
+  //     }
+  //   };
+  //   loadTasks();
+  // }, [selectedProjectId]);
 
   useInput((input, key) => {
     // Global vim-like mode switching (always works)
@@ -256,98 +252,25 @@ export const NavigationProvider = ({children}) => {
     }
   };
 
-  const getSelectedTask = () => {
-    return tasks.find(task => task.id === selectedTaskId) || null;
-  };
+  // const getSelectedTask = () => {
+  //   return tasks.find(task => task.id === selectedTaskId) || null;
+  // };
 
-  const selectNextTask = () => {
-    const currentIndex = tasks.findIndex(task => task.id === selectedTaskId);
-    const nextIndex = currentIndex < tasks.length - 1 ? currentIndex + 1 : 0;
-    if (tasks[nextIndex]) {
-      setSelectedTaskId(tasks[nextIndex].id);
-    }
-  };
-
-  const selectPreviousTask = () => {
-    const currentIndex = tasks.findIndex(task => task.id === selectedTaskId);
-    const prevIndex = currentIndex > 0 ? currentIndex - 1 : tasks.length - 1;
-    if (tasks[prevIndex]) {
-      setSelectedTaskId(tasks[prevIndex].id);
-    }
-  };
-
-  const reloadTasks = async () => {
-    if (selectedProjectId) {
-      try {
-        const taskData = await taskService.selectByProjectId(selectedProjectId);
-        setTasks(taskData);
-        if (taskData.length > 0 && !selectedTaskId) {
-          setSelectedTaskId(taskData[0].id);
-        }
-      } catch (error) {
-        console.error('Failed to reload tasks:', error);
-      }
-    }
-  };
-
-  const startTask = async taskIdOrData => {
-    try {
-      // Stop any currently active task first
-      if (activeTask) {
-        await taskService.endTask({id: activeTask.id});
-      }
-
-      let taskData;
-      if (typeof taskIdOrData === 'object') {
-        // Direct task data provided
-        taskData = taskIdOrData;
-      } else {
-        // Task ID provided, get task data
-        const task = tasks.find(t => t.id === taskIdOrData);
-        if (!task) {
-          throw new Error('Task not found');
-        }
-        taskData = {
-          title: task.title,
-          projectId: task.project_id,
-        };
-      }
-
-      // Start the new task
-      const newTaskId = await taskService.startTask(taskData);
-
-      // Reload active task
-      const activeTaskData = await taskService.selectActiveTask();
-      setActiveTask(activeTaskData);
-
-      // Reload tasks to show updated state
-      await reloadTasks();
-
-      return true;
-    } catch (error) {
-      console.error('Failed to start task:', error);
-      throw error;
-    }
-  };
-
-  const stopTask = async () => {
-    try {
-      if (!activeTask) {
-        throw new Error('No active task to stop');
-      }
-
-      await taskService.endTask({id: activeTask.id});
-      setActiveTask(null);
-
-      // Reload tasks to show updated state
-      await reloadTasks();
-
-      return true;
-    } catch (error) {
-      console.error('Failed to stop task:', error);
-      throw error;
-    }
-  };
+  // const selectNextTask = () => {
+  //   const currentIndex = tasks.findIndex(task => task.id === selectedTaskId);
+  //   const nextIndex = currentIndex < tasks.length - 1 ? currentIndex + 1 : 0;
+  //   if (tasks[nextIndex]) {
+  //     setSelectedTaskId(tasks[nextIndex].id);
+  //   }
+  // };
+  //
+  // const selectPreviousTask = () => {
+  //   const currentIndex = tasks.findIndex(task => task.id === selectedTaskId);
+  //   const prevIndex = currentIndex > 0 ? currentIndex - 1 : tasks.length - 1;
+  //   if (tasks[prevIndex]) {
+  //     setSelectedTaskId(tasks[prevIndex].id);
+  //   }
+  // };
 
   const value = {
     focusedSection,
@@ -375,16 +298,10 @@ export const NavigationProvider = ({children}) => {
     selectPreviousProject,
     setSelectedProjectId,
     reloadProjects,
-    tasks,
     selectedTaskId,
-    getSelectedTask,
-    selectNextTask,
-    selectPreviousTask,
     setSelectedTaskId,
-    reloadTasks,
-    activeTask,
-    startTask,
-    stopTask,
+    reload,
+    setReload: handleReload,
   };
 
   return (

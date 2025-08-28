@@ -1,33 +1,68 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
+
 import {Text, Box} from 'ink';
-import {useNavigation} from '../contexts/NavigationContext.js';
-import {useComponentKeys} from '../hooks/useComponentKeys.js';
-import {BORDER_COLOR_DEFAULT, BORDER_COLOR_FOCUSED, TASKS} from '../consts.js';
-import BasicTextInput from './BasicTextInput.js';
+
+import DelayedDisappear from './DelayedDisappear.js';
+import TasksContent from './tasks/TasksContent.js';
+import TodayHours from './TodayHours.js';
 import taskService from '../services/taskService.js';
+import useDateTasks from '../hooks/useDateTasks.js';
+import {retriveYYYYMMDD} from '../utils.js';
+import {useComponentKeys} from '../hooks/useComponentKeys.js';
+import {useNavigation} from '../contexts/NavigationContext.js';
+import {BORDER_COLOR_DEFAULT, BORDER_COLOR_FOCUSED, TASKS} from '../consts.js';
 
 const Tasks = () => {
   const {
     isTasksFocused,
     getBorderTitle,
     mode,
-    tasks,
-    selectedTaskId,
-    getSelectedTask,
-    selectNextTask,
-    selectPreviousTask,
     selectedProjectId,
     getSelectedProject,
-    reloadTasks,
+    setReload,
   } = useNavigation();
   const [message, setMessage] = useState('');
+  const [isDiff, setIsDiff] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  
+  const [selectedTaskName, setSelectedTaskName] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(retriveYYYYMMDD());
+
+  const dateTasks = useDateTasks(selectedDate);
+
+  // fire when project changes and updates selection to first element
+  useEffect(() => {
+    setSelectedTaskName(dateTasks[0]?.title);
+  }, [selectedProjectId]);
+
   const borderColor = isTasksFocused
     ? BORDER_COLOR_FOCUSED
     : BORDER_COLOR_DEFAULT;
-  const title = getBorderTitle(TASKS);
+  const baseTitle = getBorderTitle(TASKS);
+  const dateDisplay = selectedDate === retriveYYYYMMDD() ? 'today' : selectedDate;
+
+  // Navigation functions for unique task names
+  const selectNextUniqueTask = () => {
+    if (dateTasks.length === 0) return;
+
+    const currentIndex = dateTasks.findIndex(
+      task => task.title === selectedTaskName,
+    );
+    const nextIndex =
+      currentIndex < dateTasks.length - 1 ? currentIndex + 1 : 0;
+    setSelectedTaskName(dateTasks[nextIndex].title);
+  };
+
+  const selectPreviousUniqueTask = () => {
+    if (dateTasks.length === 0) return;
+
+    const currentIndex = dateTasks.findIndex(
+      task => task.title === selectedTaskName,
+    );
+    const prevIndex =
+      currentIndex > 0 ? currentIndex - 1 : dateTasks.length - 1;
+    setSelectedTaskName(dateTasks[prevIndex].title);
+  };
 
   const handleNewTask = () => {
     if (!selectedProjectId) {
@@ -39,7 +74,7 @@ const Tasks = () => {
   };
 
   const handleEditTask = () => {
-    if (!selectedTaskId) {
+    if (!selectedTaskName) {
       setMessage('No task selected');
       return;
     }
@@ -48,32 +83,30 @@ const Tasks = () => {
   };
 
   const handleDeleteTask = async () => {
-    if (!selectedTaskId) {
+    if (!selectedTaskName) {
       setMessage('No task selected');
       return;
     }
     try {
-      const task = getSelectedTask();
-      await taskService.delete(selectedTaskId);
-      await reloadTasks();
-      setMessage(`Deleted task: ${task.title}`);
+      await taskService.deleteAllByTitle(selectedTaskName, selectedProjectId);
+      setReload();
+      setMessage(`Deleted all entries for task: ${selectedTaskName}`);
     } catch (error) {
       setMessage(`Error deleting task: ${error.message}`);
     }
   };
 
-  const handleCreateSubmit = async (title) => {
+  const handleCreateSubmit = async title => {
     if (!title.trim()) return;
     try {
-      await taskService.create({
+      taskService.toggleTask({
         title: title.trim(),
         projectId: selectedProjectId,
-        start: null,
-        end: null,
       });
-      await reloadTasks();
+
       setIsCreating(false);
       setMessage(`Created task: ${title}`);
+      setReload();
     } catch (error) {
       setMessage(`Error creating task: ${error.message}`);
     }
@@ -84,20 +117,20 @@ const Tasks = () => {
     setMessage('');
   };
 
-  const handleEditSubmit = async (title) => {
+  const handleEditSubmit = async title => {
     if (!title.trim()) return;
     try {
-      const task = getSelectedTask();
-      await taskService.update({
-        id: selectedTaskId,
-        title: title.trim(),
-        projectId: task.project_id,
-        start: task.start,
-        end: task.end,
-      });
-      await reloadTasks();
+      // Update all entries for this task name
+      await taskService.update(
+        selectedTaskName,
+        title.trim(),
+        selectedProjectId,
+      );
+
       setIsEditing(false);
+      setSelectedTaskName(title.trim()); // Update selected name to new name
       setMessage(`Updated task: ${title}`);
+      setReload();
     } catch (error) {
       setMessage(`Error updating task: ${error.message}`);
     }
@@ -108,10 +141,41 @@ const Tasks = () => {
     setMessage('');
   };
 
+  const handleStartStopTask = async () => {
+    if (!selectedTaskName) {
+      setMessage('No task selected');
+      return;
+    }
+
+    try {
+      await taskService.toggleTask({
+        title: selectedTaskName,
+        projectId: selectedProjectId,
+      });
+      setReload();
+    } catch (error) {
+      setMessage(`Error: ${error.message}`);
+    }
+  };
+
+  const handlePreviousDay = () => {
+    const currentDate = new Date(selectedDate);
+    currentDate.setDate(currentDate.getDate() - 1);
+    setSelectedDate(retriveYYYYMMDD(currentDate));
+  };
+
+  const handleNextDay = () => {
+    const currentDate = new Date(selectedDate);
+    currentDate.setDate(currentDate.getDate() + 1);
+    setSelectedDate(retriveYYYYMMDD(currentDate));
+  };
+
+  const handleSetIsDiff = () => setIsDiff(!isDiff);
+
   // Task key mappings (normal mode only)
   const keyMappings = [
     {
-      key: 'n',
+      key: 'c',
       action: handleNewTask,
     },
     {
@@ -124,87 +188,65 @@ const Tasks = () => {
     },
     {
       key: 'j',
-      action: selectNextTask,
+      action: selectNextUniqueTask,
     },
     {
       key: 'k',
-      action: selectPreviousTask,
+      action: selectPreviousUniqueTask,
+    },
+    {
+      key: 's',
+      action: handleStartStopTask,
+    },
+    {
+      key: 'p',
+      action: handlePreviousDay,
+    },
+    {
+      key: 'n',
+      action: handleNextDay,
+    },
+    {
+      key: 'x',
+      action: handleSetIsDiff,
     },
   ];
 
   useComponentKeys(TASKS, keyMappings, isTasksFocused);
 
   const selectedProject = getSelectedProject();
-  const selectedTask = getSelectedTask();
-
-  const renderContent = () => {
-    if (isCreating) {
-      return (
-        <Box flexDirection="column">
-          <Text>New task title:</Text>
-          <BasicTextInput onSubmit={handleCreateSubmit} onCancel={handleCreateCancel} />
-        </Box>
-      );
-    }
-
-    if (isEditing) {
-      return (
-        <Box flexDirection="column">
-          <Text>Edit task title:</Text>
-          <BasicTextInput
-            defaultValue={selectedTask?.title || ''}
-            onSubmit={handleEditSubmit}
-            onCancel={handleEditCancel}
-          />
-        </Box>
-      );
-    }
-
-    if (!selectedProject) {
-      return <Text dimColor>Select a project to view tasks</Text>;
-    }
-
-    if (tasks.length === 0) {
-      return (
-        <Box flexDirection="column">
-          <Text dimColor>No tasks for {selectedProject.name}</Text>
-          <Text dimColor>Press 'n' to create a new task</Text>
-        </Box>
-      );
-    }
-
-    return (
-      <Box flexDirection="column">
-        <Text color="cyan" bold>
-          {selectedProject.name} Tasks:
-        </Text>
-        {tasks.map(task => (
-          <Text
-            key={task.id}
-            color={task.id === selectedTaskId ? 'green' : 'white'}
-          >
-            {task.id === selectedTaskId ? '• ' : '  '}
-            {task.title}
-          </Text>
-        ))}
-      </Box>
-    );
-  };
 
   return (
     <Box
       borderColor={borderColor}
       borderStyle={'round'}
-      height={20}
+      minHeight={20}
+      // height={'40%'}
       flexDirection="column"
     >
       <Text color={borderColor} bold>
-        {title}
+        {baseTitle} <TodayHours selectedDate={selectedDate} /> - {dateDisplay}
       </Text>
-      {message && <Text color="yellow">{message}</Text>}
-      {renderContent()}
+      <DelayedDisappear key={message}>
+        <Text color="yellow">{message}</Text>
+      </DelayedDisappear>
+      <TasksContent
+        isCreating={isCreating}
+        isEditing={isEditing}
+        dateTasks={dateTasks}
+        selectedProject={selectedProject}
+        selectedTaskName={selectedTaskName}
+        dateDisplay={dateDisplay}
+        isDiff={isDiff}
+        handleCreateSubmit={handleCreateSubmit}
+        handleCreateCancel={handleCreateCancel}
+        handleEditSubmit={handleEditSubmit}
+        handleEditCancel={handleEditCancel}
+      />
       {isTasksFocused && mode === 'normal' && !isCreating && !isEditing && (
-        <Text dimColor>j/k:navigate n:new e:edit d:delete</Text>
+        <Text dimColor>
+          j/k:navigate c:new e:edit d:delete s:start/stop p/n:prev/next day
+        </Text>
       )}
     </Box>
   );

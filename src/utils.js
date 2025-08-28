@@ -56,3 +56,19 @@ export const clearTerminal = () => {
 export const convToTss = (date = new Date()) => {
   return Math.floor(new Date(date).getTime() / 1000);
 };
+
+export const formatTime = seconds => {
+  if (seconds === 0) return '';
+
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+
+  if (hours > 0) {
+    return `${hours}h ${minutes}m ${secs}s`;
+  } else if (minutes > 0) {
+    return `${minutes}m ${secs}s`;
+  } else {
+    return `${secs}s`;
+  }
+};

@@ -197,7 +197,6 @@ const editTask = async () => {
 
 const selectAllTasks = async () => {
   const tasks = await taskService.selectAll();
-  console.log(tasks.map(d => d.title));
   return tasks;
 };
 
