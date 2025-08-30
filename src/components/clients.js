@@ -4,6 +4,8 @@ import {useNavigation} from '../contexts/NavigationContext.js';
 import {useComponentKeys} from '../hooks/useComponentKeys.js';
 import {BORDER_COLOR_DEFAULT, BORDER_COLOR_FOCUSED, CLIENT} from '../consts.js';
 import BasicTextInput from './BasicTextInput.js';
+import HelpBottom from './HelpBottom.js';
+import Frame from './Frame.js';
 import clientService from '../services/clientService.js';
 
 const Client = () => {
@@ -169,49 +171,57 @@ const Client = () => {
   useComponentKeys(CLIENT, keyMappings, isClientFocused);
 
   return (
-    <Box borderColor={borderColor} borderStyle={'round'} flexDirection="column">
-      <Text color={borderColor} bold>
-        {title}
-      </Text>
-      {isAdding ? (
-        <Box flexDirection="column">
-          <Text>New client name:</Text>
-          <BasicTextInput
-            onSubmit={handleClientSubmit}
-            onCancel={handleClientCancel}
-          />
-        </Box>
-      ) : isDeleting ? (
-        <Box flexDirection="column">
-          <Text color="red">Delete "{selectedClient?.name}"? (y/n):</Text>
-          <BasicTextInput
-            onSubmit={handleDeleteConfirm}
-            onCancel={handleDeleteCancel}
-          />
-        </Box>
-      ) : isEditing ? (
-        <Box flexDirection="column">
-          <Text>Edit client name:</Text>
-          <BasicTextInput
-            defaultValue={selectedClient?.name || ''}
-            onSubmit={handleEditSubmit}
-            onCancel={handleEditCancel}
-          />
-        </Box>
-      ) : (
-        <>
-          {selectedClient ? (
-            <Text>{selectedClient.name}</Text>
-          ) : (
-            <Text dimColor>No clients found</Text>
-          )}
-          {message && <Text color="yellow">{message}</Text>}
-          {isClientFocused && mode === 'normal' && (
-            <Text dimColor>c:new e:edit d:delete j/k:nav</Text>
-          )}
-        </>
+    <Frame borderColor={borderColor} height={5}>
+      <Frame.Header>
+        <Text color={borderColor} bold>
+          {title}
+        </Text>
+        {message && <Text color="yellow">{message}</Text>}
+      </Frame.Header>
+      <Frame.Body>
+        {isAdding ? (
+          <Box flexDirection="column">
+            <Text>New client name:</Text>
+            <BasicTextInput
+              onSubmit={handleClientSubmit}
+              onCancel={handleClientCancel}
+            />
+          </Box>
+        ) : isDeleting ? (
+          <Box flexDirection="column">
+            <Text color="red">Delete "{selectedClient?.name}"? (y/n):</Text>
+            <BasicTextInput
+              onSubmit={handleDeleteConfirm}
+              onCancel={handleDeleteCancel}
+            />
+          </Box>
+        ) : isEditing ? (
+          <Box flexDirection="column">
+            <Text>Edit client name:</Text>
+            <BasicTextInput
+              defaultValue={selectedClient?.name || ''}
+              onSubmit={handleEditSubmit}
+              onCancel={handleEditCancel}
+            />
+          </Box>
+        ) : (
+          <>
+            {selectedClient ? (
+              <Text>{selectedClient.name}</Text>
+            ) : (
+              <Text dimColor>No clients found</Text>
+            )}
+          </>
+        )}
+      </Frame.Body>
+      {isClientFocused && mode === 'normal' && !isAdding && !isDeleting && !isEditing && (
+        <Frame.Footer>
+          <HelpBottom>
+            c:new e:edit d:delete j/k:nav
+          </HelpBottom>
+        </Frame.Footer>
       )}
-    </Box>
+    </Frame>
   );
 };
 

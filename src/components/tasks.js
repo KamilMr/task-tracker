@@ -5,6 +5,8 @@ import {Text, Box} from 'ink';
 import DelayedDisappear from './DelayedDisappear.js';
 import TasksContent from './tasks/TasksContent.js';
 import TodayHours from './TodayHours.js';
+import HelpBottom from './HelpBottom.js';
+import Frame from './Frame.js';
 import taskService from '../services/taskService.js';
 import useDateTasks from '../hooks/useDateTasks.js';
 import {retriveYYYYMMDD} from '../utils.js';
@@ -218,38 +220,39 @@ const Tasks = () => {
   const selectedProject = getSelectedProject();
 
   return (
-    <Box
-      borderColor={borderColor}
-      borderStyle={'round'}
-      minHeight={20}
-      flexDirection="column"
-    >
-      <Text color={borderColor} bold>
-        {baseTitle} <TodayHours selectedDate={selectedDate} isT1={isT1} /> -{' '}
-        {dateDisplay}
-      </Text>
-      <DelayedDisappear key={message}>
-        <Text color="yellow">{message}</Text>
-      </DelayedDisappear>
-      <TasksContent
-        isCreating={isCreating}
-        isEditing={isEditing}
-        dateTasks={dateTasks}
-        selectedProject={selectedProject}
-        selectedTaskName={selectedTaskName}
-        dateDisplay={dateDisplay}
-        isT1={isT1}
-        handleCreateSubmit={handleCreateSubmit}
-        handleCreateCancel={handleCreateCancel}
-        handleEditSubmit={handleEditSubmit}
-        handleEditCancel={handleEditCancel}
-      />
-      {isTasksFocused && mode === 'normal' && !isCreating && !isEditing && (
-        <Text dimColor>
-          j/k:navigate c:new e:edit d:delete s:start/stop p/n:prev/next day
+    <Frame borderColor={borderColor} minHeight={20}>
+      <Frame.Header>
+        <Text color={borderColor} bold>
+          {baseTitle} <TodayHours selectedDate={selectedDate} isT1={isT1} /> -{' '}
+          {dateDisplay}
         </Text>
-      )}
-    </Box>
+        <DelayedDisappear key={message}>
+          <Text color="yellow">{message}</Text>
+        </DelayedDisappear>
+      </Frame.Header>
+      <Frame.Body>
+        <TasksContent
+          isCreating={isCreating}
+          isEditing={isEditing}
+          dateTasks={dateTasks}
+          selectedProject={selectedProject}
+          selectedTaskName={selectedTaskName}
+          dateDisplay={dateDisplay}
+          isT1={isT1}
+          handleCreateSubmit={handleCreateSubmit}
+          handleCreateCancel={handleCreateCancel}
+          handleEditSubmit={handleEditSubmit}
+          handleEditCancel={handleEditCancel}
+        />
+      </Frame.Body>
+      <Frame.Footer>
+        {isTasksFocused && mode === 'normal' && !isCreating && !isEditing && (
+          <HelpBottom>
+            j/k:navigate c:new e:edit d:delete s:start/stop p/n:prev/next day
+          </HelpBottom>
+        )}
+      </Frame.Footer>
+    </Frame>
   );
 };
 

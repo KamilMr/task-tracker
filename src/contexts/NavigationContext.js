@@ -16,6 +16,7 @@ import {
 } from '../consts.js';
 import clientService from '../services/clientService.js';
 import projectService from '../services/projectService.js';
+import taskService from '../services/taskService.js';
 
 const NavigationContext = createContext();
 
@@ -44,7 +45,9 @@ export const NavigationProvider = ({children}) => {
   const componentKeyHandlers = useRef(new Map());
 
   const handleReload = () => {
-    setReload(!reload);
+    setTimeout(() => {
+      setReload(!reload);
+    }, 500);
   };
 
   // Load clients on mount

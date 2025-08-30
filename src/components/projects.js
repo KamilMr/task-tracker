@@ -8,6 +8,8 @@ import {
   PROJECTS,
 } from '../consts.js';
 import BasicTextInput from './BasicTextInput.js';
+import HelpBottom from './HelpBottom.js';
+import Frame from './Frame.js';
 import projectService from '../services/projectService.js';
 
 const Projects = () => {
@@ -187,21 +189,24 @@ const Projects = () => {
   };
 
   return (
-    <Box
-      borderColor={borderColor}
-      borderStyle={'round'}
-      minHeight={20}
-      flexDirection="column"
-    >
-      <Text color={borderColor} bold>
-        {title}
-      </Text>
-      {message && <Text color="yellow">{message}</Text>}
-      {renderContent()}
+    <Frame borderColor={borderColor} minHeight={20}>
+      <Frame.Header>
+        <Text color={borderColor} bold>
+          {title}
+        </Text>
+        {message && <Text color="yellow">{message}</Text>}
+      </Frame.Header>
+      <Frame.Body>
+        {renderContent()}
+      </Frame.Body>
       {isProjectsFocused && mode === 'normal' && !isCreating && !isEditing && (
-        <Text dimColor>j/k:navigate c:new e:edit d:delete</Text>
+        <Frame.Footer>
+          <HelpBottom>
+            j/k:navigate c:new e:edit d:delete
+          </HelpBottom>
+        </Frame.Footer>
       )}
-    </Box>
+    </Frame>
   );
 };
 

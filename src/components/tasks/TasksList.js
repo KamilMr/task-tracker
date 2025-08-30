@@ -14,9 +14,6 @@ const TasksList = ({
   return (
     <Box flexDirection="column">
       <RunningTask />
-      <Text color="cyan" bold>
-        {selectedProject.name} Tasks ({dateDisplay}):
-      </Text>
       {dateTasks.map(uniqueTask => (
         <NameAndDetails
           key={uniqueTask.title}

@@ -152,8 +152,7 @@ const taskService = {
         const {t1} = require('../utils/t1.js');
         hours = t1(hours, isT1);
         totalSeconds = hours * 3600 + (totalSeconds % 3600);
-      } catch (e) {
-      }
+      } catch (e) {}
     }
 
     const minutes = Math.floor((totalSeconds % 3600) / 60);
