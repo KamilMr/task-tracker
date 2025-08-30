@@ -5,7 +5,7 @@ import {Text} from 'ink';
 import taskService from '../services/taskService.js';
 import {useNavigation} from '../contexts/NavigationContext.js';
 
-const TodayHours = ({selectedDate}) => {
+const TodayHours = ({selectedDate, isT1 = false}) => {
   const {selectedProjectId} = useNavigation();
   const [todayHours, setTodayHours] = useState({hours: 0, minutes: 0});
 
@@ -16,7 +16,7 @@ const TodayHours = ({selectedDate}) => {
           selectedProjectId,
           selectedDate,
         );
-        const timeSpent = taskService.calculateTimeSpend(tasks);
+        const timeSpent = taskService.calculateTimeSpend(tasks, isT1);
         setTodayHours(timeSpent);
       } catch (error) {
         console.error('Error loading today hours:', error);
@@ -28,7 +28,7 @@ const TodayHours = ({selectedDate}) => {
     } else {
       setTodayHours({hours: 0, minutes: 0});
     }
-  }, [selectedDate, selectedProjectId]);
+  }, [selectedDate, selectedProjectId, isT1]);
 
   if (todayHours.hours > 0 || todayHours.minutes > 0)
     return (

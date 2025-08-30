@@ -145,7 +145,7 @@ const Client = () => {
   // Client key mappings (normal mode only)
   const keyMappings = [
     {
-      key: 'n',
+      key: 'c',
       action: handleNewClient,
     },
     {
@@ -207,7 +207,7 @@ const Client = () => {
           )}
           {message && <Text color="yellow">{message}</Text>}
           {isClientFocused && mode === 'normal' && (
-            <Text dimColor>n:new e:edit d:delete j/k:nav</Text>
+            <Text dimColor>c:new e:edit d:delete j/k:nav</Text>
           )}
         </>
       )}

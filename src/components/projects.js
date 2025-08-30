@@ -103,7 +103,7 @@ const Projects = () => {
   // Project key mappings (normal mode only)
   const keyMappings = [
     {
-      key: 'n',
+      key: 'c',
       action: handleNewProject,
     },
     {
@@ -163,7 +163,7 @@ const Projects = () => {
       return (
         <Box flexDirection="column">
           <Text dimColor>No projects for {selectedClient.name}</Text>
-          <Text dimColor>Press 'n' to create a new project</Text>
+          <Text dimColor>Press 'c' to create a new project</Text>
         </Box>
       );
     }
@@ -199,7 +199,7 @@ const Projects = () => {
       {message && <Text color="yellow">{message}</Text>}
       {renderContent()}
       {isProjectsFocused && mode === 'normal' && !isCreating && !isEditing && (
-        <Text dimColor>j/k:navigate n:new e:edit d:delete</Text>
+        <Text dimColor>j/k:navigate c:new e:edit d:delete</Text>
       )}
     </Box>
   );

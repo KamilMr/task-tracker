@@ -9,7 +9,7 @@ const TasksList = ({
   dateDisplay,
   dateTasks,
   selectedTaskName,
-  isDiff,
+  isT1,
 }) => {
   return (
     <Box flexDirection="column">
@@ -23,7 +23,7 @@ const TasksList = ({
           uniqueTask={uniqueTask}
           isSelected={uniqueTask.title === selectedTaskName}
           timeDisplay={formatTime(
-            isDiff
+            isT1
               ? Math.floor(uniqueTask.totalSec + uniqueTask.totalSec * 0.33)
               : uniqueTask.totalSec,
           )}

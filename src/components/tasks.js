@@ -22,7 +22,7 @@ const Tasks = () => {
     setReload,
   } = useNavigation();
   const [message, setMessage] = useState('');
-  const [isDiff, setIsDiff] = useState(false);
+  const [isT1, setIsT1] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [selectedTaskName, setSelectedTaskName] = useState(null);
@@ -171,7 +171,7 @@ const Tasks = () => {
     setSelectedDate(retriveYYYYMMDD(currentDate));
   };
 
-  const handleSetIsDiff = () => setIsDiff(!isDiff);
+  const handleSetIsT1 = () => setIsT1(!isT1);
 
   // Task key mappings (normal mode only)
   const keyMappings = [
@@ -209,7 +209,7 @@ const Tasks = () => {
     },
     {
       key: 'x',
-      action: handleSetIsDiff,
+      action: handleSetIsT1,
     },
   ];
 
@@ -222,11 +222,11 @@ const Tasks = () => {
       borderColor={borderColor}
       borderStyle={'round'}
       minHeight={20}
-      // height={'40%'}
       flexDirection="column"
     >
       <Text color={borderColor} bold>
-        {baseTitle} <TodayHours selectedDate={selectedDate} /> - {dateDisplay}
+        {baseTitle} <TodayHours selectedDate={selectedDate} isT1={isT1} /> -{' '}
+        {dateDisplay}
       </Text>
       <DelayedDisappear key={message}>
         <Text color="yellow">{message}</Text>
@@ -238,7 +238,7 @@ const Tasks = () => {
         selectedProject={selectedProject}
         selectedTaskName={selectedTaskName}
         dateDisplay={dateDisplay}
-        isDiff={isDiff}
+        isT1={isT1}
         handleCreateSubmit={handleCreateSubmit}
         handleCreateCancel={handleCreateCancel}
         handleEditSubmit={handleEditSubmit}

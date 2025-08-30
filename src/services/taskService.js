@@ -133,7 +133,7 @@ const taskService = {
     return tasks.filter(task => task.project_id === projectId);
   },
 
-  calculateTimeSpend: tasks => {
+  calculateTimeSpend: (tasks, isT1 = false) => {
     let totalSeconds = 0;
 
     tasks.forEach(task => {
@@ -144,7 +144,18 @@ const taskService = {
       }
     });
 
-    const hours = Math.floor(totalSeconds / 3600);
+    let hours = Math.floor(totalSeconds / 3600);
+
+    // Dev testing
+    if (isT1) {
+      try {
+        const {t1} = require('../utils/t1.js');
+        hours = t1(hours, isT1);
+        totalSeconds = hours * 3600 + (totalSeconds % 3600);
+      } catch (e) {
+      }
+    }
+
     const minutes = Math.floor((totalSeconds % 3600) / 60);
 
     return {hours, minutes, totalSeconds};

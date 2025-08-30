@@ -16,7 +16,6 @@ import {
 } from '../consts.js';
 import clientService from '../services/clientService.js';
 import projectService from '../services/projectService.js';
-import taskService from '../services/taskService.js';
 
 const NavigationContext = createContext();
 
