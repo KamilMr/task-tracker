@@ -45,9 +45,7 @@ export const NavigationProvider = ({children}) => {
   const componentKeyHandlers = useRef(new Map());
 
   const handleReload = () => {
-    setTimeout(() => {
-      setReload(!reload);
-    }, 500);
+    setReload(!reload);
   };
 
   // Load clients on mount
@@ -89,30 +87,6 @@ export const NavigationProvider = ({children}) => {
     };
     loadProjects();
   }, [selectedClientId]);
-
-  // Load tasks when selected project changes
-  // useEffect(() => {
-  //   const loadTasks = async () => {
-  //     if (selectedProjectId) {
-  //       try {
-  //         const taskData =
-  //           await taskService.getAllTasksFromToday(selectedProjectId);
-  //         setTasks(taskData);
-  //         if (taskData.length > 0) {
-  //           setSelectedTaskId(taskData[0].id);
-  //         } else {
-  //           setSelectedTaskId(null);
-  //         }
-  //       } catch (error) {
-  //         console.error('Failed to load tasks:', error);
-  //       }
-  //     } else {
-  //       setTasks([]);
-  //       setSelectedTaskId(null);
-  //     }
-  //   };
-  //   loadTasks();
-  // }, [selectedProjectId]);
 
   useInput((input, key) => {
     // Global vim-like mode switching (always works)
@@ -251,26 +225,6 @@ export const NavigationProvider = ({children}) => {
       }
     }
   };
-
-  // const getSelectedTask = () => {
-  //   return tasks.find(task => task.id === selectedTaskId) || null;
-  // };
-
-  // const selectNextTask = () => {
-  //   const currentIndex = tasks.findIndex(task => task.id === selectedTaskId);
-  //   const nextIndex = currentIndex < tasks.length - 1 ? currentIndex + 1 : 0;
-  //   if (tasks[nextIndex]) {
-  //     setSelectedTaskId(tasks[nextIndex].id);
-  //   }
-  // };
-  //
-  // const selectPreviousTask = () => {
-  //   const currentIndex = tasks.findIndex(task => task.id === selectedTaskId);
-  //   const prevIndex = currentIndex > 0 ? currentIndex - 1 : tasks.length - 1;
-  //   if (tasks[prevIndex]) {
-  //     setSelectedTaskId(tasks[prevIndex].id);
-  //   }
-  // };
 
   const value = {
     focusedSection,

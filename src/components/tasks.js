@@ -39,7 +39,8 @@ const Tasks = () => {
     ? BORDER_COLOR_FOCUSED
     : BORDER_COLOR_DEFAULT;
   const baseTitle = getBorderTitle(TASKS);
-  const dateDisplay = selectedDate === retriveYYYYMMDD() ? 'today' : selectedDate;
+  const dateDisplay =
+    selectedDate === retriveYYYYMMDD() ? 'today' : selectedDate;
 
   // Navigation functions for unique task names
   const selectNextUniqueTask = () => {
