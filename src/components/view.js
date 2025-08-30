@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {Text, Box} from 'ink';
 import {useNavigation} from '../contexts/NavigationContext.js';
 import {BORDER_COLOR_DEFAULT, BORDER_COLOR_FOCUSED, VIEW} from '../consts.js';
+import Frame from './Frame.js';
 import projectService from '../services/projectService.js';
 import taskService from '../services/taskService.js';
 
@@ -139,17 +140,16 @@ const View = () => {
   };
 
   return (
-    <Box
-      borderColor={borderColor}
-      borderStyle={'round'}
-      width={'100%'}
-      flexDirection="column"
-    >
-      <Text color={borderColor} bold>
-        {title}
-      </Text>
-      {renderContent()}
-    </Box>
+    <Frame borderColor={borderColor} width={"100%"} height={45}>
+      <Frame.Header>
+        <Text color={borderColor} bold>
+          {title}
+        </Text>
+      </Frame.Header>
+      <Frame.Body>
+        {renderContent()}
+      </Frame.Body>
+    </Frame>
   );
 };
 

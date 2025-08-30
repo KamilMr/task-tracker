@@ -189,7 +189,7 @@ const Projects = () => {
   };
 
   return (
-    <Frame borderColor={borderColor} minHeight={20}>
+    <Frame borderColor={borderColor} height={20}>
       <Frame.Header>
         <Text color={borderColor} bold>
           {title}

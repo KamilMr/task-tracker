@@ -1,7 +1,7 @@
 import React from 'react';
 import {Box} from 'ink';
 
-const Frame = ({borderColor, minHeight, children}) => {
+const Frame = ({borderColor, minHeight, children, height, ...rest}) => {
   const childrenArray = React.Children.toArray(children);
   const header = childrenArray.find(child => child.type === Header);
   const body = childrenArray.find(child => child.type === Body);
@@ -14,6 +14,8 @@ const Frame = ({borderColor, minHeight, children}) => {
       minHeight={minHeight}
       flexDirection="column"
       justifyContent="space-between"
+      height={height}
+      {...rest}
     >
       <Box flexDirection="column">
         {header}
