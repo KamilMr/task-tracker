@@ -27,11 +27,11 @@ const Frame = ({borderColor, minHeight, children, height, ...rest}) => {
 };
 
 const Header = ({children}) => {
-  return <>{children}</>;
+  return <Box marginY={-1}>{children}</Box>;
 };
 
 const Body = ({children}) => {
-  return <Box flexDirection="column">{children}</Box>;
+  return <Box flexDirection="column" marginY={1}>{children}</Box>;
 };
 
 const Footer = ({children}) => {
