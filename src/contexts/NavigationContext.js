@@ -39,7 +39,7 @@ export const NavigationProvider = ({children}) => {
   const [selectedProjectId, setSelectedProjectId] = useState(null);
 
   const [selectedTaskId, setSelectedTaskId] = useState(null);
-  const [reload, setReload] = useState();
+  const [reload, setReload] = useState(false);
 
   const {exit} = useApp();
   const componentKeyHandlers = useRef(new Map());

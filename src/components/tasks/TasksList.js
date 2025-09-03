@@ -13,7 +13,6 @@ const TasksList = ({
 }) => {
   return (
     <Box flexDirection="column">
-      <RunningTask />
       {dateTasks.map(uniqueTask => (
         <NameAndDetails
           key={uniqueTask.title}

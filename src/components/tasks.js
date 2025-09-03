@@ -13,6 +13,7 @@ import {retriveYYYYMMDD} from '../utils.js';
 import {useComponentKeys} from '../hooks/useComponentKeys.js';
 import {useNavigation} from '../contexts/NavigationContext.js';
 import {BORDER_COLOR_DEFAULT, BORDER_COLOR_FOCUSED, TASKS} from '../consts.js';
+import RunningTask from './RunningTask.js';
 
 const Tasks = () => {
   const {
@@ -22,6 +23,7 @@ const Tasks = () => {
     selectedProjectId,
     getSelectedProject,
     setReload,
+    reload,
   } = useNavigation();
   const [message, setMessage] = useState('');
   const [isT1, setIsT1] = useState(false);
@@ -231,6 +233,7 @@ const Tasks = () => {
         </DelayedDisappear>
       </Frame.Header>
       <Frame.Body>
+        <RunningTask />
         <TasksContent
           isCreating={isCreating}
           isEditing={isEditing}

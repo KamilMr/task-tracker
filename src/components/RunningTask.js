@@ -8,7 +8,7 @@ import useTimer from '../hooks/useTimer.js';
 import taskService from '../services/taskService.js';
 
 const RunningTask = () => {
-  const {reload} = useNavigation();
+  const {reload, selectedProjectId} = useNavigation();
   const {currentValue, start, stop, initialValue} = useTimer();
   const [isActive, setIsActive] = useState(false);
 
@@ -32,7 +32,7 @@ const RunningTask = () => {
     () => {
       stop();
     };
-  }, [reload]);
+  }, [reload, selectedProjectId]);
 
   if (!isActive) {
     return <Text color="gray">No task currently running</Text>;

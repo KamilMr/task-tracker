@@ -6,7 +6,7 @@ import taskService from '../services/taskService.js';
 import {useNavigation} from '../contexts/NavigationContext.js';
 
 const TodayHours = ({selectedDate, isT1 = false}) => {
-  const {selectedProjectId} = useNavigation();
+  const {selectedProjectId, reload} = useNavigation();
   const [todayHours, setTodayHours] = useState({hours: 0, minutes: 0});
 
   useEffect(() => {
@@ -28,7 +28,7 @@ const TodayHours = ({selectedDate, isT1 = false}) => {
     } else {
       setTodayHours({hours: 0, minutes: 0});
     }
-  }, [selectedDate, selectedProjectId, isT1]);
+  }, [selectedDate, selectedProjectId, isT1, reload]);
 
   if (todayHours.hours > 0 || todayHours.minutes > 0)
     return (

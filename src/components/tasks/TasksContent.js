@@ -12,7 +12,7 @@ const TasksContent = ({
   selectedProject,
   selectedTaskName,
   dateDisplay,
-  isDiff,
+  isT1,
   handleCreateSubmit,
   handleCreateCancel,
   handleEditSubmit,
@@ -56,7 +56,7 @@ const TasksContent = ({
       dateDisplay={dateDisplay}
       dateTasks={dateTasks}
       selectedTaskName={selectedTaskName}
-      isDiff={isDiff}
+      isT1={isT1}
     />
   );
 };
