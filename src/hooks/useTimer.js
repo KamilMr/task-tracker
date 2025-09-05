@@ -1,41 +1,44 @@
-import {useState, useEffect, useRef, useCallback} from 'react';
+import {useState, useEffect, useRef} from 'react';
 
-const interval = 1000;
+const INTERVAL = 1e3;
+const SEC_TO_ADD = 1;
 
 const useTimer = () => {
-  const [currentValue, setCurrentValue] = useState(0);
+  const [currentSecVal, setCurrentSecVal] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const intervalRef = useRef(null);
 
   const start = () => {
+    setCurrentSecVal(0);
     setIsRunning(true);
   };
 
   const stop = () => {
+    setCurrentSecVal(0);
     setIsRunning(false);
   };
 
   useEffect(() => {
     if (isRunning) {
-      intervalRef.current = setInterval(() => {
-        setCurrentValue(val => (val += interval));
-      }, interval);
+      intervalRef.current = setInterval(
+        () => setCurrentSecVal(sec => sec + SEC_TO_ADD),
+        INTERVAL,
+      );
     }
 
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
-        setCurrentValue(0);
       }
     };
   }, [isRunning]);
 
   return {
-    currentValue: Math.floor(currentValue / 1000),
+    currentValue: currentSecVal,
     start,
     stop,
-    initialValue: arg => {
-      setCurrentValue(arg);
+    initialValue: sec => {
+      setCurrentSecVal(sec);
     },
   };
 };
