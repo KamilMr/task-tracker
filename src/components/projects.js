@@ -196,14 +196,10 @@ const Projects = () => {
         </Text>
         {message && <Text color="yellow">{message}</Text>}
       </Frame.Header>
-      <Frame.Body>
-        {renderContent()}
-      </Frame.Body>
+      <Frame.Body>{renderContent()}</Frame.Body>
       {isProjectsFocused && mode === 'normal' && !isCreating && !isEditing && (
         <Frame.Footer>
-          <HelpBottom>
-            j/k:navigate c:new e:edit d:delete
-          </HelpBottom>
+          <HelpBottom>j/k:navigate c:new e:edit d:delete</HelpBottom>
         </Frame.Footer>
       )}
     </Frame>

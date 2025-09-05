@@ -214,13 +214,15 @@ const Client = () => {
           </>
         )}
       </Frame.Body>
-      {isClientFocused && mode === 'normal' && !isAdding && !isDeleting && !isEditing && (
-        <Frame.Footer>
-          <HelpBottom>
-            c:new e:edit d:delete j/k:nav
-          </HelpBottom>
-        </Frame.Footer>
-      )}
+      {isClientFocused &&
+        mode === 'normal' &&
+        !isAdding &&
+        !isDeleting &&
+        !isEditing && (
+          <Frame.Footer>
+            <HelpBottom>c:new e:edit d:delete j/k:nav</HelpBottom>
+          </Frame.Footer>
+        )}
     </Frame>
   );
 };

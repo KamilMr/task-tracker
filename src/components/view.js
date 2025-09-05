@@ -140,15 +140,13 @@ const View = () => {
   };
 
   return (
-    <Frame borderColor={borderColor} width={"100%"} height={45}>
+    <Frame borderColor={borderColor} width={'100%'} height={45}>
       <Frame.Header>
         <Text color={borderColor} bold>
           {title}
         </Text>
       </Frame.Header>
-      <Frame.Body>
-        {renderContent()}
-      </Frame.Body>
+      <Frame.Body>{renderContent()}</Frame.Body>
     </Frame>
   );
 };

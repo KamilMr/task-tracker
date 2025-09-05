@@ -31,7 +31,11 @@ const Header = ({children}) => {
 };
 
 const Body = ({children}) => {
-  return <Box flexDirection="column" marginY={1}>{children}</Box>;
+  return (
+    <Box flexDirection="column" marginY={1}>
+      {children}
+    </Box>
+  );
 };
 
 const Footer = ({children}) => {
