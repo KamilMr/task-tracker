@@ -8,9 +8,7 @@ const useTimer = () => {
   const [isRunning, setIsRunning] = useState(false);
   const intervalRef = useRef(null);
 
-  const start = () => 
-    setIsRunning(true);
-  
+  const start = () => setIsRunning(true);
 
   const stop = () => {
     setCurrentSecVal(0);
