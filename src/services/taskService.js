@@ -163,7 +163,7 @@ const taskService = {
   getAllTasksFromToday: async (date = new Date(), pId = null) => {
     const filteredTasks = await taskService.getTasksByProjectAndDate(pId, date);
     const activeTask = await taskService.getActiveTask();
-    filteredTasks.push(activeTask);
+    if (activeTask) filteredTasks.push(activeTask);
 
     // Group tasks by title and project_id
     const groupedTasks = filteredTasks.reduce((acc, task) => {
