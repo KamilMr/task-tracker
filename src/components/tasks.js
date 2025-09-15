@@ -3,17 +3,17 @@ import React, {useState, useEffect} from 'react';
 import {Text, Box} from 'ink';
 
 import DelayedDisappear from './DelayedDisappear.js';
+import Frame from './Frame.js';
+import HelpBottom from './HelpBottom.js';
+import RunningTask from './RunningTask.js';
 import TasksContent from './tasks/TasksContent.js';
 import TodayHours from './TodayHours.js';
-import HelpBottom from './HelpBottom.js';
-import Frame from './Frame.js';
 import taskService from '../services/taskService.js';
 import useDateTasks from '../hooks/useDateTasks.js';
-import {retriveYYYYMMDD} from '../utils.js';
+import {BORDER_COLOR_DEFAULT, BORDER_COLOR_FOCUSED, TASKS} from '../consts.js';
+import {getDayOfWeek, retriveYYYYMMDD} from '../utils.js';
 import {useComponentKeys} from '../hooks/useComponentKeys.js';
 import {useNavigation} from '../contexts/NavigationContext.js';
-import {BORDER_COLOR_DEFAULT, BORDER_COLOR_FOCUSED, TASKS} from '../consts.js';
-import RunningTask from './RunningTask.js';
 
 const Tasks = () => {
   const {
@@ -25,6 +25,7 @@ const Tasks = () => {
     setReload,
     reload,
   } = useNavigation();
+
   const [message, setMessage] = useState('');
   const [isT1, setIsT1] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
@@ -44,7 +45,7 @@ const Tasks = () => {
     : BORDER_COLOR_DEFAULT;
   const baseTitle = getBorderTitle(TASKS);
   const dateDisplay =
-    selectedDate === retriveYYYYMMDD() ? 'today' : selectedDate;
+    (selectedDate === retriveYYYYMMDD() ? 'today' : selectedDate) + ' - ' +getDayOfWeek(new Date(selectedDate));
 
   // Navigation functions for unique task names
   const selectNextUniqueTask = () => {
@@ -225,7 +226,7 @@ const Tasks = () => {
     <Frame borderColor={borderColor} height={20}>
       <Frame.Header>
         <Text color={borderColor} bold>
-          {baseTitle} <TodayHours selectedDate={selectedDate} isT1={isT1} /> -{' '}
+          {baseTitle}  - <TodayHours selectedDate={selectedDate} isT1={isT1} /> -{' '}
           {dateDisplay}
         </Text>
         <DelayedDisappear key={message}>

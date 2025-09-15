@@ -57,6 +57,10 @@ export const convToTss = (date = new Date()) => {
   return Math.floor(new Date(date).getTime() / 1000);
 };
 
+export const getDayOfWeek = (date = new Date()) => {
+  return date.toLocaleDateString('en-En', {weekday: 'short'});
+}
+
 export const formatTime = seconds => {
   if (seconds === 0) return '';
 
