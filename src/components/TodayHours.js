@@ -30,14 +30,12 @@ const TodayHours = ({selectedDate, isT1 = false}) => {
     }
   }, [selectedDate, selectedProjectId, isT1, reload]);
 
-  if (todayHours.hours > 0 || todayHours.minutes > 0)
     return (
       <Text>
         ({todayHours.hours}h {todayHours.minutes}m)
       </Text>
     );
 
-  return null;
 };
 
 export default TodayHours;
