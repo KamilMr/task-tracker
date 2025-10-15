@@ -40,8 +40,8 @@ const RunningTask = () => {
   return (
     <Text>
       <Text color="yellow">[RUNNING] </Text>
-      <Text color="white">{isActive.title}</Text>
-      <Text color="cyan"> ({formatTime(currentValue)})</Text>
+      <Text color="yellow">{isActive.title}</Text>
+      <Text color="yellow"> ({formatTime(currentValue)})</Text>
     </Text>
   );
 };
