@@ -1,6 +1,6 @@
 import TogglClient from './togglClient.js';
 import taskModel from '../models/task.js';
-import projectModel from '../models/project.js';
+// import projectModel from '../models/project.js';
 
 class SyncService {
   constructor(apiToken, workspaceId, projectMapping = {}) {
