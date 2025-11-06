@@ -5,7 +5,7 @@ import {getFormatedDate, retriveYYYYMMDD} from '../utils.js';
 const taskService = {
   create: async ({start, end, title, projectId}) => {
     const project = await projectModel.selectProject(projectId);
-    if (!project) throw 'Project does not exist';
+    if (!project) throw new Error('Project does not exist');
 
     const existingTask = await taskModel.findByNameAndProject(title, projectId);
     if (existingTask) {
@@ -17,7 +17,7 @@ const taskService = {
 
   startTask: async ({title, projectId, start = getFormatedDate()}) => {
     const project = await projectModel.selectProject(projectId);
-    if (!project) throw 'Project does not exist';
+    if (!project) throw new Error('Project does not exist');
 
     const activeTask = await taskModel.selectActiveTask();
     if (activeTask) {
@@ -31,7 +31,7 @@ const taskService = {
 
   toggleTask: async ({title, projectId, start = getFormatedDate()}) => {
     const project = await projectModel.selectProject(projectId);
-    if (!project) throw 'Project does not exist';
+    if (!project) throw new Error('Project does not exist');
 
     const activeTask = await taskModel.selectActiveTask();
 
