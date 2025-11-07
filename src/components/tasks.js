@@ -14,6 +14,8 @@ import {BORDER_COLOR_DEFAULT, BORDER_COLOR_FOCUSED, TASKS} from '../consts.js';
 import {getDayOfWeek, retriveYYYYMMDD} from '../utils.js';
 import {useComponentKeys} from '../hooks/useComponentKeys.js';
 import {useNavigation} from '../contexts/NavigationContext.js';
+import createTogglSync from '../toggl-sync/index.js';
+import syncedDay from '../models/syncedDay.js';
 
 const Tasks = () => {
   const {
@@ -32,6 +34,7 @@ const Tasks = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [selectedTaskName, setSelectedTaskName] = useState(null);
   const [selectedDate, setSelectedDate] = useState(retriveYYYYMMDD());
+  const [isSynced, setIsSynced] = useState(false);
 
   const dateTasks = useDateTasks(selectedDate);
 
@@ -39,6 +42,15 @@ const Tasks = () => {
   useEffect(() => {
     setSelectedTaskName(dateTasks[0]?.title);
   }, [selectedProjectId]);
+
+  // Check sync status when date changes
+  useEffect(() => {
+    const checkSyncStatus = async () => {
+      const synced = await syncedDay.isSynced(selectedDate);
+      setIsSynced(synced);
+    };
+    checkSyncStatus();
+  }, [selectedDate]);
 
   const borderColor = isTasksFocused
     ? BORDER_COLOR_FOCUSED
@@ -178,6 +190,39 @@ const Tasks = () => {
 
   const handleSetIsT1 = () => setIsT1(!isT1);
 
+  const handleTogglSync = async () => {
+    if (isSynced) {
+      setMessage('Day already synced');
+      return;
+    }
+
+    try {
+      setMessage('Syncing with Toggl...');
+
+      const togglSync = createTogglSync(
+        process.env.TOGGL_API_TOKEN,
+        process.env.TOGGL_WORKSPACE_ID
+      );
+
+      const dateToSync = new Date(selectedDate);
+      const results = await togglSync.syncTasksByDate(dateToSync);
+
+      const successful = results.filter(r => r.success).length;
+      const failed = results.filter(r => !r.success).length;
+
+      if (failed === 0) {
+        await syncedDay.markAsSynced(selectedDate);
+        setIsSynced(true);
+        setMessage(`Synced ${successful} tasks successfully`);
+        setReload();
+      } else {
+        setMessage(`Synced ${successful} tasks, ${failed} failed`);
+      }
+    } catch (error) {
+      setMessage(`Sync error: ${error.message}`);
+    }
+  };
+
   // Task key mappings (normal mode only)
   const keyMappings = [
     {
@@ -216,6 +261,10 @@ const Tasks = () => {
       key: 'x',
       action: handleSetIsT1,
     },
+    {
+      key: 't',
+      action: handleTogglSync,
+    },
   ];
 
   useComponentKeys(TASKS, keyMappings, isTasksFocused);
@@ -252,7 +301,7 @@ const Tasks = () => {
       <Frame.Footer>
         {isTasksFocused && mode === 'normal' && !isCreating && !isEditing && (
           <HelpBottom>
-            j/k:navigate c:new e:edit d:delete s:start/stop p/n:prev/next day
+            j/k:navigate c:new e:edit d:delete s:start/stop p/n:prev/next day t:{isSynced ? 'synced' : 'sync'}
           </HelpBottom>
         )}
       </Frame.Footer>
