@@ -1,0 +1,56 @@
+# Dependencies
+node_modules
+npm-debug.log*
+pnpm-debug.log*
+
+# Build output
+dist
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Documentation
+*.md
+!README.md
+
+# Test files
+coverage
+*.test.js
+*.spec.js
+
+# Logs
+logs
+*.log
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+compose*.yaml
+
+# Scripts (except entrypoint which will be explicitly copied)
+scripts
+
+# Carson task files
+_carson
+
+# Misc
+.prettierrc
+.prettierignore
+.editorconfig
