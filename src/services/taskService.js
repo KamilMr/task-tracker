@@ -4,6 +4,11 @@ import {getFormatedDate, retriveYYYYMMDD} from '../utils.js';
 
 const taskService = {
   create: async ({start, end, title, projectId}) => {
+    if (!title || title.trim().length === 0)
+      throw new Error('Task title cannot be empty');
+    if (title.length > 100)
+      throw new Error('Task title cannot exceed 100 characters');
+
     const project = await projectModel.selectProject(projectId);
     if (!project) throw new Error('Project does not exist');
 
@@ -16,6 +21,11 @@ const taskService = {
   },
 
   startTask: async ({title, projectId, start = getFormatedDate()}) => {
+    if (!title || title.trim().length === 0)
+      throw new Error('Task title cannot be empty');
+    if (title.length > 100)
+      throw new Error('Task title cannot exceed 100 characters');
+
     const project = await projectModel.selectProject(projectId);
     if (!project) throw new Error('Project does not exist');
 
@@ -30,6 +40,11 @@ const taskService = {
   },
 
   toggleTask: async ({title, projectId, start = getFormatedDate()}) => {
+    if (!title || title.trim().length === 0)
+      throw new Error('Task title cannot be empty');
+    if (title.length > 100)
+      throw new Error('Task title cannot exceed 100 characters');
+
     const project = await projectModel.selectProject(projectId);
     if (!project) throw new Error('Project does not exist');
 
@@ -84,6 +99,11 @@ const taskService = {
   },
 
   update: async (oldTitle, title, pId) => {
+    if (!title || title.trim().length === 0)
+      throw new Error('Task title cannot be empty');
+    if (title.length > 100)
+      throw new Error('Task title cannot exceed 100 characters');
+
     const existingTasks = await taskModel.findAllByNameAndProject(
       oldTitle,
       pId,

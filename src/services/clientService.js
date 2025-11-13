@@ -4,6 +4,11 @@ import task from '../models/task.js';
 
 const clientService = {
   create: data => {
+    if (!data.name || data.name.trim().length === 0)
+      throw new Error('Client name cannot be empty');
+    if (data.name.length > 50)
+      throw new Error('Client name cannot exceed 50 characters');
+
     return cliModel.create(data);
   },
   selectAll: () => {
@@ -24,6 +29,11 @@ const clientService = {
   },
 
   update: (id, name) => {
+    if (!name || name.trim().length === 0)
+      throw new Error('Client name cannot be empty');
+    if (name.length > 50)
+      throw new Error('Client name cannot exceed 50 characters');
+
     return cliModel.edit(id, name);
   },
 };
