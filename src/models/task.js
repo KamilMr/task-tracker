@@ -34,6 +34,13 @@ const task = {
     return db(PROJECT_TABLE).select().where('project_id', projectId);
   },
 
+  getDistinctTaskNamesByProject: projectId => {
+    return db(PROJECT_TABLE)
+      .distinct('title')
+      .where('project_id', projectId)
+      .orderBy('title', 'asc');
+  },
+
   findByNameAndProject: (title, projectId) => {
     return db(PROJECT_TABLE)
       .select()

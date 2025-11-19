@@ -98,6 +98,11 @@ const taskService = {
     return taskModel.selectByProjectId(projectId);
   },
 
+  getTaskSuggestions: async projectId => {
+    const tasks = await taskModel.getDistinctTaskNamesByProject(projectId);
+    return tasks.map(task => task.title);
+  },
+
   update: async (oldTitle, title, pId) => {
     if (!title || title.trim().length === 0)
       throw new Error('Task title cannot be empty');
