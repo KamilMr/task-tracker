@@ -21,6 +21,7 @@ const TasksContent = ({
   if (isCreating) {
     return (
       <TaskCreatingForm
+        projectId={selectedProject?.id}
         onSubmit={handleCreateSubmit}
         onCancel={handleCreateCancel}
       />

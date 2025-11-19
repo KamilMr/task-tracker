@@ -1,12 +1,16 @@
 import React from 'react';
 import {Text, Box} from 'ink';
-import BasicTextInput from '../BasicTextInput.js';
+import AutocompleteTextInput from '../AutocompleteTextInput.js';
 
-const TaskCreatingForm = ({onSubmit, onCancel}) => {
+const TaskCreatingForm = ({projectId, onSubmit, onCancel}) => {
   return (
     <Box flexDirection="column">
       <Text>New task title:</Text>
-      <BasicTextInput onSubmit={onSubmit} onCancel={onCancel} />
+      <AutocompleteTextInput
+        projectId={projectId}
+        onSubmit={onSubmit}
+        onCancel={onCancel}
+      />
     </Box>
   );
 };
