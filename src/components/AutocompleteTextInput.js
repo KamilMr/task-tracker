@@ -51,16 +51,16 @@ const AutocompleteTextInput = ({
   }, [value, allSuggestions]);
 
   useInput((input, key) => {
-    // Handle j/k navigation only when suggestions are visible
+    // Handle arrow navigation only when suggestions are visible
     if (filteredSuggestions.length > 0) {
-      if (input === 'j' && !key.ctrl && !key.meta) {
+      if (key.downArrow) {
         setSelectedIndex(prev =>
           Math.min(prev + 1, filteredSuggestions.length - 1),
         );
         return;
       }
 
-      if (input === 'k' && !key.ctrl && !key.meta) {
+      if (key.upArrow) {
         setSelectedIndex(prev => Math.max(prev - 1, 0));
         return;
       }
