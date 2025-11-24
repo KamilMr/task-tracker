@@ -63,6 +63,15 @@ const task = {
       .del();
   },
 
+  deleteByTitleAndDate: (title, projectId, date) => {
+    return db(PROJECT_TABLE)
+      .where('title', title)
+      .andWhere('project_id', projectId)
+      .andWhere('start', '>=', date)
+      .andWhere('start', '<', `${date} 23:59:59`)
+      .del();
+  },
+
   edit: ({id, start, end, title, time, projectId}) => {
     return db(PROJECT_TABLE).where({id}).update({
       title,

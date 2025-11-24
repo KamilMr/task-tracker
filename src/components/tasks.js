@@ -106,9 +106,9 @@ const Tasks = () => {
       return;
     }
     try {
-      await taskService.deleteAllByTitle(selectedTaskName, selectedProjectId);
+      await taskService.deleteByTitleAndDate(selectedTaskName, selectedProjectId, selectedDate);
       setReload();
-      setMessage(`Deleted all entries for task: ${selectedTaskName}`);
+      setMessage(`Deleted ${selectedTaskName} entries from ${selectedDate === retriveYYYYMMDD() ? 'today' : selectedDate}`);
     } catch (error) {
       setMessage(`Error deleting task: ${error.message}`);
     }

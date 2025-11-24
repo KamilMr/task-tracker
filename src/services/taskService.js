@@ -143,6 +143,19 @@ const taskService = {
     return taskModel.deleteAllByTitle(title, projectId);
   },
 
+  deleteByTitleAndDate: async (title, projectId, date) => {
+    const existingTasks = await taskModel.findAllByNameAndProject(
+      title,
+      projectId,
+    );
+
+    if (!existingTasks.length) {
+      throw new Error(`No tasks found with title "${title}" in this project`);
+    }
+
+    return taskModel.deleteByTitleAndDate(title, projectId, date);
+  },
+
   deleteByProject: id => {
     return taskModel.delete({col: 'project_id', val: id});
   },
