@@ -123,6 +123,7 @@ const Tasks = () => {
       });
 
       setIsCreating(false);
+      setSelectedTaskName(title.trim());
       setMessage(`Created task: ${title}`);
       setReload();
     } catch (error) {

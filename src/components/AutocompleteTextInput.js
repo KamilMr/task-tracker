@@ -64,15 +64,17 @@ const AutocompleteTextInput = ({
         setSelectedIndex(prev => Math.max(prev - 1, 0));
         return;
       }
+
+      // Tab to accept selected suggestion
+      if (key.tab) {
+        setValue(filteredSuggestions[selectedIndex]);
+        return;
+      }
     }
 
     if (key.return) {
-      // If there are suggestions and one is selected, use it
-      const finalValue =
-        filteredSuggestions.length > 0
-          ? filteredSuggestions[selectedIndex]
-          : value;
-      onSubmit(finalValue);
+      // Use the typed value directly
+      onSubmit(value);
       setValue('');
       setMode('normal');
       return;
