@@ -3,13 +3,13 @@ import projectModel from '../models/project.js';
 import task from '../models/task.js';
 
 const clientService = {
-  create: data => {
-    if (!data.name || data.name.trim().length === 0)
+  create: name => {
+    if (!name || name.trim().length === 0)
       throw new Error('Client name cannot be empty');
-    if (data.name.length > 50)
+    if (name.length > 50)
       throw new Error('Client name cannot exceed 50 characters');
 
-    return cliModel.create(data);
+    return cliModel.create(name);
   },
   selectAll: () => {
     return cliModel.listAll();
