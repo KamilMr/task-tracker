@@ -27,7 +27,7 @@ const timeEntry = {
         'time_entry.end',
         'task.title',
         'task.project_id',
-        'task.estimated_hours',
+        'task.estimated_minutes',
       )
       .where('time_entry.start', '>=', date)
       .andWhere('time_entry.start', '<', `${date} 23:59:59`),

@@ -9,11 +9,11 @@ const task = {
       .join('project', 'task.project_id', 'project.id')
       .select('task.*', 'project.name as project_name'),
 
-  create: ({title, projectId, estimatedHours = null}) =>
+  create: ({title, projectId, estimatedMinutes = null}) =>
     db(TABLE).insert({
       title,
       project_id: projectId,
-      estimated_hours: estimatedHours,
+      estimated_minutes: estimatedMinutes,
     }),
 
   selectById: id => db(TABLE).select().where('id', id).first(),
@@ -42,10 +42,10 @@ const task = {
       .where('project_id', projectId)
       .orderBy('title', 'asc'),
 
-  update: ({id, title, estimatedHours}) => {
+  update: ({id, title, estimatedMinutes}) => {
     const updates = {};
     if (title !== undefined) updates.title = title;
-    if (estimatedHours !== undefined) updates.estimated_hours = estimatedHours;
+    if (estimatedMinutes !== undefined) updates.estimated_minutes = estimatedMinutes;
     return db(TABLE).where({id}).update(updates);
   },
 
