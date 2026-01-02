@@ -4,7 +4,7 @@ import projectModel from '../models/project.js';
 import {getFormatedDate, retriveYYYYMMDD} from '../utils.js';
 
 const taskService = {
-  create: async ({title, projectId, estimatedHours = null}) => {
+  create: async ({title, projectId, estimatedMinutes = null}) => {
     if (!title || title.trim().length === 0)
       throw new Error('Task title cannot be empty');
     if (title.length > 100)
@@ -17,7 +17,7 @@ const taskService = {
     if (existingTask)
       throw new Error(`Task "${title}" already exists in this project`);
 
-    const [id] = await taskModel.create({title, projectId, estimatedHours});
+    const [id] = await taskModel.create({title, projectId, estimatedMinutes});
     return id;
   },
 
@@ -132,6 +132,13 @@ const taskService = {
     return taskModel.update({id: taskId, title});
   },
 
+  updateEstimation: async (taskId, estimatedMinutes) => {
+    const task = await taskModel.selectById(taskId);
+    if (!task) throw new Error('Task not found');
+
+    return taskModel.update({id: taskId, estimatedMinutes});
+  },
+
   delete: async id => {
     // Delete all time entries for this task first
     await timeEntryModel.deleteByTaskId(id);
@@ -219,6 +226,7 @@ const taskService = {
           ...activeEntry,
           title: activeTask.title,
           project_id: activeTask.project_id,
+          estimated_minutes: activeTask.estimated_minutes,
         });
       }
     }
@@ -232,6 +240,7 @@ const taskService = {
           id: entry.task_id,
           title: entry.title,
           projectId: entry.project_id,
+          estimatedMinutes: entry.estimated_minutes,
           totalSec: 0,
           segments: [],
         };
