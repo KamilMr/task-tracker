@@ -27,6 +27,7 @@ const Tasks = () => {
     setReload,
     reload,
     selectedClientId,
+    setSelectedTaskId: setContextSelectedTaskId,
   } = useNavigation();
 
   const [message, setMessage] = useState('');
@@ -47,6 +48,11 @@ const Tasks = () => {
   useEffect(() => {
     setSelectedTaskId(dateTasks[0]?.id);
   }, [selectedProjectId]);
+
+  // Sync local selectedTaskId to context for View component
+  useEffect(() => {
+    setContextSelectedTaskId(selectedTaskId);
+  }, [selectedTaskId, setContextSelectedTaskId]);
 
   // Check sync status when date or client changes
   useEffect(() => {
@@ -70,7 +76,9 @@ const Tasks = () => {
   const selectNextUniqueTask = () => {
     if (dateTasks.length === 0) return;
 
-    const currentIndex = dateTasks.findIndex(task => task.id === selectedTaskId);
+    const currentIndex = dateTasks.findIndex(
+      task => task.id === selectedTaskId,
+    );
     const nextIndex =
       currentIndex < dateTasks.length - 1 ? currentIndex + 1 : 0;
     setSelectedTaskId(dateTasks[nextIndex].id);
@@ -79,7 +87,9 @@ const Tasks = () => {
   const selectPreviousUniqueTask = () => {
     if (dateTasks.length === 0) return;
 
-    const currentIndex = dateTasks.findIndex(task => task.id === selectedTaskId);
+    const currentIndex = dateTasks.findIndex(
+      task => task.id === selectedTaskId,
+    );
     const prevIndex =
       currentIndex > 0 ? currentIndex - 1 : dateTasks.length - 1;
     setSelectedTaskId(dateTasks[prevIndex].id);
@@ -179,7 +189,9 @@ const Tasks = () => {
       const h = minutes ? Math.floor(minutes / 60) : 0;
       const m = minutes ? minutes % 60 : 0;
       const display = h > 0 ? `${h}h ${m}m` : `${m}m`;
-      setMessage(minutes ? `Estimation set to ${display}` : 'Estimation cleared');
+      setMessage(
+        minutes ? `Estimation set to ${display}` : 'Estimation cleared',
+      );
       setReload();
     } catch (error) {
       setMessage(`Error: ${error.message}`);

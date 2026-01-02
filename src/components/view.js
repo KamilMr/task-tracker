@@ -63,7 +63,7 @@ const View = () => {
 
   // Load task details and time entries when task is selected
   useEffect(() => {
-    if (isTasksFocused && selectedTaskId) {
+    if (selectedTaskId && (isTasksFocused || isViewFocused)) {
       const loadTaskDetails = async () => {
         try {
           const [task, entries] = await Promise.all([
@@ -80,11 +80,11 @@ const View = () => {
         }
       };
       loadTaskDetails();
-    } else {
+    } else if (!selectedTaskId) {
       setTaskDetails(null);
       setTimeEntries([]);
     }
-  }, [isTasksFocused, selectedTaskId]);
+  }, [isTasksFocused, isViewFocused, selectedTaskId]);
 
   // Navigation handlers for entries table
   const selectNextEntry = () => {
@@ -118,7 +118,7 @@ const View = () => {
 
   // Register key handlers when view is focused and task is selected
   const keyMappings =
-    isTasksFocused && selectedTaskId && taskDetails
+    selectedTaskId && taskDetails
       ? [
           {key: 'j', action: selectNextEntry},
           {key: 'k', action: selectPreviousEntry},
@@ -344,7 +344,10 @@ const View = () => {
       );
     }
 
-    return <Text>View content here</Text>;
+    // When View is focused and a task is selected, show task details
+    if (isViewFocused && selectedTaskId) return renderTaskDetails();
+
+    return <Text dimColor>Select an item to view details</Text>;
   };
 
   return (
