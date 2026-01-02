@@ -1,5 +1,5 @@
 import TogglClient from './togglClient.js';
-import taskModel from '../models/task.js';
+import timeEntryModel from '../models/timeEntry.js';
 import projectModel from '../models/project.js';
 
 class SyncService {
@@ -9,16 +9,16 @@ class SyncService {
   }
 
   async syncTasksByDate(date, projectId = null, clientId = null) {
-    const tasks = await this._getTasksForDate(date, projectId, clientId);
+    const entries = await this._getEntriesForDate(date, projectId, clientId);
     const results = [];
 
-    for (const task of tasks) {
+    for (const entry of entries) {
       try {
-        const togglProjectId = this.projectMapping[task.project_id];
-        const timeEntry = await this._createTimeEntry(task, togglProjectId);
-        results.push({success: true, task, timeEntry});
+        const togglProjectId = this.projectMapping[entry.project_id];
+        const timeEntry = await this._createTimeEntry(entry, togglProjectId);
+        results.push({success: true, task: entry, timeEntry});
       } catch (error) {
-        results.push({success: false, task, error: error.message});
+        results.push({success: false, task: entry, error: error.message});
       }
     }
 
@@ -29,29 +29,34 @@ class SyncService {
     return this.syncTasksByDate(date, projectId);
   }
 
-  async _getTasksForDate(date, projectId = null, clientId = null) {
+  async _getEntriesForDate(date, projectId = null, clientId = null) {
     const dateStr = this._formatDate(date);
-    let tasks = await taskModel.listAllByDate(dateStr);
+    let entries = await timeEntryModel.selectByDateWithTask(dateStr);
 
-    if (projectId) tasks = tasks.filter(task => task.project_id === projectId);
+    if (projectId)
+      entries = entries.filter(entry => entry.project_id === projectId);
 
     if (clientId) {
       const clientProjects = await projectModel.selectByCliId(clientId);
       const clientProjectIds = clientProjects.map(p => p.id);
-      tasks = tasks.filter(task => clientProjectIds.includes(task.project_id));
+      entries = entries.filter(entry =>
+        clientProjectIds.includes(entry.project_id),
+      );
     }
 
-    return tasks.filter(task => task.end !== null);
+    return entries.filter(entry => entry.end !== null);
   }
 
-  async _createTimeEntry(task, togglProjectId = null) {
-    const start = new Date(task.start).toISOString();
-    const end = new Date(task.end).toISOString();
-    const duration = Math.floor((new Date(task.end) - new Date(task.start)) / 1000);
+  async _createTimeEntry(entry, togglProjectId = null) {
+    const start = new Date(entry.start).toISOString();
+    const end = new Date(entry.end).toISOString();
+    const duration = Math.floor(
+      (new Date(entry.end) - new Date(entry.start)) / 1000,
+    );
 
     return this.togglClient.createTimeEntry({
       projectId: togglProjectId,
-      description: task.title,
+      description: entry.title,
       start,
       stop: end,
       duration,
