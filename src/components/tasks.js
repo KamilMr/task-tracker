@@ -33,6 +33,7 @@ const Tasks = () => {
   const [isT1, setIsT1] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isEditingEstimation, setIsEditingEstimation] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState(null);
   const [selectedDate, setSelectedDate] = useState(retriveYYYYMMDD());
   const [isSynced, setIsSynced] = useState(false);
@@ -162,6 +163,34 @@ const Tasks = () => {
     setMessage('');
   };
 
+  const handleEditEstimation = () => {
+    if (!selectedTaskId) {
+      setMessage('No task selected');
+      return;
+    }
+    setIsEditingEstimation(true);
+    setMessage('');
+  };
+
+  const handleEstimationSubmit = async minutes => {
+    try {
+      await taskService.updateEstimation(selectedTaskId, minutes);
+      setIsEditingEstimation(false);
+      const h = minutes ? Math.floor(minutes / 60) : 0;
+      const m = minutes ? minutes % 60 : 0;
+      const display = h > 0 ? `${h}h ${m}m` : `${m}m`;
+      setMessage(minutes ? `Estimation set to ${display}` : 'Estimation cleared');
+      setReload();
+    } catch (error) {
+      setMessage(`Error: ${error.message}`);
+    }
+  };
+
+  const handleEstimationCancel = () => {
+    setIsEditingEstimation(false);
+    setMessage('');
+  };
+
   const handleStartStopTask = async () => {
     if (!selectedTaskId) {
       setMessage('No task selected');
@@ -231,6 +260,7 @@ const Tasks = () => {
   const keyMappings = [
     {key: 'c', action: handleNewTask},
     {key: 'e', action: handleEditTask},
+    {key: 'E', action: handleEditEstimation},
     {key: 'd', action: handleDeleteTask},
     {key: 'j', action: selectNextUniqueTask},
     {key: 'k', action: selectPreviousUniqueTask},
@@ -261,25 +291,33 @@ const Tasks = () => {
         <TasksContent
           isCreating={isCreating}
           isEditing={isEditing}
+          isEditingEstimation={isEditingEstimation}
           dateTasks={dateTasks}
           selectedProject={selectedProject}
           selectedTaskId={selectedTaskId}
           selectedTaskTitle={selectedTask?.title}
+          selectedTaskEstimationMinutes={selectedTask?.estimatedMinutes}
           dateDisplay={dateDisplay}
           isT1={isT1}
           handleCreateSubmit={handleCreateSubmit}
           handleCreateCancel={handleCreateCancel}
           handleEditSubmit={handleEditSubmit}
           handleEditCancel={handleEditCancel}
+          handleEstimationSubmit={handleEstimationSubmit}
+          handleEstimationCancel={handleEstimationCancel}
         />
       </Frame.Body>
       <Frame.Footer>
-        {isTasksFocused && mode === 'normal' && !isCreating && !isEditing && (
-          <HelpBottom>
-            j/k:navigate c:new e:edit d:delete s:start/stop p/n:prev/next day
-            t:{isSynced ? 'synced' : 'sync'}
-          </HelpBottom>
-        )}
+        {isTasksFocused &&
+          mode === 'normal' &&
+          !isCreating &&
+          !isEditing &&
+          !isEditingEstimation && (
+            <HelpBottom>
+              j/k:nav c:new e:edit E:estimate d:del s:start/stop p/n:day t:
+              {isSynced ? 'synced' : 'sync'}
+            </HelpBottom>
+          )}
       </Frame.Footer>
     </Frame>
   );
