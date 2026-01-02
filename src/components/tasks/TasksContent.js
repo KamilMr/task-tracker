@@ -10,7 +10,8 @@ const TasksContent = ({
   isEditing,
   dateTasks,
   selectedProject,
-  selectedTaskName,
+  selectedTaskId,
+  selectedTaskTitle,
   dateDisplay,
   isT1,
   handleCreateSubmit,
@@ -31,16 +32,14 @@ const TasksContent = ({
   if (isEditing) {
     return (
       <TaskEditingForm
-        defaultValue={selectedTaskName}
+        defaultValue={selectedTaskTitle}
         onSubmit={handleEditSubmit}
         onCancel={handleEditCancel}
       />
     );
   }
 
-  if (!selectedProject) {
-    return <NoProjectSelected />;
-  }
+  if (!selectedProject) return <NoProjectSelected />;
 
   if (dateTasks.length === 0) {
     return (
@@ -56,7 +55,7 @@ const TasksContent = ({
       selectedProject={selectedProject}
       dateDisplay={dateDisplay}
       dateTasks={dateTasks}
-      selectedTaskName={selectedTaskName}
+      selectedTaskId={selectedTaskId}
       isT1={isT1}
     />
   );

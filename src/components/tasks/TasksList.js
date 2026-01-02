@@ -1,23 +1,22 @@
 import React from 'react';
 import {Text, Box} from 'ink';
 import NameAndDetails from './NameAndDetails.js';
-import RunningTask from '../RunningTask.js';
 import {formatTime} from '../../utils.js';
 
 const TasksList = ({
   selectedProject,
   dateDisplay,
   dateTasks,
-  selectedTaskName,
+  selectedTaskId,
   isT1,
 }) => {
   return (
     <Box flexDirection="column">
       {dateTasks.map(uniqueTask => (
         <NameAndDetails
-          key={uniqueTask.title}
+          key={uniqueTask.id}
           uniqueTask={uniqueTask}
-          isSelected={uniqueTask.title === selectedTaskName}
+          isSelected={uniqueTask.id === selectedTaskId}
           timeDisplay={formatTime(
             isT1
               ? Math.floor(uniqueTask.totalSec + uniqueTask.totalSec * 0.33)
