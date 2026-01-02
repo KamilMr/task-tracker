@@ -1,104 +1,57 @@
 import db from '../db/db.js';
-const PROJECT_TABLE = 'task';
+const TABLE = 'task';
 
 const task = {
-  listAll: () => {
-    return db(PROJECT_TABLE).select();
-  },
+  listAll: () => db(TABLE).select(),
 
-  listAllByDate: date => {
-    return db(PROJECT_TABLE)
-      .select()
-      .where('start', '>=', date)
-      .andWhere('end', '<', `${date} 23:59:59`);
-  },
+  listAllWithProject: () =>
+    db(TABLE)
+      .join('project', 'task.project_id', 'project.id')
+      .select('task.*', 'project.name as project_name'),
 
-  create: ({start, end, title, projectId}) => {
-    return db(PROJECT_TABLE).insert({
+  create: ({title, projectId, estimatedHours = null}) =>
+    db(TABLE).insert({
       title,
-      end,
-      start,
       project_id: projectId,
-    });
+      estimated_hours: estimatedHours,
+    }),
+
+  selectById: id => db(TABLE).select().where('id', id).first(),
+
+  selectByProjectId: projectId =>
+    db(TABLE).select().where('project_id', projectId).orderBy('title', 'asc'),
+
+  findByTitleAndProject: (title, projectId) =>
+    db(TABLE)
+      .select()
+      .where('title', title)
+      .andWhere('project_id', projectId)
+      .first(),
+
+  getOrCreate: async ({title, projectId}) => {
+    const existing = await task.findByTitleAndProject(title, projectId);
+    if (existing) return existing;
+
+    const [id] = await task.create({title, projectId});
+    return task.selectById(id);
   },
 
-  selectActiveTask: () => {
-    return db(PROJECT_TABLE).select().whereNull('end').first();
-  },
-
-  selectById: id => {
-    return db(PROJECT_TABLE).select().where('id', id);
-  },
-
-  selectByProjectId: projectId => {
-    return db(PROJECT_TABLE).select().where('project_id', projectId);
-  },
-
-  getDistinctTaskNamesByProject: projectId => {
-    return db(PROJECT_TABLE)
+  getDistinctTaskNamesByProject: projectId =>
+    db(TABLE)
       .distinct('title')
       .where('project_id', projectId)
-      .orderBy('title', 'asc');
+      .orderBy('title', 'asc'),
+
+  update: ({id, title, estimatedHours}) => {
+    const updates = {};
+    if (title !== undefined) updates.title = title;
+    if (estimatedHours !== undefined) updates.estimated_hours = estimatedHours;
+    return db(TABLE).where({id}).update(updates);
   },
 
-  findByNameAndProject: (title, projectId) => {
-    return db(PROJECT_TABLE)
-      .select()
-      .where('title', title)
-      .andWhere('project_id', projectId)
-      .first();
-  },
+  delete: id => db(TABLE).where('id', id).del(),
 
-  findAllByNameAndProject: (title, projectId) => {
-    return db(PROJECT_TABLE)
-      .select()
-      .where('title', title)
-      .andWhere('project_id', projectId);
-  },
-
-  deleteAllByTitle: (title, projectId) => {
-    return db(PROJECT_TABLE)
-      .where('title', title)
-      .andWhere('project_id', projectId)
-      .del();
-  },
-
-  deleteByTitleAndDate: (title, projectId, date) => {
-    return db(PROJECT_TABLE)
-      .where('title', title)
-      .andWhere('project_id', projectId)
-      .andWhere('start', '>=', date)
-      .andWhere('start', '<', `${date} 23:59:59`)
-      .del();
-  },
-
-  edit: ({id, start, end, title, time, projectId}) => {
-    return db(PROJECT_TABLE).where({id}).update({
-      title,
-      end,
-      start,
-      time,
-      project_id: projectId,
-    });
-  },
-
-  delete: ({col, val}) => {
-    return db(PROJECT_TABLE).where(col, val).del();
-  },
-
-  getTodayHours: (projectId = null) => {
-    const today = new Date().toISOString().split('T')[0];
-    let query = db(PROJECT_TABLE)
-      .select('start', 'end')
-      .where(db.raw('DATE(start)'), today)
-      .whereNotNull('end');
-
-    if (projectId) {
-      query = query.where('project_id', projectId);
-    }
-
-    return query;
-  },
+  deleteByProjectId: projectId => db(TABLE).where('project_id', projectId).del(),
 };
 
 export default task;
