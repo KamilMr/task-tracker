@@ -26,6 +26,7 @@ const Tasks = () => {
     getSelectedProject,
     setReload,
     reload,
+    selectedClientId,
   } = useNavigation();
 
   const [message, setMessage] = useState('');
@@ -43,14 +44,14 @@ const Tasks = () => {
     setSelectedTaskName(dateTasks[0]?.title);
   }, [selectedProjectId]);
 
-  // Check sync status when date changes
+  // Check sync status when date or client changes
   useEffect(() => {
     const checkSyncStatus = async () => {
-      const synced = await syncedDay.isSynced(selectedDate);
+      const synced = await syncedDay.isSynced(selectedDate, selectedClientId);
       setIsSynced(synced);
     };
     checkSyncStatus();
-  }, [selectedDate]);
+  }, [selectedDate, selectedClientId]);
 
   const borderColor = isTasksFocused
     ? BORDER_COLOR_FOCUSED
@@ -206,13 +207,13 @@ const Tasks = () => {
       );
 
       const dateToSync = new Date(selectedDate);
-      const results = await togglSync.syncTasksByDate(dateToSync);
+      const results = await togglSync.syncTasksByDate(dateToSync, null, selectedClientId);
 
       const successful = results.filter(r => r.success).length;
       const failed = results.filter(r => !r.success).length;
 
       if (failed === 0) {
-        await syncedDay.markAsSynced(selectedDate);
+        await syncedDay.markAsSynced(selectedDate, selectedClientId);
         setIsSynced(true);
         setMessage(`Synced ${successful} tasks successfully`);
         setReload();

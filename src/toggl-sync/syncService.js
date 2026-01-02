@@ -1,6 +1,6 @@
 import TogglClient from './togglClient.js';
 import taskModel from '../models/task.js';
-// import projectModel from '../models/project.js';
+import projectModel from '../models/project.js';
 
 class SyncService {
   constructor(apiToken, workspaceId, projectMapping = {}) {
@@ -8,8 +8,8 @@ class SyncService {
     this.projectMapping = projectMapping;
   }
 
-  async syncTasksByDate(date, projectId = null) {
-    const tasks = await this._getTasksForDate(date, projectId);
+  async syncTasksByDate(date, projectId = null, clientId = null) {
+    const tasks = await this._getTasksForDate(date, projectId, clientId);
     const results = [];
 
     for (const task of tasks) {
@@ -29,11 +29,17 @@ class SyncService {
     return this.syncTasksByDate(date, projectId);
   }
 
-  async _getTasksForDate(date, projectId = null) {
+  async _getTasksForDate(date, projectId = null, clientId = null) {
     const dateStr = this._formatDate(date);
     let tasks = await taskModel.listAllByDate(dateStr);
 
     if (projectId) tasks = tasks.filter(task => task.project_id === projectId);
+
+    if (clientId) {
+      const clientProjects = await projectModel.selectByCliId(clientId);
+      const clientProjectIds = clientProjects.map(p => p.id);
+      tasks = tasks.filter(task => clientProjectIds.includes(task.project_id));
+    }
 
     return tasks.filter(task => task.end !== null);
   }
