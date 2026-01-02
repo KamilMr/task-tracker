@@ -1,5 +1,4 @@
 const up = async knex => {
-  // Step 1: Create new task_definition table for task definitions
   await knex.schema.createTable('task_definition', table => {
     table.increments('id').unsigned().primary();
     table.string('title', 100).notNullable();
@@ -11,12 +10,10 @@ const up = async knex => {
     table.index(['project_id'], 'idx_task_def_project');
   });
 
-  // Step 2: Add task_id column to existing task table (will become time_entry)
   await knex.schema.alterTable('task', table => {
     table.integer('task_id').unsigned().nullable();
   });
 
-  // Step 3: Migrate data - create task definitions from distinct title+project combinations
   const distinctTasks = await knex('task')
     .distinct('title', 'project_id')
     .whereNotNull('project_id');
@@ -34,10 +31,8 @@ const up = async knex => {
       .update({task_id: taskDefId});
   }
 
-  // Step 4: Handle any orphaned entries (null project_id) - delete them
   await knex('task').whereNull('project_id').del();
 
-  // Step 5: Add foreign key constraint and make task_id NOT NULL
   await knex.schema.alterTable('task', table => {
     table.foreign('task_id').references('id').inTable('task_definition');
   });
