@@ -226,7 +226,8 @@ const View = () => {
 
             <ScrollBox height={20} selectedIndex={selectedEntryIndex}>
               {timeEntries.map((entry, index) => {
-                const isSelected = index === selectedEntryIndex && isViewFocused;
+                const isSelected =
+                  index === selectedEntryIndex && isViewFocused;
                 const startDate = new Date(entry.start);
                 const endDate = entry.end ? new Date(entry.end) : null;
                 const duration = endDate

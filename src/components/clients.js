@@ -53,7 +53,7 @@ const Client = () => {
     }
   };
 
-  const handleClientSubmit = async clientName => {
+  const handleCreateSubmit = async clientName => {
     if (clientName.trim()) {
       try {
         await clientService.create(clientName.trim());
@@ -74,7 +74,7 @@ const Client = () => {
     setIsAdding(false);
   };
 
-  const handleClientCancel = () => {
+  const handleCreateCancel = () => {
     setIsAdding(false);
     setMessage('');
   };
@@ -135,38 +135,13 @@ const Client = () => {
     setMessage('Edit cancelled');
   };
 
-  const handleNavigateDown = () => {
-    selectNextClient();
-    setMessage('');
-  };
-
-  const handleNavigateUp = () => {
-    selectPreviousClient();
-    setMessage('');
-  };
-
   // Client key mappings (normal mode only)
   const keyMappings = [
-    {
-      key: 'c',
-      action: handleNewClient,
-    },
-    {
-      key: 'e',
-      action: handleEditClient,
-    },
-    {
-      key: 'd',
-      action: handleDeleteClient,
-    },
-    {
-      key: 'j',
-      action: handleNavigateDown,
-    },
-    {
-      key: 'k',
-      action: handleNavigateUp,
-    },
+    {key: 'c', action: handleNewClient},
+    {key: 'e', action: handleEditClient},
+    {key: 'd', action: handleDeleteClient},
+    {key: 'j', action: selectNextClient},
+    {key: 'k', action: selectPreviousClient},
   ];
 
   useComponentKeys(CLIENT, keyMappings, isClientFocused);
@@ -184,8 +159,8 @@ const Client = () => {
           <Box flexDirection="column">
             <Text>New client name:</Text>
             <BasicTextInput
-              onSubmit={handleClientSubmit}
-              onCancel={handleClientCancel}
+              onSubmit={handleCreateSubmit}
+              onCancel={handleCreateCancel}
             />
           </Box>
         ) : isDeleting ? (
