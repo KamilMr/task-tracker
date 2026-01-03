@@ -9,6 +9,7 @@ import taskService from '../services/taskService.js';
 import timeEntryModel from '../models/timeEntry.js';
 import {useComponentKeys} from '../hooks/useComponentKeys.js';
 import useTaskAnalytics from '../hooks/useTaskAnalytics.js';
+import usePricing from '../hooks/usePricing.js';
 import {
   formatTime,
   formatEstimation,
@@ -18,6 +19,8 @@ import {
   formatTimeDiff,
   formatRelativeTime,
   formatHour,
+  formatCurrency,
+  formatHourlyRate,
 } from '../utils.js';
 
 const View = () => {
@@ -38,6 +41,7 @@ const View = () => {
   const [timeEntries, setTimeEntries] = useState([]);
   const [selectedEntryIndex, setSelectedEntryIndex] = useState(0);
   const {analytics, loading: analyticsLoading} = useTaskAnalytics(selectedTaskId);
+  const {pricing, loading: pricingLoading} = usePricing(selectedTaskId, null, null);
 
   // Load all projects when projects section is focused
   useEffect(() => {
@@ -301,6 +305,41 @@ const View = () => {
                 </Text>
               )}
             </Box>
+          </Box>
+        ) : null}
+
+        {pricingLoading ? (
+          <Text dimColor>Loading earnings...</Text>
+        ) : pricing && pricing.hourlyRate ? (
+          <Box flexDirection="column" marginBottom={1}>
+            <Text color="cyan" bold>
+              Earnings ({pricing.dateRangeDays} days):
+            </Text>
+            <Box flexDirection="column" marginLeft={2}>
+              <Text>
+                <Text bold>Rate: </Text>
+                {formatHourlyRate(pricing.hourlyRate, pricing.currency)}
+              </Text>
+              <Text>
+                <Text bold>Hours: </Text>
+                {pricing.hours.toFixed(2)}h
+              </Text>
+              <Text>
+                <Text bold>Earned: </Text>
+                <Text color="green">
+                  {formatCurrency(pricing.earnings, pricing.currency)}
+                </Text>
+              </Text>
+            </Box>
+          </Box>
+        ) : pricing && !pricing.hourlyRate ? (
+          <Box flexDirection="column" marginBottom={1}>
+            <Text color="cyan" bold>
+              Earnings:
+            </Text>
+            <Text dimColor marginLeft={2}>
+              No hourly rate set for client
+            </Text>
           </Box>
         ) : null}
 
