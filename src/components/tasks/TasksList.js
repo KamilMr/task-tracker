@@ -1,7 +1,10 @@
 import React from 'react';
-import {Text, Box} from 'ink';
+import {Box} from 'ink';
 import NameAndDetails from './NameAndDetails.js';
+import ScrollBox from '../ScrollBox.js';
 import {formatTime} from '../../utils.js';
+
+const VISIBLE_TASKS = 10;
 
 const TasksList = ({
   selectedProject,
@@ -10,8 +13,14 @@ const TasksList = ({
   selectedTaskId,
   isT1,
 }) => {
+  const selectedIndex = dateTasks.findIndex(t => t.id === selectedTaskId);
+
   return (
-    <Box flexDirection="column">
+    <ScrollBox
+      height={VISIBLE_TASKS}
+      selectedIndex={selectedIndex}
+      itemCount={dateTasks.length}
+    >
       {dateTasks.map(uniqueTask => (
         <NameAndDetails
           key={uniqueTask.id}
@@ -24,7 +33,7 @@ const TasksList = ({
           )}
         />
       ))}
-    </Box>
+    </ScrollBox>
   );
 };
 

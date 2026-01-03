@@ -3,6 +3,7 @@ import {Text, Box} from 'ink';
 import {useNavigation} from '../contexts/NavigationContext.js';
 import {BORDER_COLOR_DEFAULT, BORDER_COLOR_FOCUSED, VIEW} from '../consts.js';
 import Frame from './Frame.js';
+import ScrollBox from './ScrollBox.js';
 import projectService from '../services/projectService.js';
 import taskService from '../services/taskService.js';
 import timeEntryModel from '../models/timeEntry.js';
@@ -223,37 +224,39 @@ const View = () => {
               </Text>
             </Box>
 
-            {timeEntries.map((entry, index) => {
-              const isSelected = index === selectedEntryIndex && isViewFocused;
-              const startDate = new Date(entry.start);
-              const endDate = entry.end ? new Date(entry.end) : null;
-              const duration = endDate
-                ? calculateDuration(entry.start, entry.end)
-                : 0;
+            <ScrollBox height={20} selectedIndex={selectedEntryIndex}>
+              {timeEntries.map((entry, index) => {
+                const isSelected = index === selectedEntryIndex && isViewFocused;
+                const startDate = new Date(entry.start);
+                const endDate = entry.end ? new Date(entry.end) : null;
+                const duration = endDate
+                  ? calculateDuration(entry.start, entry.end)
+                  : 0;
 
-              return (
-                <Box key={entry.id}>
-                  <Text color={isSelected ? 'green' : 'white'} width={4}>
-                    {isSelected ? '• ' : '  '}
-                  </Text>
-                  <Text color={isSelected ? 'green' : 'white'} width={22}>
-                    {startDate.toLocaleString()}
-                  </Text>
-                  <Box paddingX={1}>
+                return (
+                  <Box key={entry.id}>
+                    <Text color={isSelected ? 'green' : 'white'} width={4}>
+                      {isSelected ? '• ' : '  '}
+                    </Text>
                     <Text color={isSelected ? 'green' : 'white'} width={22}>
-                      {endDate ? (
-                        endDate.toLocaleString()
-                      ) : (
-                        <Text color="yellow">Running...</Text>
-                      )}
+                      {startDate.toLocaleString()}
+                    </Text>
+                    <Box paddingX={1}>
+                      <Text color={isSelected ? 'green' : 'white'} width={22}>
+                        {endDate ? (
+                          endDate.toLocaleString()
+                        ) : (
+                          <Text color="yellow">Running...</Text>
+                        )}
+                      </Text>
+                    </Box>
+                    <Text color={isSelected ? 'green' : 'white'}>
+                      {duration > 0 ? formatTime(duration) : '-'}
                     </Text>
                   </Box>
-                  <Text color={isSelected ? 'green' : 'white'}>
-                    {duration > 0 ? formatTime(duration) : '-'}
-                  </Text>
-                </Box>
-              );
-            })}
+                );
+              })}
+            </ScrollBox>
           </Box>
         )}
 
