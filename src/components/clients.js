@@ -7,6 +7,7 @@ import BasicTextInput from './BasicTextInput.js';
 import HelpBottom from './HelpBottom.js';
 import Frame from './Frame.js';
 import clientService from '../services/clientService.js';
+import {formatHourlyRate} from '../utils.js';
 
 const Client = () => {
   const {
@@ -23,6 +24,7 @@ const Client = () => {
   const [isAdding, setIsAdding] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isSettingRate, setIsSettingRate] = useState(false);
   const selectedClient = getSelectedClient();
 
   const borderColor = isClientFocused
@@ -135,11 +137,50 @@ const Client = () => {
     setMessage('Edit cancelled');
   };
 
+  const handleSetRate = () => {
+    if (selectedClient) {
+      setIsSettingRate(true);
+      setMessage('');
+    } else {
+      setMessage('No client selected');
+    }
+  };
+
+  const handleRateSubmit = async rate => {
+    setIsSettingRate(false);
+
+    if (!rate.trim()) {
+      setMessage('Rate unchanged');
+      return;
+    }
+
+    const parsedRate = parseInt(rate.trim(), 10);
+    if (isNaN(parsedRate) || parsedRate <= 0) {
+      setMessage('Invalid rate - must be positive number');
+      return;
+    }
+
+    try {
+      await clientService.updatePricing(selectedClient.id, {hourlyRate: parsedRate});
+      await reloadClients();
+      setMessage(`Rate set to ${parsedRate} PLN/h`);
+    } catch (error) {
+      console.error('Rate update error:', error);
+      setMessage(`Error: ${error.message || 'Failed to update rate'}`);
+    }
+  };
+
+  const handleRateCancel = () => {
+    setIsSettingRate(false);
+    setMessage('');
+  };
+
   // Client key mappings (normal mode only)
   const keyMappings = [
     {key: 'c', action: handleNewClient},
     {key: 'e', action: handleEditClient},
     {key: 'd', action: handleDeleteClient},
+    {key: 'r', action: handleSetRate},
     {key: 'j', action: selectNextClient},
     {key: 'k', action: selectPreviousClient},
   ];
@@ -180,10 +221,26 @@ const Client = () => {
               onCancel={handleEditCancel}
             />
           </Box>
+        ) : isSettingRate ? (
+          <Box flexDirection="column">
+            <Text>Hourly rate (PLN):</Text>
+            <BasicTextInput
+              defaultValue={selectedClient?.hourly_rate?.toString() || ''}
+              onSubmit={handleRateSubmit}
+              onCancel={handleRateCancel}
+            />
+          </Box>
         ) : (
           <>
             {selectedClient ? (
-              <Text>{selectedClient.name}</Text>
+              <Box flexDirection="column">
+                <Text>{selectedClient.name}</Text>
+                {selectedClient.hourly_rate && (
+                  <Text dimColor>
+                    {formatHourlyRate(selectedClient.hourly_rate, selectedClient.currency)}
+                  </Text>
+                )}
+              </Box>
             ) : (
               <Text dimColor>No clients found</Text>
             )}
@@ -194,9 +251,10 @@ const Client = () => {
         mode === 'normal' &&
         !isAdding &&
         !isDeleting &&
-        !isEditing && (
+        !isEditing &&
+        !isSettingRate && (
           <Frame.Footer>
-            <HelpBottom>c:new e:edit d:delete j/k:nav</HelpBottom>
+            <HelpBottom>c:new e:edit d:delete r:rate j/k:nav</HelpBottom>
           </Frame.Footer>
         )}
     </Frame>
