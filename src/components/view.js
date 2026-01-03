@@ -17,6 +17,7 @@ import {
   formatPercentage,
   formatTimeDiff,
   formatRelativeTime,
+  formatHour,
 } from '../utils.js';
 
 const View = () => {
@@ -239,10 +240,32 @@ const View = () => {
                 {analytics.distribution.avgSessionSeconds && (
                   <Text dimColor>
                     {' '}
-                    (avg {formatTime(analytics.distribution.avgSessionSeconds)})
+                    (avg {formatTime(analytics.distribution.avgSessionSeconds)}
+                    {analytics.distribution.medianSessionSeconds &&
+                      ` | med ${formatTime(analytics.distribution.medianSessionSeconds)}`}
+                    )
                   </Text>
                 )}
               </Text>
+              <Text>
+                <Text bold>Days Worked: </Text>
+                {analytics.distribution.daysWorked} of{' '}
+                {analytics.distribution.dateRangeDays}
+              </Text>
+              {analytics.distribution.peakHour !== null && (
+                <Text>
+                  <Text bold>Peak Hour: </Text>
+                  {formatHour(analytics.distribution.peakHour)}
+                </Text>
+              )}
+              {analytics.distribution.deepWorkCount > 0 && (
+                <Text>
+                  <Text bold>Deep Work: </Text>
+                  <Text color="green">
+                    {analytics.distribution.deepWorkCount} sessions (&gt;1h)
+                  </Text>
+                </Text>
+              )}
               {analytics.distribution.longestGapSeconds && (
                 <Text>
                   <Text bold>Longest Gap: </Text>
