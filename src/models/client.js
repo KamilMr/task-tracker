@@ -23,6 +23,16 @@ const client = {
       .select()
       .then(d => d.length > 0);
   },
+
+  selectById: id => db(PROJECT_TABLE).select().where('id', id).first(),
+
+  updatePricing: (id, {hourlyRate, currency}) => {
+    const updates = {};
+    if (hourlyRate !== undefined) updates.hourly_rate = hourlyRate;
+    if (currency !== undefined) updates.currency = currency;
+    if (Object.keys(updates).length === 0) return Promise.resolve(0);
+    return db(PROJECT_TABLE).where({id}).update(updates);
+  },
 };
 
 export default client;
