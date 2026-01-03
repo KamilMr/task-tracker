@@ -45,13 +45,15 @@ const task = {
   update: ({id, title, estimatedMinutes}) => {
     const updates = {};
     if (title !== undefined) updates.title = title;
-    if (estimatedMinutes !== undefined) updates.estimated_minutes = estimatedMinutes;
+    if (estimatedMinutes !== undefined)
+      updates.estimated_minutes = estimatedMinutes;
     return db(TABLE).where({id}).update(updates);
   },
 
   delete: id => db(TABLE).where('id', id).del(),
 
-  deleteByProjectId: projectId => db(TABLE).where('project_id', projectId).del(),
+  deleteByProjectId: projectId =>
+    db(TABLE).where('project_id', projectId).del(),
 };
 
 export default task;

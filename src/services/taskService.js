@@ -13,7 +13,10 @@ const taskService = {
     const project = await projectModel.selectProject(projectId);
     if (!project) throw new Error('Project does not exist');
 
-    const existingTask = await taskModel.findByTitleAndProject(title, projectId);
+    const existingTask = await taskModel.findByTitleAndProject(
+      title,
+      projectId,
+    );
     if (existingTask)
       throw new Error(`Task "${title}" already exists in this project`);
 
@@ -90,7 +93,12 @@ const taskService = {
     if (!activeEntry) return null;
 
     const task = await taskModel.selectById(activeEntry.task_id);
-    return {...task, activeEntry, start: activeEntry.start, end: activeEntry.end};
+    return {
+      ...task,
+      activeEntry,
+      start: activeEntry.start,
+      end: activeEntry.end,
+    };
   },
 
   getActiveTask: async () => taskService.selectActiveTask(),
@@ -148,7 +156,8 @@ const taskService = {
   deleteByTitleAndDate: async (title, projectId, date) => {
     // Find task by title and project
     const task = await taskModel.findByTitleAndProject(title, projectId);
-    if (!task) throw new Error(`No task found with title "${title}" in this project`);
+    if (!task)
+      throw new Error(`No task found with title "${title}" in this project`);
 
     // Delete time entries for this task on the given date
     const entries = await timeEntryModel.selectByDate(date);
@@ -171,7 +180,10 @@ const taskService = {
 
   getTodayHours: async (projectId = null) => {
     const today = retriveYYYYMMDD();
-    const entries = await timeEntryModel.getTodayEntriesByProject(today, projectId);
+    const entries = await timeEntryModel.getTodayEntriesByProject(
+      today,
+      projectId,
+    );
     return taskService.calculateTimeSpend(entries);
   },
 

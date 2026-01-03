@@ -1,5 +1,5 @@
-import React from "react";
-import {Text} from "ink";
+import React from 'react';
+import {Text} from 'ink';
 
 const Clock = () => {
   const [time, setTime] = React.useState(new Date().toLocaleTimeString());

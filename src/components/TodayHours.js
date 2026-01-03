@@ -30,12 +30,11 @@ const TodayHours = ({selectedDate, isT1 = false}) => {
     }
   }, [selectedDate, selectedProjectId, isT1, reload]);
 
-    return (
-      <Text>
-        ({todayHours.hours}h {todayHours.minutes}m)
-      </Text>
-    );
-
+  return (
+    <Text>
+      ({todayHours.hours}h {todayHours.minutes}m)
+    </Text>
+  );
 };
 
 export default TodayHours;

@@ -67,7 +67,7 @@ const Client = () => {
         }
         setMessage('Client added successfully');
       } catch (error) {
-        console.log(error)
+        console.log(error);
         setMessage('Failed to add client');
       }
     }

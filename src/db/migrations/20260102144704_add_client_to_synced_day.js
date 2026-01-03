@@ -5,7 +5,11 @@ const up = async knex => {
   await knex.schema.alterTable('synced_day', table => {
     table.integer('client_id').unsigned().notNullable().defaultTo(5).alter();
     table.primary(['day', 'client_id']);
-    table.foreign('client_id').references('id').inTable('client').onDelete('CASCADE');
+    table
+      .foreign('client_id')
+      .references('id')
+      .inTable('client')
+      .onDelete('CASCADE');
   });
 };
 

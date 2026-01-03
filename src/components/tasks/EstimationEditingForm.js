@@ -2,7 +2,12 @@ import React, {useState, useEffect} from 'react';
 import {Text, Box, useInput} from 'ink';
 import {useNavigation} from '../../contexts/NavigationContext.js';
 
-const EstimationEditingForm = ({defaultValue, taskTitle, onSubmit, onCancel}) => {
+const EstimationEditingForm = ({
+  defaultValue,
+  taskTitle,
+  onSubmit,
+  onCancel,
+}) => {
   const [value, setValue] = useState(defaultValue || '');
   const {setMode} = useNavigation();
 

@@ -106,7 +106,10 @@ const AutocompleteTextInput = ({
       {filteredSuggestions.length > 0 && (
         <Box flexDirection="column" marginTop={1}>
           {filteredSuggestions.map((suggestion, index) => (
-            <Text key={index} color={index === selectedIndex ? 'green' : 'gray'}>
+            <Text
+              key={index}
+              color={index === selectedIndex ? 'green' : 'gray'}
+            >
               {index === selectedIndex ? '→ ' : '  '}
               {suggestion}
             </Text>
