@@ -141,3 +141,14 @@ export const formatRelativeTime = date => {
   if (days === 1) return '1 day ago';
   return `${days} days ago`;
 };
+
+export const formatHour = hour => {
+  if (hour === null || hour === undefined) return null;
+  const nextHour = (hour + 1) % 24;
+  const formatH = h => {
+    if (h === 0) return '12 AM';
+    if (h === 12) return '12 PM';
+    return h < 12 ? `${h} AM` : `${h - 12} PM`;
+  };
+  return `${formatH(hour)}-${formatH(nextHour)}`;
+};
