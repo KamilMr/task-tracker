@@ -19,11 +19,18 @@ class TogglClient {
 
     if (projectId) body.project_id = parseInt(projectId);
 
-    return this._makeRequest('POST', `/api/v9/workspaces/${this.workspaceId}/time_entries`, body);
+    return this._makeRequest(
+      'POST',
+      `/api/v9/workspaces/${this.workspaceId}/time_entries`,
+      body,
+    );
   }
 
   async getProjects() {
-    return this._makeRequest('GET', `/api/v9/workspaces/${this.workspaceId}/projects`);
+    return this._makeRequest(
+      'GET',
+      `/api/v9/workspaces/${this.workspaceId}/projects`,
+    );
   }
 
   _makeRequest(method, path, body = null) {
@@ -36,7 +43,7 @@ class TogglClient {
         method,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Basic ${auth}`,
+          Authorization: `Basic ${auth}`,
         },
       };
 

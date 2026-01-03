@@ -36,7 +36,7 @@ dotenv.config();
 
 const togglSync = createTogglSync(
   process.env.TOGGL_API_TOKEN,
-  process.env.TOGGL_WORKSPACE_ID
+  process.env.TOGGL_WORKSPACE_ID,
 );
 
 // Sync all tasks from today
@@ -64,14 +64,14 @@ To map your local project IDs to Toggl project IDs:
 
 ```javascript
 const projectMapping = {
-  1: 123456789,  // Local project ID 1 -> Toggl project ID 123456789
-  2: 987654321,  // Local project ID 2 -> Toggl project ID 987654321
+  1: 123456789, // Local project ID 1 -> Toggl project ID 123456789
+  2: 987654321, // Local project ID 2 -> Toggl project ID 987654321
 };
 
 const togglSync = createTogglSync(
   process.env.TOGGL_API_TOKEN,
   process.env.TOGGL_WORKSPACE_ID,
-  projectMapping
+  projectMapping,
 );
 
 // Or update mapping later
@@ -92,6 +92,7 @@ console.log(projects);
 Creates a new sync service instance.
 
 **Parameters:**
+
 - `apiToken` (string): Your Toggl API token
 - `workspaceId` (string|number): Your Toggl workspace ID
 - `projectMapping` (object, optional): Map of local project IDs to Toggl project IDs
@@ -101,6 +102,7 @@ Creates a new sync service instance.
 Syncs tasks for a specific date.
 
 **Parameters:**
+
 - `date` (Date|string): Date to sync (format: 'YYYY-MM-DD' or Date object)
 - `projectId` (number, optional): Filter by specific project ID
 
@@ -111,6 +113,7 @@ Syncs tasks for a specific date.
 Syncs tasks for a specific project and date.
 
 **Parameters:**
+
 - `projectId` (number): Project ID to sync
 - `date` (Date|string): Date to sync
 
@@ -121,6 +124,7 @@ Syncs tasks for a specific project and date.
 Updates the project ID mapping.
 
 **Parameters:**
+
 - `mapping` (object): Map of local project IDs to Toggl project IDs
 
 ### `getTogglProjects()`
@@ -140,7 +144,7 @@ dotenv.config();
 const main = async () => {
   const togglSync = createTogglSync(
     process.env.TOGGL_API_TOKEN,
-    process.env.TOGGL_WORKSPACE_ID
+    process.env.TOGGL_WORKSPACE_ID,
   );
 
   // Sync today's tasks
@@ -156,9 +160,11 @@ const main = async () => {
 
   if (failed > 0) {
     console.log('Failed tasks:');
-    results.filter(r => !r.success).forEach(r => {
-      console.log(`- ${r.task.title}: ${r.error}`);
-    });
+    results
+      .filter(r => !r.success)
+      .forEach(r => {
+        console.log(`- ${r.task.title}: ${r.error}`);
+      });
   }
 };
 

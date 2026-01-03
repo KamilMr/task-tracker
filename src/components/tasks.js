@@ -26,60 +26,73 @@ const Tasks = () => {
     getSelectedProject,
     setReload,
     reload,
+    selectedClientId,
+    setSelectedTaskId: setContextSelectedTaskId,
   } = useNavigation();
 
   const [message, setMessage] = useState('');
   const [isT1, setIsT1] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [selectedTaskName, setSelectedTaskName] = useState(null);
+  const [isEditingEstimation, setIsEditingEstimation] = useState(false);
+  const [selectedTaskId, setSelectedTaskId] = useState(null);
   const [selectedDate, setSelectedDate] = useState(retriveYYYYMMDD());
   const [isSynced, setIsSynced] = useState(false);
 
   const dateTasks = useDateTasks(selectedDate);
 
+  // Get selected task object from dateTasks
+  const selectedTask = dateTasks.find(t => t.id === selectedTaskId);
+
   // fire when project changes and updates selection to first element
   useEffect(() => {
-    setSelectedTaskName(dateTasks[0]?.title);
+    setSelectedTaskId(dateTasks[0]?.id);
   }, [selectedProjectId]);
 
-  // Check sync status when date changes
+  // Sync local selectedTaskId to context for View component
+  useEffect(() => {
+    setContextSelectedTaskId(selectedTaskId);
+  }, [selectedTaskId, setContextSelectedTaskId]);
+
+  // Check sync status when date or client changes
   useEffect(() => {
     const checkSyncStatus = async () => {
-      const synced = await syncedDay.isSynced(selectedDate);
+      const synced = await syncedDay.isSynced(selectedDate, selectedClientId);
       setIsSynced(synced);
     };
     checkSyncStatus();
-  }, [selectedDate]);
+  }, [selectedDate, selectedClientId]);
 
   const borderColor = isTasksFocused
     ? BORDER_COLOR_FOCUSED
     : BORDER_COLOR_DEFAULT;
   const baseTitle = getBorderTitle(TASKS);
   const dateDisplay =
-    (selectedDate === retriveYYYYMMDD() ? 'today' : selectedDate) + ' - ' +getDayOfWeek(new Date(selectedDate));
+    (selectedDate === retriveYYYYMMDD() ? 'today' : selectedDate) +
+    ' - ' +
+    getDayOfWeek(new Date(selectedDate));
 
-  // Navigation functions for unique task names
+  // Navigation functions for unique tasks
   const selectNextUniqueTask = () => {
     if (dateTasks.length === 0) return;
 
     const currentIndex = dateTasks.findIndex(
-      task => task.title === selectedTaskName,
+      task => task.id === selectedTaskId,
     );
     const nextIndex =
       currentIndex < dateTasks.length - 1 ? currentIndex + 1 : 0;
-    setSelectedTaskName(dateTasks[nextIndex].title);
+    setSelectedTaskId(dateTasks[nextIndex].id);
   };
 
   const selectPreviousUniqueTask = () => {
     if (dateTasks.length === 0) return;
 
     const currentIndex = dateTasks.findIndex(
-      task => task.title === selectedTaskName,
+      task => task.id === selectedTaskId,
     );
     const prevIndex =
       currentIndex > 0 ? currentIndex - 1 : dateTasks.length - 1;
-    setSelectedTaskName(dateTasks[prevIndex].title);
+    setSelectedTaskId(dateTasks[prevIndex].id);
   };
 
   const handleNewTask = () => {
@@ -92,7 +105,7 @@ const Tasks = () => {
   };
 
   const handleEditTask = () => {
-    if (!selectedTaskName) {
+    if (!selectedTaskId) {
       setMessage('No task selected');
       return;
     }
@@ -101,14 +114,20 @@ const Tasks = () => {
   };
 
   const handleDeleteTask = async () => {
-    if (!selectedTaskName) {
+    if (!selectedTaskId || !selectedTask) {
       setMessage('No task selected');
       return;
     }
     try {
-      await taskService.deleteAllByTitle(selectedTaskName, selectedProjectId);
+      await taskService.deleteByTitleAndDate(
+        selectedTask.title,
+        selectedProjectId,
+        selectedDate,
+      );
       setReload();
-      setMessage(`Deleted all entries for task: ${selectedTaskName}`);
+      setMessage(
+        `Deleted ${selectedTask.title} entries from ${selectedDate === retriveYYYYMMDD() ? 'today' : selectedDate}`,
+      );
     } catch (error) {
       setMessage(`Error deleting task: ${error.message}`);
     }
@@ -117,12 +136,13 @@ const Tasks = () => {
   const handleCreateSubmit = async title => {
     if (!title.trim()) return;
     try {
-      taskService.toggleTask({
+      const result = await taskService.toggleTask({
         title: title.trim(),
         projectId: selectedProjectId,
       });
 
       setIsCreating(false);
+      setSelectedTaskId(result.taskId);
       setMessage(`Created task: ${title}`);
       setReload();
     } catch (error) {
@@ -138,15 +158,9 @@ const Tasks = () => {
   const handleEditSubmit = async title => {
     if (!title.trim()) return;
     try {
-      // Update all entries for this task name
-      await taskService.update(
-        selectedTaskName,
-        title.trim(),
-        selectedProjectId,
-      );
+      await taskService.update(selectedTaskId, title.trim(), selectedProjectId);
 
       setIsEditing(false);
-      setSelectedTaskName(title.trim()); // Update selected name to new name
       setMessage(`Updated task: ${title}`);
       setReload();
     } catch (error) {
@@ -159,17 +173,44 @@ const Tasks = () => {
     setMessage('');
   };
 
+  const handleEditEstimation = () => {
+    if (!selectedTaskId) {
+      setMessage('No task selected');
+      return;
+    }
+    setIsEditingEstimation(true);
+    setMessage('');
+  };
+
+  const handleEstimationSubmit = async minutes => {
+    try {
+      await taskService.updateEstimation(selectedTaskId, minutes);
+      setIsEditingEstimation(false);
+      const h = minutes ? Math.floor(minutes / 60) : 0;
+      const m = minutes ? minutes % 60 : 0;
+      const display = h > 0 ? `${h}h ${m}m` : `${m}m`;
+      setMessage(
+        minutes ? `Estimation set to ${display}` : 'Estimation cleared',
+      );
+      setReload();
+    } catch (error) {
+      setMessage(`Error: ${error.message}`);
+    }
+  };
+
+  const handleEstimationCancel = () => {
+    setIsEditingEstimation(false);
+    setMessage('');
+  };
+
   const handleStartStopTask = async () => {
-    if (!selectedTaskName) {
+    if (!selectedTaskId) {
       setMessage('No task selected');
       return;
     }
 
     try {
-      await taskService.toggleTask({
-        title: selectedTaskName,
-        projectId: selectedProjectId,
-      });
+      await taskService.toggleTaskById({taskId: selectedTaskId});
       setReload();
     } catch (error) {
       setMessage(`Error: ${error.message}`);
@@ -201,17 +242,21 @@ const Tasks = () => {
 
       const togglSync = createTogglSync(
         process.env.TOGGL_API_TOKEN,
-        process.env.TOGGL_WORKSPACE_ID
+        process.env.TOGGL_WORKSPACE_ID,
       );
 
       const dateToSync = new Date(selectedDate);
-      const results = await togglSync.syncTasksByDate(dateToSync);
+      const results = await togglSync.syncTasksByDate(
+        dateToSync,
+        null,
+        selectedClientId,
+      );
 
       const successful = results.filter(r => r.success).length;
       const failed = results.filter(r => !r.success).length;
 
       if (failed === 0) {
-        await syncedDay.markAsSynced(selectedDate);
+        await syncedDay.markAsSynced(selectedDate, selectedClientId);
         setIsSynced(true);
         setMessage(`Synced ${successful} tasks successfully`);
         setReload();
@@ -225,46 +270,17 @@ const Tasks = () => {
 
   // Task key mappings (normal mode only)
   const keyMappings = [
-    {
-      key: 'c',
-      action: handleNewTask,
-    },
-    {
-      key: 'e',
-      action: handleEditTask,
-    },
-    {
-      key: 'd',
-      action: handleDeleteTask,
-    },
-    {
-      key: 'j',
-      action: selectNextUniqueTask,
-    },
-    {
-      key: 'k',
-      action: selectPreviousUniqueTask,
-    },
-    {
-      key: 's',
-      action: handleStartStopTask,
-    },
-    {
-      key: 'p',
-      action: handlePreviousDay,
-    },
-    {
-      key: 'n',
-      action: handleNextDay,
-    },
-    {
-      key: 'x',
-      action: handleSetIsT1,
-    },
-    {
-      key: 't',
-      action: handleTogglSync,
-    },
+    {key: 'c', action: handleNewTask},
+    {key: 'e', action: handleEditTask},
+    {key: 'E', action: handleEditEstimation},
+    {key: 'd', action: handleDeleteTask},
+    {key: 'j', action: selectNextUniqueTask},
+    {key: 'k', action: selectPreviousUniqueTask},
+    {key: 's', action: handleStartStopTask},
+    {key: 'p', action: handlePreviousDay},
+    {key: 'n', action: handleNextDay},
+    {key: 'x', action: handleSetIsT1},
+    {key: 't', action: handleTogglSync},
   ];
 
   useComponentKeys(TASKS, keyMappings, isTasksFocused);
@@ -275,7 +291,7 @@ const Tasks = () => {
     <Frame borderColor={borderColor} height={20}>
       <Frame.Header>
         <Text color={borderColor} bold>
-          {baseTitle}  - <TodayHours selectedDate={selectedDate} isT1={isT1} /> -{' '}
+          {baseTitle} - <TodayHours selectedDate={selectedDate} isT1={isT1} /> -{' '}
           {dateDisplay}
         </Text>
         <DelayedDisappear key={message}>
@@ -287,23 +303,33 @@ const Tasks = () => {
         <TasksContent
           isCreating={isCreating}
           isEditing={isEditing}
+          isEditingEstimation={isEditingEstimation}
           dateTasks={dateTasks}
           selectedProject={selectedProject}
-          selectedTaskName={selectedTaskName}
+          selectedTaskId={selectedTaskId}
+          selectedTaskTitle={selectedTask?.title}
+          selectedTaskEstimationMinutes={selectedTask?.estimatedMinutes}
           dateDisplay={dateDisplay}
           isT1={isT1}
           handleCreateSubmit={handleCreateSubmit}
           handleCreateCancel={handleCreateCancel}
           handleEditSubmit={handleEditSubmit}
           handleEditCancel={handleEditCancel}
+          handleEstimationSubmit={handleEstimationSubmit}
+          handleEstimationCancel={handleEstimationCancel}
         />
       </Frame.Body>
       <Frame.Footer>
-        {isTasksFocused && mode === 'normal' && !isCreating && !isEditing && (
-          <HelpBottom>
-            j/k:navigate c:new e:edit d:delete s:start/stop p/n:prev/next day t:{isSynced ? 'synced' : 'sync'}
-          </HelpBottom>
-        )}
+        {isTasksFocused &&
+          mode === 'normal' &&
+          !isCreating &&
+          !isEditing &&
+          !isEditingEstimation && (
+            <HelpBottom>
+              j/k:nav c:new e:edit E:estimate d:del s:start/stop p/n:day t:
+              {isSynced ? 'synced' : 'sync'}
+            </HelpBottom>
+          )}
       </Frame.Footer>
     </Frame>
   );

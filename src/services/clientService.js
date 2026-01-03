@@ -3,8 +3,13 @@ import projectModel from '../models/project.js';
 import task from '../models/task.js';
 
 const clientService = {
-  create: data => {
-    return cliModel.create(data);
+  create: name => {
+    if (!name || name.trim().length === 0)
+      throw new Error('Client name cannot be empty');
+    if (name.length > 50)
+      throw new Error('Client name cannot exceed 50 characters');
+
+    return cliModel.create(name);
   },
   selectAll: () => {
     return cliModel.listAll();
@@ -24,6 +29,11 @@ const clientService = {
   },
 
   update: (id, name) => {
+    if (!name || name.trim().length === 0)
+      throw new Error('Client name cannot be empty');
+    if (name.length > 50)
+      throw new Error('Client name cannot exceed 50 characters');
+
     return cliModel.edit(id, name);
   },
 };

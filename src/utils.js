@@ -59,7 +59,7 @@ export const convToTss = (date = new Date()) => {
 
 export const getDayOfWeek = (date = new Date()) => {
   return date.toLocaleDateString('en-En', {weekday: 'short'});
-}
+};
 
 export const formatTime = seconds => {
   if (seconds === 0) return '';
@@ -75,4 +75,35 @@ export const formatTime = seconds => {
   } else {
     return `${secs}s`;
   }
+};
+
+export const formatEstimation = minutes => {
+  if (!minutes) return null;
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  if (h > 0 && m > 0) return `${h}h ${m}m`;
+  if (h > 0) return `${h}h`;
+  return `${m}m`;
+};
+
+// Time calculation utilities
+export const calculateDuration = (start, end) => {
+  const startTime = new Date(start).getTime();
+  const endTime = new Date(end).getTime();
+  return Math.floor((endTime - startTime) / 1000);
+};
+
+export const secondsToTimeObject = totalSeconds => ({
+  hours: Math.floor(totalSeconds / 3600),
+  minutes: Math.floor((totalSeconds % 3600) / 60),
+  seconds: totalSeconds % 60,
+  totalSeconds,
+});
+
+export const sumEntryDurations = entries => {
+  return entries.reduce((total, entry) => {
+    if (entry.start && entry.end)
+      return total + calculateDuration(entry.start, entry.end);
+    return total;
+  }, 0);
 };

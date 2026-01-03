@@ -9,22 +9,6 @@ import {
   useNavigation,
 } from './contexts/NavigationContext.js';
 
-const Clock = () => {
-  const [time, setTime] = React.useState(new Date().toLocaleTimeString());
-  useEffect(() => {
-    // create a simle clock here
-    const interval = setInterval(() => {
-      setTime(new Date().toLocaleTimeString());
-    }, 1000);
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, []);
-
-  return <Text color="green">{time}</Text>;
-};
-
 const LeftColumn = ({children}) => {
   return <Box width={'40%'}>{children}</Box>;
 };

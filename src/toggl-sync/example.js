@@ -8,11 +8,11 @@ const date = process.argv[2];
 const main = async () => {
   const togglSync = createTogglSync(
     process.env.TOGGL_API_TOKEN,
-    process.env.TOGGL_WORKSPACE_ID
+    process.env.TOGGL_WORKSPACE_ID,
   );
 
   // Example 1: Sync today's tasks
-  console.log('Syncing today\'s tasks...');
+  console.log("Syncing today's tasks...");
   const today = date ? new Date(date) : new Date();
   const results = await togglSync.syncTasksByDate(today);
 
@@ -25,9 +25,11 @@ const main = async () => {
 
   if (failed > 0) {
     console.log('\nFailed tasks:');
-    results.filter(r => !r.success).forEach(r => {
-      console.log(`- ${r.task.title}: ${r.error}`);
-    });
+    results
+      .filter(r => !r.success)
+      .forEach(r => {
+        console.log(`- ${r.task.title}: ${r.error}`);
+      });
   }
 
   // Example 2: Sync specific date
