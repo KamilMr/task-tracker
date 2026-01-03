@@ -38,7 +38,7 @@ const calculateEstimationAccuracy = (estimatedMinutes, entries) => {
   };
 };
 
-const calculateTimeDistribution = entries => {
+const calculateTimeDistribution = (entries, dateRangeDays = 7) => {
   const completedEntries = entries.filter(e => e.end);
 
   if (completedEntries.length === 0) {
@@ -51,6 +51,10 @@ const calculateTimeDistribution = entries => {
       longestGapSeconds: null,
       lastActivityDate: null,
       timeSinceLastSeconds: null,
+      daysWorked: 0,
+      dateRangeDays,
+      peakHour: null,
+      deepWorkCount: 0,
     };
   }
 
@@ -72,6 +76,26 @@ const calculateTimeDistribution = entries => {
   const lastActivityDate = new Date(lastEntry.end || lastEntry.start);
   const timeSinceLastSeconds = Math.floor((new Date() - lastActivityDate) / 1000);
 
+  // Days worked - unique dates with entries
+  const uniqueDays = new Set(
+    completedEntries.map(e => new Date(e.start).toDateString()),
+  );
+  const daysWorked = uniqueDays.size;
+
+  // Peak hour - most common start hour
+  const hourCounts = {};
+  completedEntries.forEach(e => {
+    const hour = new Date(e.start).getHours();
+    hourCounts[hour] = (hourCounts[hour] || 0) + 1;
+  });
+  const peakHour = Object.entries(hourCounts).reduce(
+    (max, [hour, count]) => (count > max.count ? {hour: parseInt(hour), count} : max),
+    {hour: null, count: 0},
+  ).hour;
+
+  // Deep work - sessions > 1 hour (3600 seconds)
+  const deepWorkCount = durations.filter(d => d >= 3600).length;
+
   return {
     sessionCount: completedEntries.length,
     avgSessionSeconds: Math.round(
@@ -83,6 +107,10 @@ const calculateTimeDistribution = entries => {
     longestGapSeconds: gaps.length > 0 ? Math.max(...gaps) : null,
     lastActivityDate,
     timeSinceLastSeconds,
+    daysWorked,
+    dateRangeDays,
+    peakHour,
+    deepWorkCount,
   };
 };
 
@@ -135,7 +163,7 @@ const analyticsService = {
 
     return {
       estimation: calculateEstimationAccuracy(estimatedMinutes, entries),
-      distribution: calculateTimeDistribution(entries),
+      distribution: calculateTimeDistribution(entries, dateRangeDays),
       budget: calculateBudgetAnalysis(estimatedMinutes, entries),
       meta: {
         dateRangeDays,
