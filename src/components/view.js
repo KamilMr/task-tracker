@@ -7,7 +7,12 @@ import projectService from '../services/projectService.js';
 import taskService from '../services/taskService.js';
 import timeEntryModel from '../models/timeEntry.js';
 import {useComponentKeys} from '../hooks/useComponentKeys.js';
-import {formatTime, formatEstimation} from '../utils.js';
+import {
+  formatTime,
+  formatEstimation,
+  sumEntryDurations,
+  calculateDuration,
+} from '../utils.js';
 
 const View = () => {
   const {
@@ -139,15 +144,7 @@ const View = () => {
     const project = allProjects.find(p => p.id === taskDetails.project_id);
     const client = clients.find(c => c.id === project?.client_id);
 
-    // Calculate total time from entries
-    let totalSeconds = 0;
-    timeEntries.forEach(entry => {
-      if (entry.start && entry.end) {
-        const startTime = new Date(entry.start).getTime();
-        const endTime = new Date(entry.end).getTime();
-        totalSeconds += Math.floor((endTime - startTime) / 1000);
-      }
-    });
+    const totalSeconds = sumEntryDurations(timeEntries);
 
     const activeEntries = timeEntries.filter(e => !e.end).length;
     const estimatedSec = taskDetails.estimated_minutes
@@ -231,7 +228,7 @@ const View = () => {
               const startDate = new Date(entry.start);
               const endDate = entry.end ? new Date(entry.end) : null;
               const duration = endDate
-                ? Math.floor((endDate - startDate) / 1000)
+                ? calculateDuration(entry.start, entry.end)
                 : 0;
 
               return (
@@ -242,13 +239,15 @@ const View = () => {
                   <Text color={isSelected ? 'green' : 'white'} width={22}>
                     {startDate.toLocaleString()}
                   </Text>
-                  <Text color={isSelected ? 'green' : 'white'} width={22}>
-                    {endDate ? (
-                      endDate.toLocaleString()
-                    ) : (
-                      <Text color="yellow">Running...</Text>
-                    )}
-                  </Text>
+                  <Box paddingX={1}>
+                    <Text color={isSelected ? 'green' : 'white'} width={22}>
+                      {endDate ? (
+                        endDate.toLocaleString()
+                      ) : (
+                        <Text color="yellow">Running...</Text>
+                      )}
+                    </Text>
+                  </Box>
                   <Text color={isSelected ? 'green' : 'white'}>
                     {duration > 0 ? formatTime(duration) : '-'}
                   </Text>

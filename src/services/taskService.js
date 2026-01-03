@@ -1,7 +1,12 @@
 import taskModel from '../models/task.js';
 import timeEntryModel from '../models/timeEntry.js';
 import projectModel from '../models/project.js';
-import {getFormatedDate, retriveYYYYMMDD} from '../utils.js';
+import {
+  getFormatedDate,
+  retriveYYYYMMDD,
+  calculateDuration,
+  sumEntryDurations,
+} from '../utils.js';
 
 const taskService = {
   create: async ({title, projectId, estimatedMinutes = null}) => {
@@ -195,16 +200,7 @@ const taskService = {
   },
 
   calculateTimeSpend: (entries, isT1 = false) => {
-    let totalSeconds = 0;
-
-    entries.forEach(entry => {
-      if (entry.start && entry.end) {
-        const startTime = new Date(entry.start).getTime();
-        const endTime = new Date(entry.end).getTime();
-        totalSeconds += Math.floor((endTime - startTime) / 1000);
-      }
-    });
-
+    let totalSeconds = sumEntryDurations(entries);
     let hours = Math.floor(totalSeconds / 3600);
 
     if (isT1) {
@@ -258,10 +254,8 @@ const taskService = {
         };
       }
 
-      const startTime = new Date(entry.start);
-      const endTime = entry.end ? new Date(entry.end) : null;
-      const durationTime = endTime
-        ? Math.floor((endTime - startTime) / 1000)
+      const durationTime = entry.end
+        ? calculateDuration(entry.start, entry.end)
         : 0;
       acc[key].totalSec += durationTime;
 
