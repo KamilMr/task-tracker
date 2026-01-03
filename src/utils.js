@@ -152,3 +152,14 @@ export const formatHour = hour => {
   };
   return `${formatH(hour)}-${formatH(nextHour)}`;
 };
+
+// Pricing formatting utilities
+export const formatCurrency = (amount, currency = 'PLN') => {
+  if (amount === null || amount === undefined) return null;
+  return `${Math.round(amount)} ${currency}`;
+};
+
+export const formatHourlyRate = (rate, currency = 'PLN') => {
+  if (rate === null || rate === undefined) return null;
+  return `${rate} ${currency}/h`;
+};
