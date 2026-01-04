@@ -31,6 +31,65 @@ Later, I plan to synchronize this project with track.toggle.com, but we will see
 
 All items have been moved to the project on GitHub: https://github.com/users/KamilMr/projects/4
 
+# Docker Deployment
+
+Run the task tracker in production using Docker Compose.
+
+## Prerequisites
+
+- Docker Engine 20.10+
+- Docker Compose 2.0+
+
+## Quick Start
+
+1. Copy environment template:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Edit `.env` and set your database credentials:
+   ```
+   MYSQL_ROOT_PASSWORD=your_secure_password
+   MYSQL_DATABASE=task_tracker_v1
+   ```
+
+3. Build and start services:
+   ```bash
+   docker-compose up -d
+   ```
+
+4. Check logs:
+   ```bash
+   docker-compose logs -f tasktracker
+   ```
+
+5. Attach to the interactive terminal:
+   ```bash
+   docker-compose attach tasktracker
+   ```
+   Press `Ctrl+P` then `Ctrl+Q` to detach without stopping the container.
+
+6. Stop services:
+   ```bash
+   docker-compose down
+   ```
+
+## Data Persistence
+
+Database data is stored in Docker volume `mysql_data`. This ensures your tasks and project data persist across container restarts.
+
+To completely remove all data:
+```bash
+docker-compose down -v
+```
+
+## Troubleshooting
+
+- **Migrations fail**: Ensure database is healthy: `docker-compose ps`
+- **Tracker won't start**: Check logs: `docker-compose logs tasktracker`
+- **Permission errors**: Ensure .env file exists and is readable
+- **Can't attach to container**: Make sure container is running: `docker-compose ps`
+
 # Joining and Setting Up the Project
 
 Here’s a guide to help you get started.

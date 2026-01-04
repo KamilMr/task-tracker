@@ -1,0 +1,65 @@
+services:
+    db:
+        image: mysql:8.0 
+        environment:
+            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+        ports:
+            - '3306:3306'
+        volumes:
+            - mysql_data:/var/lib/mysql
+        healthcheck:
+            test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost', '-u', 'root', '-p${MYSQL_ROOT_PASSWORD}']
+            interval: 5s
+            timeout: 5s
+            retries: 5
+        restart: unless-stopped
+
+
+    db-init:
+        image: mysql:8.0 
+        depends_on:
+            db:
+                condition: service_healthy
+        environment:
+            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+            MYSQL_DATABASE: ${MYSQL_DATABASE}
+        entrypoint: >
+            sh -c "
+              mysql -h db -u root -p${MYSQL_ROOT_PASSWORD} -e \"ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY '${MYSQL_ROOT_PASSWORD}'; FLUSH PRIVILEGES;\"
+              mysql -h db -u root -p${MYSQL_ROOT_PASSWORD} -e 'CREATE DATABASE IF NOT EXISTS ${MYSQL_DATABASE};'
+            "
+
+    db-migration:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        depends_on:
+            db-init:
+                condition: service_completed_successfully
+        env_file:
+                - .env
+        environment:
+                MYSQL_HOST: db 
+        command: pnpm knex migrate:latest --knexfile src/db/knexfile.js
+
+    tasktracker:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        depends_on: 
+            db-migration:
+                condition: service_completed_successfully
+            db: 
+                condition: service_healthy
+        env_file:
+                - .env
+        environment:
+                MYSQL_HOST: db
+        stdin_open: true
+        tty: true
+        restart: unless-stopped
+
+
+volumes:
+    mysql_data:
+        driver: local
