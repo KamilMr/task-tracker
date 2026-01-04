@@ -6,7 +6,7 @@ services:
         ports:
             - '3306:3306'
         volumes:
-            - mysql_data:/var/lib/mysql
+            - ~/data/task-tracker-prod/mysql:/var/lib/mysql
         healthcheck:
             test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost', '-u', 'root', '-p${MYSQL_ROOT_PASSWORD}']
             interval: 5s
@@ -30,6 +30,7 @@ services:
             "
 
     db-migration:
+        image: kamilmrowka/task-tracker:latest
         build:
             context: .
             dockerfile: Dockerfile
@@ -59,7 +60,3 @@ services:
         tty: true
         restart: unless-stopped
 
-
-volumes:
-    mysql_data:
-        driver: local
