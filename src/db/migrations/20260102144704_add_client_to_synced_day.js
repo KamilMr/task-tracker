@@ -1,9 +1,15 @@
 const up = async knex => {
-  // Update existing NULL client_id values
+  // First add the column with a default value
+  await knex.schema.alterTable('synced_day', table => {
+    table.integer('client_id').unsigned().notNullable().defaultTo(5);
+  });
+
+  // Update existing NULL client_id values (if any)
   await knex('synced_day').whereNull('client_id').update({client_id: 5});
 
+  // Add primary key and foreign key constraints
   await knex.schema.alterTable('synced_day', table => {
-    table.integer('client_id').unsigned().notNullable().defaultTo(5).alter();
+    table.dropPrimary();
     table.primary(['day', 'client_id']);
     table
       .foreign('client_id')
