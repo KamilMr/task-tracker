@@ -1,6 +1,6 @@
 {
   "name": "task-tracker",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Simple task-tracker for Nodejs",
   "homepage": "https://github.com/KamilMr/task-tracker#readme",
   "author": "kamil.mrowka@gmail.com",
@@ -15,7 +15,7 @@
     "start": "node --watch dist/index.js",
     "dev": "./scripts/start.sh",
     "format": "prettier --write .",
-    "push": "./scripts/push-docker.sh"
+    "push": "./scripts/push-docker.sh",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "files": [
