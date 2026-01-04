@@ -8,24 +8,28 @@ I would love to have a tracker that not only tracks what I am working on but als
 
 Feel free to join me in working on this module. It is in the early stages, so please join me here https://discord.gg/Rk3hME8rfq, and let's work together. I am so excited.
 
-Later, I plan to synchronize this project with track.toggle.com, but we will see how it goes.
+The project now supports synchronization with Toggl Track for external time tracking.
 
 # Features
 
-- Ability to manage owners (add, view, update, delete).
-- Ability to manage projects (add, view, update, delete, assign owner).
-- Ability to manage tasks (add, view, update, delete).
+- Manage clients (add, view, update, delete, set hourly rates)
+- Manage projects (add, view, update, delete, assign client)
+- Manage tasks (add, view, update, delete)
+- Start/stop tasks with time tracking and live timer display
+- Display running task with elapsed time
+- Daily task summary with total hours worked
+- Day-by-day task navigation (previous/next day)
+- Vim-like keybindings for terminal navigation
+- Autocomplete for task and project inputs
+- Toggl Track synchronization
+- Client pricing with rate history tracking
+- Task analytics and earnings calculation
+- Docker deployment support
 
 # Coming Features
 
-- Start and stop tasks with detailed tracking.
-- Display current tasks in progress.
-- Display summary of tasks for the current day.
-- Autocomplete for CLI commands for efficient navigation.
-- Keybindings for common actions within the terminal.
-- Synchronization with track.toggle.com for external time tracking.
-- Unit tests for all models and features.
-- Comprehensive documentation and usage guidelines.
+- Unit tests for models and features
+- Comprehensive documentation
 
 # Tasks to work on
 
@@ -55,23 +59,23 @@ Run the task tracker in production using Docker Compose.
 
 3. Build and start services:
    ```bash
-   docker-compose up -d
+   docker compose up -d
    ```
 
 4. Check logs:
    ```bash
-   docker-compose logs -f tasktracker
+   docker compose logs -f tasktracker
    ```
 
 5. Attach to the interactive terminal:
    ```bash
-   docker-compose attach tasktracker
+   docker compose attach tasktracker
    ```
    Press `Ctrl+P` then `Ctrl+Q` to detach without stopping the container.
 
 6. Stop services:
    ```bash
-   docker-compose down
+   docker compose down
    ```
 
 ## Data Persistence
@@ -80,15 +84,15 @@ Database data is stored in Docker volume `mysql_data`. This ensures your tasks a
 
 To completely remove all data:
 ```bash
-docker-compose down -v
+docker compose down -v
 ```
 
 ## Troubleshooting
 
-- **Migrations fail**: Ensure database is healthy: `docker-compose ps`
-- **Tracker won't start**: Check logs: `docker-compose logs tasktracker`
+- **Migrations fail**: Ensure database is healthy: `docker compose ps`
+- **Tracker won't start**: Check logs: `docker compose logs tasktracker`
 - **Permission errors**: Ensure .env file exists and is readable
-- **Can't attach to container**: Make sure container is running: `docker-compose ps`
+- **Can't attach to container**: Make sure container is running: `docker compose ps`
 
 # Joining and Setting Up the Project
 
