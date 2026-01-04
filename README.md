@@ -10,6 +10,10 @@ Feel free to join me in working on this module. It is in the early stages, so pl
 
 The project now supports synchronization with Toggl Track for external time tracking.
 
+My updates are a little messy as I try to do as much as possible in my spare time. This is not my main project. Shortly I will try to add invoice generation as this is something I need. The project is not perfect and has a long way to go.
+
+I am now planning to review some parts of the code and focus on fixing bugs and maintenance. Only small updates will be coming.
+
 # Features
 
 - Manage clients (add, view, update, delete, set hourly rates)
@@ -25,15 +29,6 @@ The project now supports synchronization with Toggl Track for external time trac
 - Client pricing with rate history tracking
 - Task analytics and earnings calculation
 - Docker deployment support
-
-# Coming Features
-
-- Unit tests for models and features
-- Comprehensive documentation
-
-# Tasks to work on
-
-All items have been moved to the project on GitHub: https://github.com/users/KamilMr/projects/4
 
 # Docker Deployment
 
