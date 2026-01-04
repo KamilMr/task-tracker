@@ -1,6 +1,8 @@
 import cliModel from '../models/client.js';
 import projectModel from '../models/project.js';
 import task from '../models/task.js';
+import clientRateHistory from '../models/clientRateHistory.js';
+import {retriveYYYYMMDD} from '../utils.js';
 
 const clientService = {
   create: name => {
@@ -36,6 +38,34 @@ const clientService = {
 
     return cliModel.edit(id, name);
   },
+
+  updatePricing: async (id, {hourlyRate, currency = 'PLN', effectiveFrom = null}) => {
+    if (hourlyRate === null || hourlyRate === undefined)
+      throw new Error('Hourly rate is required');
+    if (isNaN(hourlyRate) || hourlyRate <= 0)
+      throw new Error('Hourly rate must be a positive number');
+    if (currency && currency.length !== 3)
+      throw new Error('Currency must be a 3-letter code');
+
+    const effectiveDate = effectiveFrom || retriveYYYYMMDD(new Date());
+
+    // Create rate history entry
+    await clientRateHistory.create({
+      clientId: id,
+      hourlyRate,
+      currency,
+      effectiveFrom: effectiveDate,
+    });
+
+    // Also update client table for quick access to current rate
+    return cliModel.updatePricing(id, {hourlyRate, currency});
+  },
+
+  getCurrentRate: clientId => clientRateHistory.getCurrentRate(clientId),
+
+  getRateHistory: clientId => clientRateHistory.getByClientId(clientId),
+
+  selectById: id => cliModel.selectById(id),
 };
 
 export default clientService;

@@ -9,6 +9,14 @@ const timeEntry = {
 
   selectByTaskId: taskId => db(TABLE).select().where('task_id', taskId),
 
+  selectByTaskIdWithDateRange: (taskId, startDate, endDate) =>
+    db(TABLE)
+      .select()
+      .where('task_id', taskId)
+      .where('start', '>=', startDate)
+      .where('start', '<=', `${endDate} 23:59:59`)
+      .orderBy('start', 'asc'),
+
   selectActiveEntry: () => db(TABLE).select().whereNull('end').first(),
 
   selectByDate: date =>

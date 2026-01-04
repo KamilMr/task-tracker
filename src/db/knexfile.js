@@ -17,4 +17,14 @@ export default {
       database: db,
     },
   },
+  production: {
+    client: 'mysql2',
+    connection: {
+      host: host,
+      port: 3306,
+      user: user,
+      password: password,
+      database: db,
+    },
+  },
 };

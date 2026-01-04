@@ -1,11 +1,15 @@
 const up = async knex => {
+  const hasEstimatedHours = await knex.schema.hasColumn('task', 'estimated_hours');
+
   await knex.schema.alterTable('task', table => {
     table.integer('estimated_minutes').unsigned().nullable();
   });
 
-  await knex.schema.alterTable('task', table => {
-    table.dropColumn('estimated_hours');
-  });
+  if (hasEstimatedHours) {
+    await knex.schema.alterTable('task', table => {
+      table.dropColumn('estimated_hours');
+    });
+  }
 };
 
 const down = async knex => {

@@ -10,6 +10,8 @@ const project = {
     return db(PROJECT_TABLE).select('name').where('id', id);
   },
 
+  selectById: id => db(PROJECT_TABLE).select().where('id', id).first(),
+
   selectByCliId: cliId => {
     return db(PROJECT_TABLE).select().where('client_id', cliId);
   },

@@ -107,3 +107,59 @@ export const sumEntryDurations = entries => {
     return total;
   }, 0);
 };
+
+// Analytics formatting utilities
+export const formatPercentage = (value, decimals = 0) => {
+  if (value === null || value === undefined) return null;
+  const sign = value >= 0 ? '+' : '';
+  return `${sign}${value.toFixed(decimals)}%`;
+};
+
+export const formatTimeDiff = seconds => {
+  if (seconds === null || seconds === undefined) return null;
+  const abs = Math.abs(seconds);
+  const sign = seconds >= 0 ? '+' : '-';
+  const hours = Math.floor(abs / 3600);
+  const minutes = Math.floor((abs % 3600) / 60);
+
+  if (hours > 0 && minutes > 0) return `${sign}${hours}h ${minutes}m`;
+  if (hours > 0) return `${sign}${hours}h`;
+  if (minutes > 0) return `${sign}${minutes}m`;
+  return `${sign}${abs}s`;
+};
+
+export const formatRelativeTime = date => {
+  if (!date) return null;
+  const now = new Date();
+  const then = new Date(date);
+  const diffSeconds = Math.floor((now - then) / 1000);
+
+  if (diffSeconds < 60) return 'just now';
+  if (diffSeconds < 3600) return `${Math.floor(diffSeconds / 60)}m ago`;
+  if (diffSeconds < 86400) return `${Math.floor(diffSeconds / 3600)}h ago`;
+  const days = Math.floor(diffSeconds / 86400);
+  if (days === 1) return '1 day ago';
+  return `${days} days ago`;
+};
+
+export const formatHour = hour => {
+  if (hour === null || hour === undefined) return null;
+  const nextHour = (hour + 1) % 24;
+  const formatH = h => {
+    if (h === 0) return '12 AM';
+    if (h === 12) return '12 PM';
+    return h < 12 ? `${h} AM` : `${h - 12} PM`;
+  };
+  return `${formatH(hour)}-${formatH(nextHour)}`;
+};
+
+// Pricing formatting utilities
+export const formatCurrency = (amount, currency = 'PLN') => {
+  if (amount === null || amount === undefined) return null;
+  return `${Math.round(amount)} ${currency}`;
+};
+
+export const formatHourlyRate = (rate, currency = 'PLN') => {
+  if (rate === null || rate === undefined) return null;
+  return `${rate} ${currency}/h`;
+};
