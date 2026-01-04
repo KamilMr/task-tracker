@@ -15,6 +15,7 @@
     "start": "node --watch dist/index.js",
     "dev": "./scripts/start.sh",
     "format": "prettier --write .",
+    "push": "./scripts/push-docker.sh"
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "files": [
