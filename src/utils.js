@@ -36,9 +36,11 @@ export const retriveYYYYMMDD = (date = new Date()) =>
   date.toISOString().split('T')[0];
 
 export const getFormatedDate = (now = new Date()) => {
-  const date = now.toISOString().split('T')[0]; // format YYYY-MM-DD
-  const time = now.toTimeString().split(' ')[0]; // format HH:mm
-  return `${date} ${time}`;
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const time = now.toTimeString().split(' ')[0];
+  return `${year}-${month}-${day} ${time}`;
 };
 
 export const formatNumbToHHMMss = time => {
