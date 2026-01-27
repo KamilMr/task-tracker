@@ -1,3 +1,36 @@
+import {TZDate} from '@date-fns/tz';
+
+// Timezone configuration
+export const getTimezone = () =>
+  process.env.TIMEZONE || Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+// Get current time in user's timezone
+export const getLocalNow = (tz = getTimezone()) => new TZDate(new Date(), tz);
+
+// Convert date to UTC string for database storage (YYYY-MM-DD HH:MM:SS)
+export const toUTC = (date = new Date()) => {
+  const d = new Date(date);
+  return d.toISOString().slice(0, 19).replace('T', ' ');
+};
+
+// Convert UTC string from database to TZDate in user's timezone
+export const fromUTC = (utcString, tz = getTimezone()) => {
+  if (!utcString) return null;
+  const utcDate = new Date(utcString + 'Z');
+  return new TZDate(utcDate, tz);
+};
+
+// Get date boundaries in UTC for a local date (for database queries)
+export const getUTCDateRange = (localDateStr, tz = getTimezone()) => {
+  const [year, month, day] = localDateStr.split('-').map(Number);
+  const startLocal = new TZDate(year, month - 1, day, 0, 0, 0, tz);
+  const endLocal = new TZDate(year, month - 1, day, 23, 59, 59, tz);
+  return {
+    start: toUTC(startLocal),
+    end: toUTC(endLocal),
+  };
+};
+
 const toSnakeCase = str => {
   return str
     .replace(/\s+/g, '_')
