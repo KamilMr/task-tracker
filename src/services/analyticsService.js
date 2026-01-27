@@ -4,6 +4,7 @@ import {
   calculateDuration,
   sumEntryDurations,
   retriveYYYYMMDD,
+  getLocalNow,
 } from '../utils.js';
 
 const calculateMedian = values => {
@@ -67,33 +68,29 @@ const calculateTimeDistribution = (entries, dateRangeDays = 7) => {
   );
   const sortedDurations = [...durations].sort((a, b) => a - b);
 
-  const sortedByStart = [...completedEntries].sort(
-    (a, b) => new Date(a.start) - new Date(b.start),
-  );
+  const sortedByStart = [...completedEntries].sort((a, b) => a.start - b.start);
 
   const gaps = [];
   for (let i = 1; i < sortedByStart.length; i++) {
-    const prevEnd = new Date(sortedByStart[i - 1].end);
-    const currStart = new Date(sortedByStart[i].start);
+    const prevEnd = sortedByStart[i - 1].end;
+    const currStart = sortedByStart[i].start;
     gaps.push(Math.floor((currStart - prevEnd) / 1000));
   }
 
   const lastEntry = sortedByStart[sortedByStart.length - 1];
-  const lastActivityDate = new Date(lastEntry.end || lastEntry.start);
+  const lastActivityDate = lastEntry.end || lastEntry.start;
   const timeSinceLastSeconds = Math.floor(
-    (new Date() - lastActivityDate) / 1000,
+    (getLocalNow() - lastActivityDate) / 1000,
   );
 
   // Days worked - unique dates with entries
-  const uniqueDays = new Set(
-    completedEntries.map(e => new Date(e.start).toDateString()),
-  );
+  const uniqueDays = new Set(completedEntries.map(e => e.start.toDateString()));
   const daysWorked = uniqueDays.size;
 
   // Peak hour - most common start hour
   const hourCounts = {};
   completedEntries.forEach(e => {
-    const hour = new Date(e.start).getHours();
+    const hour = e.start.getHours();
     hourCounts[hour] = (hourCounts[hour] || 0) + 1;
   });
   const peakHour = Object.entries(hourCounts).reduce(

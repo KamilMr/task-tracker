@@ -1,32 +1,67 @@
 import db from '../db/db.js';
+import {toUTC, fromUTC, getUTCDateRange} from '../utils.js';
+
 const TABLE = 'time_entry';
+
+// Convert date to UTC string for database storage
+const _toUTC = date => (date ? toUTC(date) : null);
+
+// Convert single entry dates from UTC to local TZDate
+const _convertEntry = entry => {
+  if (!entry) return null;
+  return {
+    ...entry,
+    start: fromUTC(entry.start),
+    end: fromUTC(entry.end),
+  };
+};
+
+// Convert array of entries
+const _convertEntries = entries => entries.map(_convertEntry);
 
 const timeEntry = {
   create: ({taskId, start, end = null}) =>
-    db(TABLE).insert({task_id: taskId, start, end}),
+    db(TABLE).insert({task_id: taskId, start: _toUTC(start), end: _toUTC(end)}),
 
-  selectById: id => db(TABLE).select().where('id', id).first(),
+  selectById: async id => {
+    const entry = await db(TABLE).select().where('id', id).first();
+    return _convertEntry(entry);
+  },
 
-  selectByTaskId: taskId => db(TABLE).select().where('task_id', taskId),
+  selectByTaskId: async taskId => {
+    const entries = await db(TABLE).select().where('task_id', taskId);
+    return _convertEntries(entries);
+  },
 
-  selectByTaskIdWithDateRange: (taskId, startDate, endDate) =>
-    db(TABLE)
+  selectByTaskIdWithDateRange: async (taskId, startDate, endDate) => {
+    const startRange = getUTCDateRange(startDate);
+    const endRange = getUTCDateRange(endDate);
+    const entries = await db(TABLE)
       .select()
       .where('task_id', taskId)
-      .where('start', '>=', startDate)
-      .where('start', '<=', `${endDate} 23:59:59`)
-      .orderBy('start', 'asc'),
+      .where('start', '>=', startRange.start)
+      .where('start', '<=', endRange.end)
+      .orderBy('start', 'asc');
+    return _convertEntries(entries);
+  },
 
-  selectActiveEntry: () => db(TABLE).select().whereNull('end').first(),
+  selectActiveEntry: async () => {
+    const entry = await db(TABLE).select().whereNull('end').first();
+    return _convertEntry(entry);
+  },
 
-  selectByDate: date =>
-    db(TABLE)
+  selectByDate: async date => {
+    const {start, end} = getUTCDateRange(date);
+    const entries = await db(TABLE)
       .select()
-      .where('start', '>=', date)
-      .andWhere('start', '<', `${date} 23:59:59`),
+      .where('start', '>=', start)
+      .andWhere('start', '<=', end);
+    return _convertEntries(entries);
+  },
 
-  selectByDateWithTask: date =>
-    db(TABLE)
+  selectByDateWithTask: async date => {
+    const {start, end} = getUTCDateRange(date);
+    const entries = await db(TABLE)
       .join('task', 'time_entry.task_id', 'task.id')
       .select(
         'time_entry.id',
@@ -37,13 +72,15 @@ const timeEntry = {
         'task.project_id',
         'task.estimated_minutes',
       )
-      .where('time_entry.start', '>=', date)
-      .andWhere('time_entry.start', '<', `${date} 23:59:59`),
+      .where('time_entry.start', '>=', start)
+      .andWhere('time_entry.start', '<=', end);
+    return _convertEntries(entries);
+  },
 
   update: ({id, start, end}) => {
     const updates = {};
-    if (start !== undefined) updates.start = start;
-    if (end !== undefined) updates.end = end;
+    if (start !== undefined) updates.start = _toUTC(start);
+    if (end !== undefined) updates.end = _toUTC(end);
     return db(TABLE).where({id}).update(updates);
   },
 
@@ -51,18 +88,24 @@ const timeEntry = {
 
   deleteByTaskId: taskId => db(TABLE).where('task_id', taskId).del(),
 
-  getTodayEntriesByProject: (date, projectId = null) => {
+  getTodayEntriesByProject: async (date, projectId = null) => {
+    const {start, end} = getUTCDateRange(date);
     let query = db(TABLE)
       .join('task', 'time_entry.task_id', 'task.id')
       .select('time_entry.start', 'time_entry.end')
-      .where(db.raw('DATE(time_entry.start)'), date)
+      .where('time_entry.start', '>=', start)
+      .andWhere('time_entry.start', '<=', end)
       .whereNotNull('time_entry.end');
 
     if (projectId) query = query.where('task.project_id', projectId);
-    return query;
+    const entries = await query;
+    return _convertEntries(entries);
   },
 
-  listAll: () => db(TABLE).select(),
+  listAll: async () => {
+    const entries = await db(TABLE).select();
+    return _convertEntries(entries);
+  },
 };
 
 export default timeEntry;

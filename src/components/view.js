@@ -21,7 +21,9 @@ import {
   formatHour,
   formatCurrency,
   formatHourlyRate,
+  fromUTC,
 } from '../utils.js';
+import {format} from 'date-fns';
 
 const View = () => {
   const {
@@ -211,7 +213,7 @@ const View = () => {
           </Text>
           <Text>
             <Text bold>Created: </Text>
-            {new Date(taskDetails.created_at).toLocaleString()}
+            {format(fromUTC(taskDetails.created_at), 'yyyy-MM-dd HH:mm:ss')}
           </Text>
         </Box>
 
@@ -379,9 +381,7 @@ const View = () => {
               {timeEntries.map((entry, index) => {
                 const isSelected =
                   index === selectedEntryIndex && isViewFocused;
-                const startDate = new Date(entry.start);
-                const endDate = entry.end ? new Date(entry.end) : null;
-                const duration = endDate
+                const duration = entry.end
                   ? calculateDuration(entry.start, entry.end)
                   : 0;
 
@@ -391,12 +391,12 @@ const View = () => {
                       {isSelected ? '• ' : '  '}
                     </Text>
                     <Text color={isSelected ? 'green' : 'white'} width={22}>
-                      {startDate.toLocaleString()}
+                      {format(entry.start, 'yyyy-MM-dd HH:mm:ss')}
                     </Text>
                     <Box paddingX={1}>
                       <Text color={isSelected ? 'green' : 'white'} width={22}>
-                        {endDate ? (
-                          endDate.toLocaleString()
+                        {entry.end ? (
+                          format(entry.end, 'yyyy-MM-dd HH:mm:ss')
                         ) : (
                           <Text color="yellow">Running...</Text>
                         )}

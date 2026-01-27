@@ -17,7 +17,7 @@ const RunningTask = () => {
       const activeTask = await taskService.getActiveTask();
       if (activeTask) {
         const elapsedSeconds = Math.floor(
-          (Date.now() - new Date(activeTask.start).getTime()) / 1000,
+          (Date.now() - activeTask.start.getTime()) / 1000,
         );
         initialValue(elapsedSeconds);
         setIsActive(activeTask);

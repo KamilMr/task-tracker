@@ -2,7 +2,7 @@ import taskModel from '../models/task.js';
 import timeEntryModel from '../models/timeEntry.js';
 import projectModel from '../models/project.js';
 import {
-  getFormatedDate,
+  getLocalNow,
   retriveYYYYMMDD,
   calculateDuration,
   sumEntryDurations,
@@ -29,7 +29,7 @@ const taskService = {
     return id;
   },
 
-  toggleTask: async ({title, projectId, start = getFormatedDate()}) => {
+  toggleTask: async ({title, projectId, start = getLocalNow()}) => {
     if (!title || title.trim().length === 0)
       throw new Error('Task title cannot be empty');
     if (title.length > 100)
@@ -52,11 +52,11 @@ const taskService = {
     // Check if active entry is for the same task
     if (activeEntry.task_id === task.id) {
       // Same task, stop it
-      await timeEntryModel.update({id: activeEntry.id, end: getFormatedDate()});
+      await timeEntryModel.update({id: activeEntry.id, end: getLocalNow()});
       return {action: 'stopped', entryId: activeEntry.id, taskId: task.id};
     } else {
       // Different task, switch
-      await timeEntryModel.update({id: activeEntry.id, end: getFormatedDate()});
+      await timeEntryModel.update({id: activeEntry.id, end: getLocalNow()});
       const [id] = await timeEntryModel.create({taskId: task.id, start});
       return {
         action: 'switched',
@@ -67,7 +67,7 @@ const taskService = {
     }
   },
 
-  toggleTaskById: async ({taskId, start = getFormatedDate()}) => {
+  toggleTaskById: async ({taskId, start = getLocalNow()}) => {
     const task = await taskModel.selectById(taskId);
     if (!task) throw new Error('Task does not exist');
 
@@ -79,10 +79,10 @@ const taskService = {
     }
 
     if (activeEntry.task_id === taskId) {
-      await timeEntryModel.update({id: activeEntry.id, end: getFormatedDate()});
+      await timeEntryModel.update({id: activeEntry.id, end: getLocalNow()});
       return {action: 'stopped', entryId: activeEntry.id, taskId};
     } else {
-      await timeEntryModel.update({id: activeEntry.id, end: getFormatedDate()});
+      await timeEntryModel.update({id: activeEntry.id, end: getLocalNow()});
       const [id] = await timeEntryModel.create({taskId, start});
       return {
         action: 'switched',
@@ -108,7 +108,7 @@ const taskService = {
 
   getActiveTask: async () => taskService.selectActiveTask(),
 
-  endTask: async ({id, end = getFormatedDate()}) => {
+  endTask: async ({id, end = getLocalNow()}) => {
     const activeEntry = await timeEntryModel.selectActiveEntry();
     if (!activeEntry) throw new Error('No active task found');
 

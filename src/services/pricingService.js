@@ -16,8 +16,7 @@ const getDateRange = (dateRangeDays = 30) => {
 
 // Find the applicable rate for a given date from sorted rate periods
 const findRateForDate = (rates, date) => {
-  const dateStr =
-    typeof date === 'string' ? date : retriveYYYYMMDD(new Date(date));
+  const dateStr = typeof date === 'string' ? date : retriveYYYYMMDD(date);
   // rates are sorted ascending by effective_from
   // find the last rate where effective_from <= date
   let applicableRate = null;
