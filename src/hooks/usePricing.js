@@ -19,9 +19,18 @@ const usePricing = (taskId, projectId, clientId, dateRangeDays = 30) => {
       setError(null);
       try {
         let data = null;
-        if (taskId) data = await pricingService.getTaskEarnings(taskId, dateRangeDays);
-        else if (projectId) data = await pricingService.getProjectEarnings(projectId, dateRangeDays);
-        else if (clientId) data = await pricingService.getClientEarnings(clientId, dateRangeDays);
+        if (taskId)
+          data = await pricingService.getTaskEarnings(taskId, dateRangeDays);
+        else if (projectId)
+          data = await pricingService.getProjectEarnings(
+            projectId,
+            dateRangeDays,
+          );
+        else if (clientId)
+          data = await pricingService.getClientEarnings(
+            clientId,
+            dateRangeDays,
+          );
         if (!cancelled) setPricing(data);
       } catch (err) {
         if (!cancelled) {
@@ -34,7 +43,9 @@ const usePricing = (taskId, projectId, clientId, dateRangeDays = 30) => {
     };
 
     fetchPricing();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [taskId, projectId, clientId, dateRangeDays]);
 
   return {pricing, loading, error};

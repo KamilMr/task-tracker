@@ -16,14 +16,16 @@ const getDateRange = (dateRangeDays = 30) => {
 
 // Find the applicable rate for a given date from sorted rate periods
 const findRateForDate = (rates, date) => {
-  const dateStr = typeof date === 'string' ? date : retriveYYYYMMDD(new Date(date));
+  const dateStr =
+    typeof date === 'string' ? date : retriveYYYYMMDD(new Date(date));
   // rates are sorted ascending by effective_from
   // find the last rate where effective_from <= date
   let applicableRate = null;
   for (const rate of rates) {
-    const effectiveStr = typeof rate.effective_from === 'string'
-      ? rate.effective_from.split('T')[0]
-      : retriveYYYYMMDD(new Date(rate.effective_from));
+    const effectiveStr =
+      typeof rate.effective_from === 'string'
+        ? rate.effective_from.split('T')[0]
+        : retriveYYYYMMDD(new Date(rate.effective_from));
     if (effectiveStr <= dateStr) applicableRate = rate;
     else break;
   }
@@ -70,8 +72,11 @@ const pricingService = {
       endDateStr,
     );
 
-    const currentRate = await clientRateHistory.getCurrentRate(project.client_id);
-    if (!currentRate) return {hourlyRate: null, earnings: null, currency: 'PLN'};
+    const currentRate = await clientRateHistory.getCurrentRate(
+      project.client_id,
+    );
+    if (!currentRate)
+      return {hourlyRate: null, earnings: null, currency: 'PLN'};
 
     const entries = await timeEntryModel.selectByTaskIdWithDateRange(
       taskId,
@@ -79,7 +84,10 @@ const pricingService = {
       endDateStr,
     );
 
-    const {totalSeconds, totalEarnings, currency} = calculateEntriesEarnings(entries, rates);
+    const {totalSeconds, totalEarnings, currency} = calculateEntriesEarnings(
+      entries,
+      rates,
+    );
     const hours = totalSeconds / 3600;
 
     return {
@@ -104,8 +112,11 @@ const pricingService = {
       endDateStr,
     );
 
-    const currentRate = await clientRateHistory.getCurrentRate(project.client_id);
-    if (!currentRate) return {hourlyRate: null, earnings: null, currency: 'PLN'};
+    const currentRate = await clientRateHistory.getCurrentRate(
+      project.client_id,
+    );
+    if (!currentRate)
+      return {hourlyRate: null, earnings: null, currency: 'PLN'};
 
     const tasks = await taskModel.selectByProjectId(projectId);
 
@@ -146,7 +157,8 @@ const pricingService = {
     );
 
     const currentRate = await clientRateHistory.getCurrentRate(clientId);
-    if (!currentRate) return {hourlyRate: null, earnings: null, currency: 'PLN'};
+    if (!currentRate)
+      return {hourlyRate: null, earnings: null, currency: 'PLN'};
 
     const projects = await projectModel.selectByCliId(clientId);
 

@@ -7,7 +7,11 @@ const up = async knex => {
     table.date('effective_from').notNullable();
     table.timestamp('created_at').defaultTo(knex.fn.now());
 
-    table.foreign('client_id').references('id').inTable('client').onDelete('CASCADE');
+    table
+      .foreign('client_id')
+      .references('id')
+      .inTable('client')
+      .onDelete('CASCADE');
     table.index(['client_id', 'effective_from']);
   });
 

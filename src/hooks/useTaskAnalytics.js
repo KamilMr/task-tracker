@@ -16,7 +16,10 @@ const useTaskAnalytics = (taskId, dateRangeDays = 7) => {
       setLoading(true);
       setError(null);
       try {
-        const data = await analyticsService.getTaskAnalytics(taskId, dateRangeDays);
+        const data = await analyticsService.getTaskAnalytics(
+          taskId,
+          dateRangeDays,
+        );
         setAnalytics(data);
       } catch (err) {
         setError(err);

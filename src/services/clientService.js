@@ -39,7 +39,10 @@ const clientService = {
     return cliModel.edit(id, name);
   },
 
-  updatePricing: async (id, {hourlyRate, currency = 'PLN', effectiveFrom = null}) => {
+  updatePricing: async (
+    id,
+    {hourlyRate, currency = 'PLN', effectiveFrom = null},
+  ) => {
     if (hourlyRate === null || hourlyRate === undefined)
       throw new Error('Hourly rate is required');
     if (isNaN(hourlyRate) || hourlyRate <= 0)

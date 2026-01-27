@@ -1,6 +1,10 @@
 import timeEntryModel from '../models/timeEntry.js';
 import taskModel from '../models/task.js';
-import {calculateDuration, sumEntryDurations, retriveYYYYMMDD} from '../utils.js';
+import {
+  calculateDuration,
+  sumEntryDurations,
+  retriveYYYYMMDD,
+} from '../utils.js';
 
 const calculateMedian = values => {
   if (!values || values.length === 0) return null;
@@ -58,7 +62,9 @@ const calculateTimeDistribution = (entries, dateRangeDays = 7) => {
     };
   }
 
-  const durations = completedEntries.map(e => calculateDuration(e.start, e.end));
+  const durations = completedEntries.map(e =>
+    calculateDuration(e.start, e.end),
+  );
   const sortedDurations = [...durations].sort((a, b) => a - b);
 
   const sortedByStart = [...completedEntries].sort(
@@ -74,7 +80,9 @@ const calculateTimeDistribution = (entries, dateRangeDays = 7) => {
 
   const lastEntry = sortedByStart[sortedByStart.length - 1];
   const lastActivityDate = new Date(lastEntry.end || lastEntry.start);
-  const timeSinceLastSeconds = Math.floor((new Date() - lastActivityDate) / 1000);
+  const timeSinceLastSeconds = Math.floor(
+    (new Date() - lastActivityDate) / 1000,
+  );
 
   // Days worked - unique dates with entries
   const uniqueDays = new Set(
@@ -89,7 +97,8 @@ const calculateTimeDistribution = (entries, dateRangeDays = 7) => {
     hourCounts[hour] = (hourCounts[hour] || 0) + 1;
   });
   const peakHour = Object.entries(hourCounts).reduce(
-    (max, [hour, count]) => (count > max.count ? {hour: parseInt(hour), count} : max),
+    (max, [hour, count]) =>
+      count > max.count ? {hour: parseInt(hour), count} : max,
     {hour: null, count: 0},
   ).hour;
 
@@ -154,7 +163,11 @@ const analyticsService = {
 
     const [task, entries] = await Promise.all([
       taskModel.selectById(taskId),
-      timeEntryModel.selectByTaskIdWithDateRange(taskId, startDateStr, endDateStr),
+      timeEntryModel.selectByTaskIdWithDateRange(
+        taskId,
+        startDateStr,
+        endDateStr,
+      ),
     ]);
 
     if (!task) return null;

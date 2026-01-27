@@ -42,30 +42,36 @@ Run the task tracker in production using Docker Compose.
 ## Quick Start
 
 1. Copy environment template:
+
    ```bash
    cp .env.example .env
    ```
 
 2. Edit `.env` and set your database credentials:
+
    ```
    MYSQL_ROOT_PASSWORD=your_secure_password
    MYSQL_DATABASE=task_tracker_v1
    ```
 
 3. Build and start services:
+
    ```bash
    docker compose up -d
    ```
 
 4. Check logs:
+
    ```bash
    docker compose logs -f tasktracker
    ```
 
 5. Attach to the interactive terminal:
+
    ```bash
    docker compose attach tasktracker
    ```
+
    Press `Ctrl+P` then `Ctrl+Q` to detach without stopping the container.
 
 6. Stop services:
@@ -78,6 +84,7 @@ Run the task tracker in production using Docker Compose.
 Database data is stored in Docker volume `mysql_data`. This ensures your tasks and project data persist across container restarts.
 
 To completely remove all data:
+
 ```bash
 docker compose down -v
 ```

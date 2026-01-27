@@ -40,8 +40,13 @@ const View = () => {
   const [taskDetails, setTaskDetails] = useState(null);
   const [timeEntries, setTimeEntries] = useState([]);
   const [selectedEntryIndex, setSelectedEntryIndex] = useState(0);
-  const {analytics, loading: analyticsLoading} = useTaskAnalytics(selectedTaskId);
-  const {pricing, loading: pricingLoading} = usePricing(selectedTaskId, null, null);
+  const {analytics, loading: analyticsLoading} =
+    useTaskAnalytics(selectedTaskId);
+  const {pricing, loading: pricingLoading} = usePricing(
+    selectedTaskId,
+    null,
+    null,
+  );
 
   // Load all projects when projects section is focused
   useEffect(() => {
@@ -230,7 +235,10 @@ const View = () => {
                           : 'red'
                     }
                   >
-                    {formatPercentage(analytics.estimation.differencePercent, 1)}
+                    {formatPercentage(
+                      analytics.estimation.differencePercent,
+                      1,
+                    )}
                   </Text>
                   <Text dimColor>
                     {' '}
