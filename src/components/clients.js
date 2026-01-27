@@ -1,6 +1,7 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {Text, Box} from 'ink';
 import {useNavigation} from '../contexts/NavigationContext.js';
+import {useData} from '../contexts/DataContext.js';
 import {useComponentKeys} from '../hooks/useComponentKeys.js';
 import {BORDER_COLOR_DEFAULT, BORDER_COLOR_FOCUSED, CLIENT} from '../consts.js';
 import BasicTextInput from './BasicTextInput.js';
@@ -10,22 +11,40 @@ import clientService from '../services/clientService.js';
 import {formatHourlyRate} from '../utils.js';
 
 const Client = () => {
-  const {
-    isClientFocused,
-    getBorderTitle,
-    mode,
-    getSelectedClient,
-    selectNextClient,
-    selectPreviousClient,
-    setSelectedClientId,
-    reloadClients,
-  } = useNavigation();
+  const {isClientFocused, getBorderTitle, mode} = useNavigation();
+  const {selectedClientId, setSelectedClientId, reload, triggerReload} =
+    useData();
+
+  const [clients, setClients] = useState([]);
   const [message, setMessage] = useState('');
   const [isAdding, setIsAdding] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isSettingRate, setIsSettingRate] = useState(false);
-  const selectedClient = getSelectedClient();
+
+  useEffect(() => {
+    const loadClients = async () => {
+      const clientData = await clientService.selectAll();
+      setClients(clientData);
+      if (clientData.length > 0 && !selectedClientId)
+        setSelectedClientId(clientData[0].id);
+    };
+    loadClients();
+  }, [reload]);
+
+  const selectedClient = clients.find(c => c.id === selectedClientId) || null;
+
+  const selectNextClient = () => {
+    const currentIndex = clients.findIndex(c => c.id === selectedClientId);
+    const nextIndex = currentIndex < clients.length - 1 ? currentIndex + 1 : 0;
+    if (clients[nextIndex]) setSelectedClientId(clients[nextIndex].id);
+  };
+
+  const selectPreviousClient = () => {
+    const currentIndex = clients.findIndex(c => c.id === selectedClientId);
+    const prevIndex = currentIndex > 0 ? currentIndex - 1 : clients.length - 1;
+    if (clients[prevIndex]) setSelectedClientId(clients[prevIndex].id);
+  };
 
   const borderColor = isClientFocused
     ? BORDER_COLOR_FOCUSED
@@ -59,14 +78,12 @@ const Client = () => {
     if (clientName.trim()) {
       try {
         await clientService.create(clientName.trim());
-        await reloadClients();
         const updatedClients = await clientService.selectAll();
         const newClient = updatedClients.find(
           c => c.name === clientName.trim(),
         );
-        if (newClient) {
-          setSelectedClientId(newClient.id);
-        }
+        if (newClient) setSelectedClientId(newClient.id);
+        triggerReload();
         setMessage('Client added successfully');
       } catch (error) {
         console.log(error);
@@ -88,13 +105,13 @@ const Client = () => {
     ) {
       try {
         await clientService.delete(selectedClient);
-        await reloadClients();
         const updatedClients = await clientService.selectAll();
         if (updatedClients.length > 0) {
           setSelectedClientId(updatedClients[0].id);
         } else {
           setSelectedClientId(null);
         }
+        triggerReload();
         setMessage('Client deleted successfully');
       } catch (error) {
         setMessage('Failed to delete client');
@@ -114,14 +131,7 @@ const Client = () => {
     if (newName.trim() && selectedClient) {
       try {
         await clientService.update(selectedClient.id, newName.trim());
-        await reloadClients();
-        const updatedClients = await clientService.selectAll();
-        const updatedClient = updatedClients.find(
-          c => c.id === selectedClient.id,
-        );
-        if (updatedClient) {
-          setSelectedClientId(updatedClient.id);
-        }
+        triggerReload();
         setMessage('Client renamed successfully');
       } catch (error) {
         setMessage('Failed to rename client');
@@ -164,7 +174,7 @@ const Client = () => {
       await clientService.updatePricing(selectedClient.id, {
         hourlyRate: parsedRate,
       });
-      await reloadClients();
+      triggerReload();
       setMessage(`Rate set to ${parsedRate} PLN/h`);
     } catch (error) {
       console.error('Rate update error:', error);
@@ -177,7 +187,6 @@ const Client = () => {
     setMessage('');
   };
 
-  // Client key mappings (normal mode only)
   const keyMappings = [
     {key: 'c', action: handleNewClient},
     {key: 'e', action: handleEditClient},

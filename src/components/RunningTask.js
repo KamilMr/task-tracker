@@ -2,13 +2,13 @@ import React, {useEffect, useState} from 'react';
 
 import {Text} from 'ink';
 
-import {useNavigation} from '../contexts/NavigationContext.js';
+import {useData} from '../contexts/DataContext.js';
 import {formatTime} from '../utils.js';
 import useTimer from '../hooks/useTimer.js';
 import taskService from '../services/taskService.js';
 
 const RunningTask = () => {
-  const {reload, selectedProjectId} = useNavigation();
+  const {reload, selectedProjectId} = useData();
   const {currentValue, start, stop, initialValue} = useTimer();
   const [isActive, setIsActive] = useState(false);
 

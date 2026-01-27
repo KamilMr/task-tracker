@@ -1,11 +1,13 @@
 import React, {useEffect, useState} from 'react';
 import {Text, Box} from 'ink';
 import {useNavigation} from '../contexts/NavigationContext.js';
+import {useData} from '../contexts/DataContext.js';
 import {BORDER_COLOR_DEFAULT, BORDER_COLOR_FOCUSED, VIEW} from '../consts.js';
 import Frame from './Frame.js';
 import ScrollBox from './ScrollBox.js';
 import projectService from '../services/projectService.js';
 import taskService from '../services/taskService.js';
+import clientService from '../services/clientService.js';
 import timeEntryModel from '../models/timeEntry.js';
 import {useComponentKeys} from '../hooks/useComponentKeys.js';
 import useTaskAnalytics from '../hooks/useTaskAnalytics.js';
@@ -32,12 +34,11 @@ const View = () => {
     isProjectsFocused,
     isTasksFocused,
     getBorderTitle,
-    clients,
-    selectedClientId,
-    selectedProjectId,
-    selectedTaskId,
-    reload,
   } = useNavigation();
+  const {selectedClientId, selectedProjectId, selectedTaskId, reload} =
+    useData();
+
+  const [clients, setClients] = useState([]);
   const [allProjects, setAllProjects] = useState([]);
   const [allTasks, setAllTasks] = useState([]);
   const [taskDetails, setTaskDetails] = useState(null);
@@ -51,57 +52,48 @@ const View = () => {
     null,
   );
 
-  // Load all projects when projects section is focused
+  useEffect(() => {
+    const loadClients = async () => {
+      const clientData = await clientService.selectAll();
+      setClients(clientData);
+    };
+    loadClients();
+  }, [reload]);
+
   useEffect(() => {
     if (isProjectsFocused) {
       const loadAllProjects = async () => {
-        try {
-          const projectData = await projectService.selectAll();
-          setAllProjects(projectData);
-        } catch (error) {
-          console.error('Failed to load all projects:', error);
-        }
+        const projectData = await projectService.selectAll();
+        setAllProjects(projectData);
       };
       loadAllProjects();
     }
-  }, [isProjectsFocused]);
+  }, [isProjectsFocused, reload]);
 
-  // Load all tasks when tasks section is focused
   useEffect(() => {
     if (isTasksFocused) {
       const loadAllTasks = async () => {
-        try {
-          const [taskData, projectData] = await Promise.all([
-            taskService.selectAll(),
-            projectService.selectAll(),
-          ]);
-          setAllTasks(taskData);
-          setAllProjects(projectData);
-        } catch (error) {
-          console.error('Failed to load all tasks:', error);
-        }
+        const [taskData, projectData] = await Promise.all([
+          taskService.selectAll(),
+          projectService.selectAll(),
+        ]);
+        setAllTasks(taskData);
+        setAllProjects(projectData);
       };
       loadAllTasks();
     }
-  }, [isTasksFocused]);
+  }, [isTasksFocused, reload]);
 
-  // Load task details and time entries when task is selected
   useEffect(() => {
     if (selectedTaskId && (isTasksFocused || isViewFocused)) {
       const loadTaskDetails = async () => {
-        try {
-          const [task, entries] = await Promise.all([
-            taskService.selectById(selectedTaskId),
-            timeEntryModel.selectByTaskId(selectedTaskId),
-          ]);
-          setTaskDetails(task);
-          setTimeEntries(entries || []);
-          setSelectedEntryIndex(0);
-        } catch (error) {
-          console.error('Failed to load task details:', error);
-          setTaskDetails(null);
-          setTimeEntries([]);
-        }
+        const [task, entries] = await Promise.all([
+          taskService.selectById(selectedTaskId),
+          timeEntryModel.selectByTaskId(selectedTaskId),
+        ]);
+        setTaskDetails(task);
+        setTimeEntries(entries || []);
+        setSelectedEntryIndex(0);
       };
       loadTaskDetails();
     } else if (!selectedTaskId) {
@@ -110,7 +102,6 @@ const View = () => {
     }
   }, [isTasksFocused, isViewFocused, selectedTaskId, reload]);
 
-  // Navigation handlers for entries table
   const selectNextEntry = () => {
     if (timeEntries.length === 0) return;
     setSelectedEntryIndex(prev =>
@@ -128,19 +119,13 @@ const View = () => {
   const deleteSelectedEntry = async () => {
     if (timeEntries.length === 0) return;
     const entryToDelete = timeEntries[selectedEntryIndex];
-
-    try {
-      await timeEntryModel.delete(entryToDelete.id);
-      const updatedEntries = timeEntries.filter(e => e.id !== entryToDelete.id);
-      setTimeEntries(updatedEntries);
-      if (selectedEntryIndex >= updatedEntries.length)
-        setSelectedEntryIndex(Math.max(0, updatedEntries.length - 1));
-    } catch (error) {
-      console.error('Failed to delete time entry:', error);
-    }
+    await timeEntryModel.delete(entryToDelete.id);
+    const updatedEntries = timeEntries.filter(e => e.id !== entryToDelete.id);
+    setTimeEntries(updatedEntries);
+    if (selectedEntryIndex >= updatedEntries.length)
+      setSelectedEntryIndex(Math.max(0, updatedEntries.length - 1));
   };
 
-  // Register key handlers when view is focused and task is selected
   const keyMappings =
     selectedTaskId && taskDetails
       ? [
@@ -443,9 +428,8 @@ const View = () => {
     }
 
     if (isProjectsFocused) {
-      if (allProjects.length === 0) {
+      if (allProjects.length === 0)
         return <Text dimColor>No projects found</Text>;
-      }
 
       return (
         <Box flexDirection="column">
@@ -470,9 +454,7 @@ const View = () => {
     }
 
     if (isTasksFocused) {
-      // Show task details when a task is selected
       if (selectedTaskId) return renderTaskDetails();
-
       if (allTasks.length === 0) return <Text dimColor>No tasks found</Text>;
 
       return (
@@ -499,7 +481,6 @@ const View = () => {
       );
     }
 
-    // When View is focused and a task is selected, show task details
     if (isViewFocused && selectedTaskId) return renderTaskDetails();
 
     return <Text dimColor>Select an item to view details</Text>;

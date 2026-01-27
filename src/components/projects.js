@@ -1,6 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import {Text, Box} from 'ink';
 import {useNavigation} from '../contexts/NavigationContext.js';
+import {useData} from '../contexts/DataContext.js';
 import {useComponentKeys} from '../hooks/useComponentKeys.js';
 import {
   BORDER_COLOR_DEFAULT,
@@ -11,24 +12,57 @@ import BasicTextInput from './BasicTextInput.js';
 import HelpBottom from './HelpBottom.js';
 import Frame from './Frame.js';
 import projectService from '../services/projectService.js';
+import clientService from '../services/clientService.js';
 
 const Projects = () => {
+  const {isProjectsFocused, getBorderTitle, mode} = useNavigation();
   const {
-    isProjectsFocused,
-    getBorderTitle,
-    mode,
-    projects,
-    selectedProjectId,
-    getSelectedProject,
-    selectNextProject,
-    selectPreviousProject,
     selectedClientId,
-    getSelectedClient,
-    reloadProjects,
-  } = useNavigation();
+    selectedProjectId,
+    setSelectedProjectId,
+    reload,
+    triggerReload,
+  } = useData();
+
+  const [projects, setProjects] = useState([]);
+  const [selectedClient, setSelectedClient] = useState(null);
   const [message, setMessage] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+
+  useEffect(() => {
+    const loadProjects = async () => {
+      if (!selectedClientId) {
+        setProjects([]);
+        setSelectedClient(null);
+        return;
+      }
+      const [projectData, clientData] = await Promise.all([
+        projectService.selectByCliId(selectedClientId),
+        clientService.selectById(selectedClientId),
+      ]);
+      setProjects(projectData);
+      setSelectedClient(clientData);
+      if (projectData.length > 0 && !selectedProjectId)
+        setSelectedProjectId(projectData[0].id);
+    };
+    loadProjects();
+  }, [selectedClientId, reload]);
+
+  const selectedProject =
+    projects.find(p => p.id === selectedProjectId) || null;
+
+  const selectNextProject = () => {
+    const currentIndex = projects.findIndex(p => p.id === selectedProjectId);
+    const nextIndex = currentIndex < projects.length - 1 ? currentIndex + 1 : 0;
+    if (projects[nextIndex]) setSelectedProjectId(projects[nextIndex].id);
+  };
+
+  const selectPreviousProject = () => {
+    const currentIndex = projects.findIndex(p => p.id === selectedProjectId);
+    const prevIndex = currentIndex > 0 ? currentIndex - 1 : projects.length - 1;
+    if (projects[prevIndex]) setSelectedProjectId(projects[prevIndex].id);
+  };
 
   const borderColor = isProjectsFocused
     ? BORDER_COLOR_FOCUSED
@@ -59,10 +93,9 @@ const Projects = () => {
       return;
     }
     try {
-      const project = getSelectedProject();
-      await projectService.delete(project);
-      await reloadProjects();
-      setMessage(`Deleted project: ${project.name}`);
+      await projectService.delete(selectedProject);
+      triggerReload();
+      setMessage(`Deleted project: ${selectedProject.name}`);
     } catch (error) {
       setMessage(`Error deleting project: ${error.message}`);
     }
@@ -72,7 +105,7 @@ const Projects = () => {
     if (!name.trim()) return;
     try {
       await projectService.create(name.trim(), selectedClientId);
-      await reloadProjects();
+      triggerReload();
       setIsCreating(false);
       setMessage(`Created project: ${name}`);
     } catch (error) {
@@ -89,7 +122,7 @@ const Projects = () => {
     if (!name.trim()) return;
     try {
       await projectService.update(selectedProjectId, name.trim());
-      await reloadProjects();
+      triggerReload();
       setIsEditing(false);
       setMessage(`Updated project: ${name}`);
     } catch (error) {
@@ -102,34 +135,15 @@ const Projects = () => {
     setMessage('');
   };
 
-  // Project key mappings (normal mode only)
   const keyMappings = [
-    {
-      key: 'c',
-      action: handleNewProject,
-    },
-    {
-      key: 'e',
-      action: handleEditProject,
-    },
-    {
-      key: 'd',
-      action: handleDeleteProject,
-    },
-    {
-      key: 'j',
-      action: selectNextProject,
-    },
-    {
-      key: 'k',
-      action: selectPreviousProject,
-    },
+    {key: 'c', action: handleNewProject},
+    {key: 'e', action: handleEditProject},
+    {key: 'd', action: handleDeleteProject},
+    {key: 'j', action: selectNextProject},
+    {key: 'k', action: selectPreviousProject},
   ];
 
   useComponentKeys(PROJECTS, keyMappings, isProjectsFocused);
-
-  const selectedClient = getSelectedClient();
-  const selectedProject = getSelectedProject();
 
   const renderContent = () => {
     if (isCreating) {

@@ -3,10 +3,10 @@ import React, {useState, useEffect} from 'react';
 import {Text} from 'ink';
 
 import taskService from '../services/taskService.js';
-import {useNavigation} from '../contexts/NavigationContext.js';
+import {useData} from '../contexts/DataContext.js';
 
 const TodayHours = ({selectedDate, isT1 = false}) => {
-  const {selectedProjectId, reload} = useNavigation();
+  const {selectedProjectId, reload} = useData();
   const [todayHours, setTodayHours] = useState({hours: 0, minutes: 0});
 
   useEffect(() => {

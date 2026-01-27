@@ -1,7 +1,5 @@
 import React, {useState, useEffect} from 'react';
-
 import {Text, Box} from 'ink';
-
 import DelayedDisappear from './DelayedDisappear.js';
 import Frame from './Frame.js';
 import HelpBottom from './HelpBottom.js';
@@ -9,52 +7,57 @@ import RunningTask from './RunningTask.js';
 import TasksContent from './tasks/TasksContent.js';
 import TodayHours from './TodayHours.js';
 import taskService from '../services/taskService.js';
+import projectService from '../services/projectService.js';
 import useDateTasks from '../hooks/useDateTasks.js';
 import {BORDER_COLOR_DEFAULT, BORDER_COLOR_FOCUSED, TASKS} from '../consts.js';
 import {getDayOfWeek, retriveYYYYMMDD} from '../utils.js';
 import {useComponentKeys} from '../hooks/useComponentKeys.js';
 import {useNavigation} from '../contexts/NavigationContext.js';
+import {useData} from '../contexts/DataContext.js';
 import createTogglSync from '../toggl-sync/index.js';
 import syncedDay from '../models/syncedDay.js';
 
 const Tasks = () => {
+  const {isTasksFocused, getBorderTitle, mode} = useNavigation();
   const {
-    isTasksFocused,
-    getBorderTitle,
-    mode,
     selectedProjectId,
-    getSelectedProject,
-    setReload,
-    reload,
     selectedClientId,
-    setSelectedTaskId: setContextSelectedTaskId,
-  } = useNavigation();
+    selectedTaskId,
+    setSelectedTaskId,
+    triggerReload,
+    reload,
+  } = useData();
 
+  const [selectedProject, setSelectedProject] = useState(null);
   const [message, setMessage] = useState('');
   const [isT1, setIsT1] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isEditingEstimation, setIsEditingEstimation] = useState(false);
-  const [selectedTaskId, setSelectedTaskId] = useState(null);
   const [selectedDate, setSelectedDate] = useState(retriveYYYYMMDD());
   const [isSynced, setIsSynced] = useState(false);
 
   const dateTasks = useDateTasks(selectedDate);
-
-  // Get selected task object from dateTasks
   const selectedTask = dateTasks.find(t => t.id === selectedTaskId);
 
-  // fire when project changes and updates selection to first element
   useEffect(() => {
-    setSelectedTaskId(dateTasks[0]?.id);
-  }, [selectedProjectId]);
+    const loadProject = async () => {
+      if (!selectedProjectId) {
+        setSelectedProject(null);
+        return;
+      }
+      const projectData =
+        await projectService.getProjectById(selectedProjectId);
+      setSelectedProject(projectData);
+    };
+    loadProject();
+  }, [selectedProjectId, reload]);
 
-  // Sync local selectedTaskId to context for View component
   useEffect(() => {
-    setContextSelectedTaskId(selectedTaskId);
-  }, [selectedTaskId, setContextSelectedTaskId]);
+    if (dateTasks.length > 0 && !selectedTaskId)
+      setSelectedTaskId(dateTasks[0]?.id);
+  }, [selectedProjectId, dateTasks]);
 
-  // Check sync status when date or client changes
   useEffect(() => {
     const checkSyncStatus = async () => {
       const synced = await syncedDay.isSynced(selectedDate, selectedClientId);
@@ -72,10 +75,8 @@ const Tasks = () => {
     ' - ' +
     getDayOfWeek(new Date(selectedDate));
 
-  // Navigation functions for unique tasks
   const selectNextUniqueTask = () => {
     if (dateTasks.length === 0) return;
-
     const currentIndex = dateTasks.findIndex(
       task => task.id === selectedTaskId,
     );
@@ -86,7 +87,6 @@ const Tasks = () => {
 
   const selectPreviousUniqueTask = () => {
     if (dateTasks.length === 0) return;
-
     const currentIndex = dateTasks.findIndex(
       task => task.id === selectedTaskId,
     );
@@ -124,7 +124,7 @@ const Tasks = () => {
         selectedProjectId,
         selectedDate,
       );
-      setReload();
+      triggerReload();
       setMessage(
         `Deleted ${selectedTask.title} entries from ${selectedDate === retriveYYYYMMDD() ? 'today' : selectedDate}`,
       );
@@ -140,11 +140,10 @@ const Tasks = () => {
         title: title.trim(),
         projectId: selectedProjectId,
       });
-
       setIsCreating(false);
       setSelectedTaskId(result.taskId);
       setMessage(`Created task: ${title}`);
-      setReload();
+      triggerReload();
     } catch (error) {
       setMessage(`Error creating task: ${error.message}`);
     }
@@ -159,10 +158,9 @@ const Tasks = () => {
     if (!title.trim()) return;
     try {
       await taskService.update(selectedTaskId, title.trim(), selectedProjectId);
-
       setIsEditing(false);
       setMessage(`Updated task: ${title}`);
-      setReload();
+      triggerReload();
     } catch (error) {
       setMessage(`Error updating task: ${error.message}`);
     }
@@ -192,7 +190,7 @@ const Tasks = () => {
       setMessage(
         minutes ? `Estimation set to ${display}` : 'Estimation cleared',
       );
-      setReload();
+      triggerReload();
     } catch (error) {
       setMessage(`Error: ${error.message}`);
     }
@@ -208,10 +206,9 @@ const Tasks = () => {
       setMessage('No task selected');
       return;
     }
-
     try {
       await taskService.toggleTaskById({taskId: selectedTaskId});
-      setReload();
+      triggerReload();
     } catch (error) {
       setMessage(`Error: ${error.message}`);
     }
@@ -236,30 +233,25 @@ const Tasks = () => {
       setMessage('Day already synced');
       return;
     }
-
     try {
       setMessage('Syncing with Toggl...');
-
       const togglSync = createTogglSync(
         process.env.TOGGL_API_TOKEN,
         process.env.TOGGL_WORKSPACE_ID,
       );
-
       const dateToSync = new Date(selectedDate);
       const results = await togglSync.syncTasksByDate(
         dateToSync,
         null,
         selectedClientId,
       );
-
       const successful = results.filter(r => r.success).length;
       const failed = results.filter(r => !r.success).length;
-
       if (failed === 0) {
         await syncedDay.markAsSynced(selectedDate, selectedClientId);
         setIsSynced(true);
         setMessage(`Synced ${successful} tasks successfully`);
-        setReload();
+        triggerReload();
       } else {
         setMessage(`Synced ${successful} tasks, ${failed} failed`);
       }
@@ -268,7 +260,6 @@ const Tasks = () => {
     }
   };
 
-  // Task key mappings (normal mode only)
   const keyMappings = [
     {key: 'c', action: handleNewTask},
     {key: 'e', action: handleEditTask},
@@ -284,8 +275,6 @@ const Tasks = () => {
   ];
 
   useComponentKeys(TASKS, keyMappings, isTasksFocused);
-
-  const selectedProject = getSelectedProject();
 
   return (
     <Frame borderColor={borderColor} height={20}>

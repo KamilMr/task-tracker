@@ -1,9 +1,9 @@
 import {useState, useEffect} from 'react';
 import taskService from '../services/taskService.js';
-import {useNavigation} from '../contexts/NavigationContext.js';
+import {useData} from '../contexts/DataContext.js';
 
 const useDateTasks = selectedDate => {
-  const {selectedProjectId, reload} = useNavigation();
+  const {selectedProjectId, reload} = useData();
   const [dateTasks, setDateTasks] = useState([]);
 
   useEffect(() => {
