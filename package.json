@@ -15,7 +15,7 @@
     "start": "node --watch dist/index.js",
     "dev": "./scripts/start.sh",
     "format": "prettier --write .",
-    "push": "./scripts/push-docker.sh",
+    "push": "npm version patch && ./scripts/push-docker.sh",
     "test": "vitest run"
   },
   "files": [
