@@ -161,7 +161,9 @@ const Client = () => {
     }
 
     try {
-      await clientService.updatePricing(selectedClient.id, {hourlyRate: parsedRate});
+      await clientService.updatePricing(selectedClient.id, {
+        hourlyRate: parsedRate,
+      });
       await reloadClients();
       setMessage(`Rate set to ${parsedRate} PLN/h`);
     } catch (error) {
@@ -237,7 +239,10 @@ const Client = () => {
                 <Text>{selectedClient.name}</Text>
                 {selectedClient.hourly_rate && (
                   <Text dimColor>
-                    {formatHourlyRate(selectedClient.hourly_rate, selectedClient.currency)}
+                    {formatHourlyRate(
+                      selectedClient.hourly_rate,
+                      selectedClient.currency,
+                    )}
                   </Text>
                 )}
               </Box>

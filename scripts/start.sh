@@ -1,27 +1,11 @@
 #!/bin/bash
 
-SESSION_NAME="task-tracker-dev"
+# Stop and remove existing containers, then start fresh in background
+docker compose -f docker-compose.dev.yml down > /dev/null 2>&1
+docker compose -f docker-compose.dev.yml up -d --build > /dev/null 2>&1
 
-# Check if tmux session already exists
-if tmux has-session -t $SESSION_NAME 2>/dev/null; then
-    echo "Session $SESSION_NAME already exists. Attaching..."
-    tmux attach-session -t $SESSION_NAME
-    exit 0
-fi
+# Create a new window named "preview" (without switching to it) and attach to tasktracker
+tmux new-window -d -n "preview" "docker compose -f docker-compose.dev.yml attach tasktracker"
 
-# Create new tmux session
-tmux new-session -d -s $SESSION_NAME
-
-# Split window vertically (creates left/right panes)
-tmux split-window -h
-
-# Select left pane and run docker compose build and up
-tmux select-pane -t 0
-tmux send-keys "docker compose build && docker compose up" C-m
-
-# Select right pane and run start command with a delay
-tmux select-pane -t 1
-tmux send-keys "sleep 5 && pnpm start" C-m
-
-# Attach to the session
-tmux attach-session -t $SESSION_NAME
+# Run Babel in watch mode in current terminal
+pnpm run build
