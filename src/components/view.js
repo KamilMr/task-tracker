@@ -36,6 +36,7 @@ const View = () => {
     selectedClientId,
     selectedProjectId,
     selectedTaskId,
+    reload,
   } = useNavigation();
   const [allProjects, setAllProjects] = useState([]);
   const [allTasks, setAllTasks] = useState([]);
@@ -107,7 +108,7 @@ const View = () => {
       setTaskDetails(null);
       setTimeEntries([]);
     }
-  }, [isTasksFocused, isViewFocused, selectedTaskId]);
+  }, [isTasksFocused, isViewFocused, selectedTaskId, reload]);
 
   // Navigation handlers for entries table
   const selectNextEntry = () => {
