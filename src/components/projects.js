@@ -9,6 +9,7 @@ import {
   PROJECTS,
 } from '../consts.js';
 import BasicTextInput from './BasicTextInput.js';
+import DelayedDisappear from './DelayedDisappear.js';
 import HelpBottom from './HelpBottom.js';
 import Frame from './Frame.js';
 import projectService from '../services/projectService.js';
@@ -233,24 +234,26 @@ const Projects = () => {
     );
   };
 
+  const isInEditMode = isCreating || isEditing || isDeleting;
+  const projectCount = projects.length;
+
   return (
     <Frame borderColor={borderColor} height={20}>
       <Frame.Header>
         <Text color={borderColor} bold>
           {title}
+          {projectCount > 0 && <Text dimColor> - {projectCount}</Text>}
         </Text>
-        {message && <Text color="yellow">{message}</Text>}
+        <DelayedDisappear key={message}>
+          <Text color="yellow">{message}</Text>
+        </DelayedDisappear>
       </Frame.Header>
       <Frame.Body>{renderContent()}</Frame.Body>
-      {isProjectsFocused &&
-        mode === 'normal' &&
-        !isCreating &&
-        !isEditing &&
-        !isDeleting && (
-          <Frame.Footer>
-            <HelpBottom>j/k:navigate c:new e:edit d:delete</HelpBottom>
-          </Frame.Footer>
+      <Frame.Footer>
+        {isProjectsFocused && mode === 'normal' && !isInEditMode && (
+          <HelpBottom>j/k:navigate c:new e:edit d:delete</HelpBottom>
         )}
+      </Frame.Footer>
     </Frame>
   );
 };

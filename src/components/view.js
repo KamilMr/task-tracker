@@ -4,6 +4,7 @@ import {useNavigation} from '../contexts/NavigationContext.js';
 import {useData} from '../contexts/DataContext.js';
 import {BORDER_COLOR_DEFAULT, BORDER_COLOR_FOCUSED, VIEW} from '../consts.js';
 import Frame from './Frame.js';
+import HelpBottom from './HelpBottom.js';
 import ScrollBox from './ScrollBox.js';
 import projectService from '../services/projectService.js';
 import taskService from '../services/taskService.js';
@@ -397,12 +398,6 @@ const View = () => {
             </ScrollBox>
           </Box>
         )}
-
-        {isViewFocused && timeEntries.length > 0 && (
-          <Text dimColor marginTop={1}>
-            j/k:navigate d:delete
-          </Text>
-        )}
       </Box>
     );
   };
@@ -486,14 +481,22 @@ const View = () => {
     return <Text dimColor>Select an item to view details</Text>;
   };
 
+  const hasTimeEntries = timeEntries.length > 0;
+
   return (
     <Frame borderColor={borderColor} width={'100%'} height={45}>
       <Frame.Header>
         <Text color={borderColor} bold>
           {title}
+          {taskDetails && <Text dimColor> - {taskDetails.title}</Text>}
         </Text>
       </Frame.Header>
       <Frame.Body>{renderContent()}</Frame.Body>
+      <Frame.Footer>
+        {isViewFocused && selectedTaskId && hasTimeEntries && (
+          <HelpBottom>j/k:navigate d:delete</HelpBottom>
+        )}
+      </Frame.Footer>
     </Frame>
   );
 };

@@ -294,12 +294,17 @@ const Tasks = () => {
 
   useComponentKeys(TASKS, keyMappings, isTasksFocused);
 
+  const isInEditMode =
+    isCreating || isEditing || isEditingEstimation || isDeleting;
+  const taskCount = dateTasks.length;
+
   return (
     <Frame borderColor={borderColor} height={20}>
       <Frame.Header>
         <Text color={borderColor} bold>
-          {baseTitle} - <TodayHours selectedDate={selectedDate} isT1={isT1} /> -{' '}
-          {dateDisplay}
+          {baseTitle}
+          {taskCount > 0 && <Text dimColor> ({taskCount})</Text>} -{' '}
+          <TodayHours selectedDate={selectedDate} isT1={isT1} /> - {dateDisplay}
         </Text>
         <DelayedDisappear key={message}>
           <Text color="yellow">{message}</Text>
@@ -329,17 +334,12 @@ const Tasks = () => {
         />
       </Frame.Body>
       <Frame.Footer>
-        {isTasksFocused &&
-          mode === 'normal' &&
-          !isCreating &&
-          !isEditing &&
-          !isEditingEstimation &&
-          !isDeleting && (
-            <HelpBottom>
-              j/k:nav c:new e:edit E:estimate d:del s:start/stop p/n:day t:
-              {isSynced ? 'synced' : 'sync'}
-            </HelpBottom>
-          )}
+        {isTasksFocused && mode === 'normal' && !isInEditMode && (
+          <HelpBottom>
+            j/k:nav c:new e:edit E:estimate d:del s:start/stop p/n:day t:
+            {isSynced ? 'synced' : 'sync'}
+          </HelpBottom>
+        )}
       </Frame.Footer>
     </Frame>
   );

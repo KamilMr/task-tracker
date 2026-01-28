@@ -5,6 +5,7 @@ import {useData} from '../contexts/DataContext.js';
 import {useComponentKeys} from '../hooks/useComponentKeys.js';
 import {BORDER_COLOR_DEFAULT, BORDER_COLOR_FOCUSED, CLIENT} from '../consts.js';
 import BasicTextInput from './BasicTextInput.js';
+import DelayedDisappear from './DelayedDisappear.js';
 import HelpBottom from './HelpBottom.js';
 import Frame from './Frame.js';
 import clientService from '../services/clientService.js';
@@ -17,7 +18,7 @@ const Client = () => {
 
   const [clients, setClients] = useState([]);
   const [message, setMessage] = useState('');
-  const [isAdding, setIsAdding] = useState(false);
+  const [isCreating, setIsAdding] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isSettingRate, setIsSettingRate] = useState(false);
@@ -201,79 +202,97 @@ const Client = () => {
 
   useComponentKeys(CLIENT, keyMappings, isClientFocused);
 
+  const isInEditMode = isCreating || isDeleting || isEditing || isSettingRate;
+
+  const renderContent = () => {
+    if (isCreating) {
+      return (
+        <Box flexDirection="column">
+          <Text>New client name:</Text>
+          <BasicTextInput
+            onSubmit={handleCreateSubmit}
+            onCancel={handleCreateCancel}
+          />
+        </Box>
+      );
+    }
+
+    if (isDeleting) {
+      return (
+        <Box flexDirection="column">
+          <Text color="red">Delete "{selectedClient?.name}"? (y/n):</Text>
+          <BasicTextInput
+            onSubmit={handleDeleteConfirm}
+            onCancel={handleDeleteCancel}
+          />
+        </Box>
+      );
+    }
+
+    if (isEditing) {
+      return (
+        <Box flexDirection="column">
+          <Text>Edit client name:</Text>
+          <BasicTextInput
+            defaultValue={selectedClient?.name || ''}
+            onSubmit={handleEditSubmit}
+            onCancel={handleEditCancel}
+          />
+        </Box>
+      );
+    }
+
+    if (isSettingRate) {
+      return (
+        <Box flexDirection="column">
+          <Text>Hourly rate (PLN):</Text>
+          <BasicTextInput
+            defaultValue={selectedClient?.hourly_rate?.toString() || ''}
+            onSubmit={handleRateSubmit}
+            onCancel={handleRateCancel}
+          />
+        </Box>
+      );
+    }
+
+    if (selectedClient) {
+      return (
+        <Box flexDirection="column">
+          <Text>{selectedClient.name}</Text>
+          {selectedClient.hourly_rate && (
+            <Text dimColor>
+              {formatHourlyRate(
+                selectedClient.hourly_rate,
+                selectedClient.currency,
+              )}
+            </Text>
+          )}
+        </Box>
+      );
+    }
+
+    return <Text dimColor>No clients found</Text>;
+  };
+
+  const clientCount = clients.length;
+
   return (
     <Frame borderColor={borderColor} height={5}>
       <Frame.Header>
         <Text color={borderColor} bold>
           {title}
+          {clientCount > 0 && <Text dimColor> - {clientCount}</Text>}
         </Text>
-        {message && <Text color="yellow">{message}</Text>}
+        <DelayedDisappear key={message}>
+          <Text color="yellow">{message}</Text>
+        </DelayedDisappear>
       </Frame.Header>
-      <Frame.Body>
-        {isAdding ? (
-          <Box flexDirection="column">
-            <Text>New client name:</Text>
-            <BasicTextInput
-              onSubmit={handleCreateSubmit}
-              onCancel={handleCreateCancel}
-            />
-          </Box>
-        ) : isDeleting ? (
-          <Box flexDirection="column">
-            <Text color="red">Delete "{selectedClient?.name}"? (y/n):</Text>
-            <BasicTextInput
-              onSubmit={handleDeleteConfirm}
-              onCancel={handleDeleteCancel}
-            />
-          </Box>
-        ) : isEditing ? (
-          <Box flexDirection="column">
-            <Text>Edit client name:</Text>
-            <BasicTextInput
-              defaultValue={selectedClient?.name || ''}
-              onSubmit={handleEditSubmit}
-              onCancel={handleEditCancel}
-            />
-          </Box>
-        ) : isSettingRate ? (
-          <Box flexDirection="column">
-            <Text>Hourly rate (PLN):</Text>
-            <BasicTextInput
-              defaultValue={selectedClient?.hourly_rate?.toString() || ''}
-              onSubmit={handleRateSubmit}
-              onCancel={handleRateCancel}
-            />
-          </Box>
-        ) : (
-          <>
-            {selectedClient ? (
-              <Box flexDirection="column">
-                <Text>{selectedClient.name}</Text>
-                {selectedClient.hourly_rate && (
-                  <Text dimColor>
-                    {formatHourlyRate(
-                      selectedClient.hourly_rate,
-                      selectedClient.currency,
-                    )}
-                  </Text>
-                )}
-              </Box>
-            ) : (
-              <Text dimColor>No clients found</Text>
-            )}
-          </>
+      <Frame.Body>{renderContent()}</Frame.Body>
+      <Frame.Footer>
+        {isClientFocused && mode === 'normal' && !isInEditMode && (
+          <HelpBottom>c:new e:edit d:delete r:rate j/k:nav</HelpBottom>
         )}
-      </Frame.Body>
-      {isClientFocused &&
-        mode === 'normal' &&
-        !isAdding &&
-        !isDeleting &&
-        !isEditing &&
-        !isSettingRate && (
-          <Frame.Footer>
-            <HelpBottom>c:new e:edit d:delete r:rate j/k:nav</HelpBottom>
-          </Frame.Footer>
-        )}
+      </Frame.Footer>
     </Frame>
   );
 };
