@@ -242,11 +242,15 @@ const Projects = () => {
         {message && <Text color="yellow">{message}</Text>}
       </Frame.Header>
       <Frame.Body>{renderContent()}</Frame.Body>
-      {isProjectsFocused && mode === 'normal' && !isCreating && !isEditing && !isDeleting && (
-        <Frame.Footer>
-          <HelpBottom>j/k:navigate c:new e:edit d:delete</HelpBottom>
-        </Frame.Footer>
-      )}
+      {isProjectsFocused &&
+        mode === 'normal' &&
+        !isCreating &&
+        !isEditing &&
+        !isDeleting && (
+          <Frame.Footer>
+            <HelpBottom>j/k:navigate c:new e:edit d:delete</HelpBottom>
+          </Frame.Footer>
+        )}
     </Frame>
   );
 };

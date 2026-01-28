@@ -22,15 +22,7 @@ const project = {
 
   delete: id => db(PROJECT_TABLE).where('id', id).del(),
 
-  edit: (id, name) => {
-    return db(PROJECT_TABLE).where({id}).update({name}, ['name']);
-  },
-
-  isProject: async () => {
-    return db(PROJECT_TABLE)
-      .select()
-      .then(d => d.length > 0);
-  },
+  edit: (id, name) => db(PROJECT_TABLE).where({id}).update({name}, ['name']),
 };
 
 export default project;
