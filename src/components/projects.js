@@ -12,6 +12,7 @@ import BasicTextInput from './BasicTextInput.js';
 import DelayedDisappear from './DelayedDisappear.js';
 import HelpBottom from './HelpBottom.js';
 import Frame from './Frame.js';
+import ScrollBox from './ScrollBox.js';
 import projectService from '../services/projectService.js';
 import clientService from '../services/clientService.js';
 
@@ -216,20 +217,24 @@ const Projects = () => {
       );
     }
 
+    const selectedIndex = projects.findIndex(p => p.id === selectedProjectId);
+
     return (
       <Box flexDirection="column">
         <Text color="cyan" bold>
           {selectedClient.name} Projects:
         </Text>
-        {projects.map(project => (
-          <Text
-            key={project.id}
-            color={project.id === selectedProjectId ? 'green' : 'white'}
-          >
-            {project.id === selectedProjectId ? '• ' : '  '}
-            {project.name}
-          </Text>
-        ))}
+        <ScrollBox height={15} selectedIndex={selectedIndex}>
+          {projects.map(project => (
+            <Text
+              key={project.id}
+              color={project.id === selectedProjectId ? 'green' : 'white'}
+            >
+              {project.id === selectedProjectId ? '• ' : '  '}
+              {project.name}
+            </Text>
+          ))}
+        </ScrollBox>
       </Box>
     );
   };

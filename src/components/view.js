@@ -11,6 +11,7 @@ import taskService from '../services/taskService.js';
 import clientService from '../services/clientService.js';
 import timeEntryModel from '../models/timeEntry.js';
 import {useComponentKeys} from '../hooks/useComponentKeys.js';
+import useScrollableList from '../hooks/useScrollableList.js';
 import useTaskAnalytics from '../hooks/useTaskAnalytics.js';
 import usePricing from '../hooks/usePricing.js';
 import {
@@ -44,7 +45,11 @@ const View = () => {
   const [allTasks, setAllTasks] = useState([]);
   const [taskDetails, setTaskDetails] = useState(null);
   const [timeEntries, setTimeEntries] = useState([]);
-  const [selectedEntryIndex, setSelectedEntryIndex] = useState(0);
+  const {
+    selectedIndex: selectedEntryIndex,
+    selectNext: selectNextEntry,
+    selectPrevious: selectPreviousEntry,
+  } = useScrollableList(timeEntries, {wrap: true});
   const {analytics, loading: analyticsLoading} =
     useTaskAnalytics(selectedTaskId);
   const {pricing, loading: pricingLoading} = usePricing(
@@ -94,7 +99,6 @@ const View = () => {
         ]);
         setTaskDetails(task);
         setTimeEntries((entries || []).reverse());
-        setSelectedEntryIndex(0);
       };
       loadTaskDetails();
     } else if (!selectedTaskId) {
@@ -103,28 +107,11 @@ const View = () => {
     }
   }, [isTasksFocused, isViewFocused, selectedTaskId, reload]);
 
-  const selectNextEntry = () => {
-    if (timeEntries.length === 0) return;
-    setSelectedEntryIndex(prev =>
-      prev < timeEntries.length - 1 ? prev + 1 : 0,
-    );
-  };
-
-  const selectPreviousEntry = () => {
-    if (timeEntries.length === 0) return;
-    setSelectedEntryIndex(prev =>
-      prev > 0 ? prev - 1 : timeEntries.length - 1,
-    );
-  };
-
   const deleteSelectedEntry = async () => {
     if (timeEntries.length === 0) return;
     const entryToDelete = timeEntries[selectedEntryIndex];
     await timeEntryModel.delete(entryToDelete.id);
-    const updatedEntries = timeEntries.filter(e => e.id !== entryToDelete.id);
-    setTimeEntries(updatedEntries);
-    if (selectedEntryIndex >= updatedEntries.length)
-      setSelectedEntryIndex(Math.max(0, updatedEntries.length - 1));
+    setTimeEntries(prev => prev.filter(e => e.id !== entryToDelete.id));
   };
 
   const keyMappings =
@@ -364,7 +351,7 @@ const View = () => {
               </Text>
             </Box>
 
-            <ScrollBox height={20} selectedIndex={selectedEntryIndex}>
+            <ScrollBox height={18} selectedIndex={selectedEntryIndex}>
               {timeEntries.map((entry, index) => {
                 const isSelected =
                   index === selectedEntryIndex && isViewFocused;
