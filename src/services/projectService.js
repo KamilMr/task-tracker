@@ -22,7 +22,7 @@ const projectService = {
 
   delete: async project => {
     await taskService.deleteByProject(project.id);
-    return projectModel.delete({col: 'id', value: project.id});
+    return projectModel.delete(project.id);
   },
 
   update: (id, name) => {
@@ -35,7 +35,7 @@ const projectService = {
   },
   getProjectById: async id => {
     const tR = await projectModel.selectProject(id);
-
+    if (!tR || !tR[0]) return null;
     return mapToCamel(tR[0]);
   },
 };

@@ -10,9 +10,7 @@ const client = {
     return db(PROJECT_TABLE).select();
   },
 
-  delete: name => {
-    return db(PROJECT_TABLE).where('name', name).del(['id', 'name']);
-  },
+  delete: id => db(PROJECT_TABLE).where('id', id).del(),
 
   edit: (id, name) => {
     return db(PROJECT_TABLE).where({id}).update({name}, ['name']);

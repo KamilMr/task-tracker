@@ -20,9 +20,7 @@ const project = {
     return db(PROJECT_TABLE).select();
   },
 
-  delete: ({col, value}) => {
-    return db(PROJECT_TABLE).where(col, value).del();
-  },
+  delete: id => db(PROJECT_TABLE).where('id', id).del(),
 
   edit: (id, name) => {
     return db(PROJECT_TABLE).where({id}).update({name}, ['name']);

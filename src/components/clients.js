@@ -26,11 +26,13 @@ const Client = () => {
     const loadClients = async () => {
       const clientData = await clientService.selectAll();
       setClients(clientData);
-      if (clientData.length > 0 && !selectedClientId)
+      const selectedExists = clientData.some(c => c.id === selectedClientId);
+      if (clientData.length > 0 && !selectedExists)
         setSelectedClientId(clientData[0].id);
+      if (clientData.length === 0) setSelectedClientId(null);
     };
     loadClients();
-  }, [reload]);
+  }, [reload, selectedClientId]);
 
   const selectedClient = clients.find(c => c.id === selectedClientId) || null;
 
@@ -114,7 +116,8 @@ const Client = () => {
         triggerReload();
         setMessage('Client deleted successfully');
       } catch (error) {
-        setMessage('Failed to delete client');
+        console.error('Delete client error:', error);
+        setMessage(`Failed to delete client: ${error.message}`);
       }
     } else {
       setMessage('Delete cancelled');
