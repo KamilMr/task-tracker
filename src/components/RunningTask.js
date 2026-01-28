@@ -1,13 +1,21 @@
 import React, {useEffect, useState} from 'react';
-
 import {Text} from 'ink';
-
 import {useData} from '../contexts/DataContext.js';
-import {formatTime} from '../utils.js';
 import useTimer from '../hooks/useTimer.js';
 import taskService from '../services/taskService.js';
 
-const RunningTask = () => {
+const pad = n => String(n).padStart(2, '0');
+
+const formatPadded = seconds => {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+
+  if (hours > 0) return `${hours}h ${pad(minutes)}m ${pad(secs)}s`;
+  return `${pad(minutes)}m ${pad(secs)}s`;
+};
+
+const RunningTask = ({timeSoFar = 0}) => {
   const {reload, selectedProjectId} = useData();
   const {currentValue, start, stop, initialValue} = useTimer();
   const [isActive, setIsActive] = useState(false);
@@ -20,7 +28,7 @@ const RunningTask = () => {
           (Date.now() - activeTask.start.getTime()) / 1000,
         );
         initialValue(elapsedSeconds);
-        setIsActive(activeTask);
+        setIsActive(true);
         start();
       } else {
         setIsActive(false);
@@ -29,19 +37,16 @@ const RunningTask = () => {
     };
     fetchAndStart();
 
-    () => {
-      stop();
-    };
+    return () => stop();
   }, [reload, selectedProjectId]);
 
-  if (!isActive) {
-    return <Text color="gray">No task currently running</Text>;
-  }
+  if (!isActive) return null;
+
+  const total = timeSoFar + currentValue;
+
   return (
     <Text>
-      <Text color="yellow">[RUNNING] </Text>
-      <Text color="yellow">{isActive.title}</Text>
-      <Text color="yellow"> ({formatTime(currentValue)})</Text>
+      {formatPadded(total)} ← {formatPadded(currentValue)}
     </Text>
   );
 };

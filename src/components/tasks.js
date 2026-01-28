@@ -1,9 +1,8 @@
 import React, {useState, useEffect} from 'react';
-import {Text, Box} from 'ink';
+import {Text} from 'ink';
 import DelayedDisappear from './DelayedDisappear.js';
 import Frame from './Frame.js';
 import HelpBottom from './HelpBottom.js';
-import RunningTask from './RunningTask.js';
 import TasksContent from './tasks/TasksContent.js';
 import TodayHours from './TodayHours.js';
 import taskService from '../services/taskService.js';
@@ -288,7 +287,6 @@ const Tasks = () => {
         </DelayedDisappear>
       </Frame.Header>
       <Frame.Body>
-        <RunningTask />
         <TasksContent
           isCreating={isCreating}
           isEditing={isEditing}

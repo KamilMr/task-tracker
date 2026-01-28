@@ -6,13 +6,7 @@ import {formatTime} from '../../utils.js';
 
 const VISIBLE_TASKS = 10;
 
-const TasksList = ({
-  selectedProject,
-  dateDisplay,
-  dateTasks,
-  selectedTaskId,
-  isT1,
-}) => {
+const TasksList = ({dateTasks, selectedTaskId, isT1}) => {
   const selectedIndex = dateTasks.findIndex(t => t.id === selectedTaskId);
 
   return (
