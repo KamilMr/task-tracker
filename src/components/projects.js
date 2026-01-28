@@ -29,6 +29,7 @@ const Projects = () => {
   const [message, setMessage] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const loadProjects = async () => {
@@ -87,18 +88,36 @@ const Projects = () => {
     setMessage('');
   };
 
-  const handleDeleteProject = async () => {
+  const handleDeleteProject = () => {
     if (!selectedProjectId) {
       setMessage('No project selected');
       return;
     }
-    try {
-      await projectService.delete(selectedProject);
-      triggerReload();
-      setMessage(`Deleted project: ${selectedProject.name}`);
-    } catch (error) {
-      setMessage(`Error deleting project: ${error.message}`);
+    setIsDeleting(true);
+    setMessage('');
+  };
+
+  const handleDeleteConfirm = async confirmation => {
+    if (
+      confirmation.toLowerCase() === 'y' ||
+      confirmation.toLowerCase() === 'yes'
+    ) {
+      try {
+        await projectService.delete(selectedProject);
+        triggerReload();
+        setMessage(`Deleted project: ${selectedProject.name}`);
+      } catch (error) {
+        setMessage(`Error deleting project: ${error.message}`);
+      }
+    } else {
+      setMessage('Delete cancelled');
     }
+    setIsDeleting(false);
+  };
+
+  const handleDeleteCancel = () => {
+    setIsDeleting(false);
+    setMessage('Delete cancelled');
   };
 
   const handleCreateSubmit = async name => {
@@ -171,6 +190,18 @@ const Projects = () => {
       );
     }
 
+    if (isDeleting) {
+      return (
+        <Box flexDirection="column">
+          <Text color="red">Delete "{selectedProject?.name}"? (y/n):</Text>
+          <BasicTextInput
+            onSubmit={handleDeleteConfirm}
+            onCancel={handleDeleteCancel}
+          />
+        </Box>
+      );
+    }
+
     if (!selectedClient) {
       return <Text dimColor>Select a client to view projects</Text>;
     }
@@ -211,7 +242,7 @@ const Projects = () => {
         {message && <Text color="yellow">{message}</Text>}
       </Frame.Header>
       <Frame.Body>{renderContent()}</Frame.Body>
-      {isProjectsFocused && mode === 'normal' && !isCreating && !isEditing && (
+      {isProjectsFocused && mode === 'normal' && !isCreating && !isEditing && !isDeleting && (
         <Frame.Footer>
           <HelpBottom>j/k:navigate c:new e:edit d:delete</HelpBottom>
         </Frame.Footer>

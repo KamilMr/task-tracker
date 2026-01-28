@@ -1,16 +1,19 @@
 import React from 'react';
+import {Text, Box} from 'ink';
 import TaskCreatingForm from './TaskCreatingForm.js';
 import TaskEditingForm from './TaskEditingForm.js';
 import EstimationEditingForm from './EstimationEditingForm.js';
 import NoProjectSelected from './NoProjectSelected.js';
 import NoTasksFound from './NoTasksFound.js';
 import TasksList from './TasksList.js';
+import BasicTextInput from '../BasicTextInput.js';
 import {formatEstimation} from '../../utils.js';
 
 const TasksContent = ({
   isCreating,
   isEditing,
   isEditingEstimation,
+  isDeleting,
   dateTasks,
   selectedProject,
   selectedTaskId,
@@ -24,6 +27,8 @@ const TasksContent = ({
   handleEditCancel,
   handleEstimationSubmit,
   handleEstimationCancel,
+  handleDeleteConfirm,
+  handleDeleteCancel,
 }) => {
   if (isCreating) {
     return (
@@ -53,6 +58,18 @@ const TasksContent = ({
         onSubmit={handleEstimationSubmit}
         onCancel={handleEstimationCancel}
       />
+    );
+  }
+
+  if (isDeleting) {
+    return (
+      <Box flexDirection="column">
+        <Text color="red">Delete "{selectedTaskTitle}"? (y/n):</Text>
+        <BasicTextInput
+          onSubmit={handleDeleteConfirm}
+          onCancel={handleDeleteCancel}
+        />
+      </Box>
     );
   }
 

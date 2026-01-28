@@ -33,6 +33,7 @@ const Tasks = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isEditingEstimation, setIsEditingEstimation] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [selectedDate, setSelectedDate] = useState(retriveYYYYMMDD());
   const [isSynced, setIsSynced] = useState(false);
 
@@ -112,24 +113,42 @@ const Tasks = () => {
     setMessage('');
   };
 
-  const handleDeleteTask = async () => {
+  const handleDeleteTask = () => {
     if (!selectedTaskId || !selectedTask) {
       setMessage('No task selected');
       return;
     }
-    try {
-      await taskService.deleteByTitleAndDate(
-        selectedTask.title,
-        selectedProjectId,
-        selectedDate,
-      );
-      triggerReload();
-      setMessage(
-        `Deleted ${selectedTask.title} entries from ${selectedDate === retriveYYYYMMDD() ? 'today' : selectedDate}`,
-      );
-    } catch (error) {
-      setMessage(`Error deleting task: ${error.message}`);
+    setIsDeleting(true);
+    setMessage('');
+  };
+
+  const handleDeleteConfirm = async confirmation => {
+    if (
+      confirmation.toLowerCase() === 'y' ||
+      confirmation.toLowerCase() === 'yes'
+    ) {
+      try {
+        await taskService.deleteByTitleAndDate(
+          selectedTask.title,
+          selectedProjectId,
+          selectedDate,
+        );
+        triggerReload();
+        setMessage(
+          `Deleted ${selectedTask.title} entries from ${selectedDate === retriveYYYYMMDD() ? 'today' : selectedDate}`,
+        );
+      } catch (error) {
+        setMessage(`Error deleting task: ${error.message}`);
+      }
+    } else {
+      setMessage('Delete cancelled');
     }
+    setIsDeleting(false);
+  };
+
+  const handleDeleteCancel = () => {
+    setIsDeleting(false);
+    setMessage('Delete cancelled');
   };
 
   const handleCreateSubmit = async title => {
@@ -291,6 +310,7 @@ const Tasks = () => {
           isCreating={isCreating}
           isEditing={isEditing}
           isEditingEstimation={isEditingEstimation}
+          isDeleting={isDeleting}
           dateTasks={dateTasks}
           selectedProject={selectedProject}
           selectedTaskId={selectedTaskId}
@@ -304,6 +324,8 @@ const Tasks = () => {
           handleEditCancel={handleEditCancel}
           handleEstimationSubmit={handleEstimationSubmit}
           handleEstimationCancel={handleEstimationCancel}
+          handleDeleteConfirm={handleDeleteConfirm}
+          handleDeleteCancel={handleDeleteCancel}
         />
       </Frame.Body>
       <Frame.Footer>
@@ -311,7 +333,8 @@ const Tasks = () => {
           mode === 'normal' &&
           !isCreating &&
           !isEditing &&
-          !isEditingEstimation && (
+          !isEditingEstimation &&
+          !isDeleting && (
             <HelpBottom>
               j/k:nav c:new e:edit E:estimate d:del s:start/stop p/n:day t:
               {isSynced ? 'synced' : 'sync'}
