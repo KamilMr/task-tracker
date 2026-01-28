@@ -92,7 +92,7 @@ const View = () => {
           timeEntryModel.selectByTaskId(selectedTaskId),
         ]);
         setTaskDetails(task);
-        setTimeEntries(entries || []);
+        setTimeEntries((entries || []).reverse());
         setSelectedEntryIndex(0);
       };
       loadTaskDetails();
