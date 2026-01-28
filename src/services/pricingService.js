@@ -54,6 +54,31 @@ const calculateEntriesEarnings = (entries, rates) => {
   return {totalSeconds, totalEarnings, currency};
 };
 
+const getMonthDateRange = () => {
+  const now = new Date();
+  const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+  const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  return {
+    startDateStr: retriveYYYYMMDD(startDate),
+    endDateStr: retriveYYYYMMDD(endDate),
+    daysInMonth: endDate.getDate(),
+    currentDay: now.getDate(),
+  };
+};
+
+const getWorkingDaysLeft = () => {
+  const now = new Date();
+  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  let workingDays = 0;
+
+  for (let d = new Date(now); d <= endOfMonth; d.setDate(d.getDate() + 1)) {
+    const day = d.getDay();
+    if (day !== 0 && day !== 6) workingDays++;
+  }
+
+  return workingDays;
+};
+
 const pricingService = {
   getTaskEarnings: async (taskId, dateRangeDays = 30) => {
     const task = await taskModel.selectById(taskId);
@@ -190,6 +215,45 @@ const pricingService = {
       dateRangeDays,
       projectCount: projects.length,
       taskCount,
+    };
+  },
+
+  getClientMonthlyTarget: async (clientId, targetHours = 170) => {
+    const {startDateStr, endDateStr} = getMonthDateRange();
+    const workingDaysLeft = getWorkingDaysLeft();
+
+    const projects = await projectModel.selectByCliId(clientId);
+
+    let totalSeconds = 0;
+
+    for (const project of projects) {
+      const tasks = await taskModel.selectByProjectId(project.id);
+
+      for (const task of tasks) {
+        const entries = await timeEntryModel.selectByTaskIdWithDateRange(
+          task.id,
+          startDateStr,
+          endDateStr,
+        );
+        for (const entry of entries) {
+          if (entry.end)
+            totalSeconds += calculateDuration(entry.start, entry.end);
+        }
+      }
+    }
+
+    const workedHours = totalSeconds / 3600;
+    const remainingHours = Math.max(0, targetHours - workedHours);
+    const hoursPerDayNeeded =
+      workingDaysLeft > 0 ? remainingHours / workingDaysLeft : 0;
+
+    return {
+      targetHours,
+      workedSeconds: totalSeconds,
+      workedHours,
+      workingDaysLeft,
+      remainingHours,
+      hoursPerDayNeeded,
     };
   },
 };

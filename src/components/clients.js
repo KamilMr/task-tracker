@@ -8,6 +8,7 @@ import BasicTextInput from './BasicTextInput.js';
 import DelayedDisappear from './DelayedDisappear.js';
 import HelpBottom from './HelpBottom.js';
 import Frame from './Frame.js';
+import MonthlyTarget from './MonthlyTarget.js';
 import clientService from '../services/clientService.js';
 import {formatHourlyRate} from '../utils.js';
 
@@ -282,6 +283,7 @@ const Client = () => {
         <Text color={borderColor} bold>
           {title}
           {clientCount > 0 && <Text dimColor> - {clientCount}</Text>}
+          <MonthlyTarget clientId={selectedClientId} />
         </Text>
         <DelayedDisappear key={message}>
           <Text color="yellow">{message}</Text>
