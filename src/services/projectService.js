@@ -34,9 +34,9 @@ const projectService = {
     return projectModel.edit(id, name);
   },
   getProjectById: async id => {
-    const tR = await projectModel.selectProject(id);
-    if (!tR || !tR[0]) return null;
-    return mapToCamel(tR[0]);
+    const project = await projectModel.selectById(id);
+    if (!project) return null;
+    return mapToCamel(project);
   },
 };
 

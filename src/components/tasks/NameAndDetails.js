@@ -15,7 +15,7 @@ const NameAndDetails = ({uniqueTask, isSelected, timeDisplay}) => {
   return (
     <Text key={uniqueTask.title} color={baseColor}>
       {isOvertime && <Text color="red">⚠ </Text>}
-      {!isOvertime && (isRunning ? '▶ ' : isSelected ? '" ' : '  ')}
+      {!isOvertime && (isRunning ? '▶ ' : isSelected ? '• ' : '  ')}
       {uniqueTask.title}{' '}
       <Text dimColor={!isOvertime && !isRunning} color={timeColor}>
         (
