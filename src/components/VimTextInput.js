@@ -8,7 +8,8 @@ const findNextWord = (value, cursor) => {
   // Skip current word (non-space chars)
   while (pos < value.length && value[pos] !== ' ' && value[pos] !== ':') pos++;
   // Skip spaces/separators
-  while (pos < value.length && (value[pos] === ' ' || value[pos] === ':')) pos++;
+  while (pos < value.length && (value[pos] === ' ' || value[pos] === ':'))
+    pos++;
   return Math.min(pos, Math.max(0, value.length - 1));
 };
 
@@ -238,7 +239,9 @@ const VimTextInput = ({
 
       if (input && !key.ctrl && !key.meta) {
         if (cursor < value.length) {
-          setValue(prev => prev.slice(0, cursor) + input + prev.slice(cursor + 1));
+          setValue(
+            prev => prev.slice(0, cursor) + input + prev.slice(cursor + 1),
+          );
         } else {
           setValue(prev => prev + input);
         }
@@ -330,7 +333,9 @@ const VimTextInput = ({
       return (
         <>
           <Text>{before}</Text>
-          <Text backgroundColor="cyan" color="black">{selected}</Text>
+          <Text backgroundColor="cyan" color="black">
+            {selected}
+          </Text>
           <Text>{after}</Text>
         </>
       );
@@ -351,7 +356,9 @@ const VimTextInput = ({
     return (
       <>
         <Text dimColor={isPlaceholder}>{beforeCursor}</Text>
-        <Text inverse dimColor={isPlaceholder}>{atCursor}</Text>
+        <Text inverse dimColor={isPlaceholder}>
+          {atCursor}
+        </Text>
         <Text dimColor={isPlaceholder}>{afterCursor}</Text>
       </>
     );
@@ -377,9 +384,7 @@ const VimTextInput = ({
           </Text>
         </Box>
       )}
-      <Box marginTop={1}>
-        {renderValue()}
-      </Box>
+      <Box marginTop={1}>{renderValue()}</Box>
       {vimMode === 'command' && (
         <Box marginTop={1}>
           <Text>:</Text>
@@ -393,7 +398,8 @@ const VimTextInput = ({
         </Text>
       )}
       <Text dimColor marginTop={1}>
-        {vimMode === 'normal' && 'h/l:move w/b:word i/a:insert x:del v:select r:replace :w :q'}
+        {vimMode === 'normal' &&
+          'h/l:move w/b:word i/a:insert x:del v:select r:replace :w :q'}
         {vimMode === 'insert' && 'Type to edit | Esc:normal'}
         {vimMode === 'replace' && 'Type replacement char'}
         {vimMode === 'command' && 'Enter:execute Esc:cancel'}

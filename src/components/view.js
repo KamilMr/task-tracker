@@ -20,15 +20,41 @@ import {
   formatEstimation,
   sumEntryDurations,
   calculateDuration,
-  formatPercentage,
-  formatTimeDiff,
   formatRelativeTime,
   formatHour,
   formatCurrency,
   formatHourlyRate,
-  fromUTC,
+  retriveYYYYMMDD,
 } from '../utils.js';
-import {format} from 'date-fns';
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  subMonths,
+  differenceInDays,
+} from 'date-fns';
+
+const RANGE_OPTIONS = [
+  {label: '7d', days: 7},
+  {label: '30d', days: 30},
+  {
+    label: 'Month',
+    days: () => {
+      const now = new Date();
+      return differenceInDays(now, startOfMonth(now)) + 1;
+    },
+  },
+  {
+    label: 'Last',
+    days: () => {
+      const lastMonth = subMonths(new Date(), 1);
+      return (
+        differenceInDays(endOfMonth(lastMonth), startOfMonth(lastMonth)) + 1
+      );
+    },
+  },
+  {label: 'All', days: 365},
+];
 
 const View = () => {
   const {
@@ -46,20 +72,31 @@ const View = () => {
   const [allTasks, setAllTasks] = useState([]);
   const [taskDetails, setTaskDetails] = useState(null);
   const [timeEntries, setTimeEntries] = useState([]);
+  const [isEditingStart, setIsEditingStart] = useState(false);
+  const [isEditingEnd, setIsEditingEnd] = useState(false);
+  const [selectedRangeIndex, setSelectedRangeIndex] = useState(0);
+
+  const getDateRangeDays = () => {
+    const option = RANGE_OPTIONS[selectedRangeIndex];
+    return typeof option.days === 'function' ? option.days() : option.days;
+  };
+  const dateRangeDays = getDateRangeDays();
+
   const {
     selectedIndex: selectedEntryIndex,
     selectNext: selectNextEntry,
     selectPrevious: selectPreviousEntry,
   } = useScrollableList(timeEntries, {wrap: true});
-  const {analytics, loading: analyticsLoading} =
-    useTaskAnalytics(selectedTaskId);
+  const {analytics, loading: analyticsLoading} = useTaskAnalytics(
+    selectedTaskId,
+    dateRangeDays,
+  );
   const {pricing, loading: pricingLoading} = usePricing(
     selectedTaskId,
     null,
     null,
+    dateRangeDays,
   );
-  const [isEditingStart, setIsEditingStart] = useState(false);
-  const [isEditingEnd, setIsEditingEnd] = useState(false);
 
   useEffect(() => {
     const loadClients = async () => {
@@ -96,9 +133,17 @@ const View = () => {
   useEffect(() => {
     if (selectedTaskId && (isTasksFocused || isViewFocused)) {
       const loadTaskDetails = async () => {
+        const endDate = new Date();
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() - dateRangeDays);
+
         const [task, entries] = await Promise.all([
           taskService.selectById(selectedTaskId),
-          timeEntryModel.selectByTaskId(selectedTaskId),
+          timeEntryModel.selectByTaskIdWithDateRange(
+            selectedTaskId,
+            retriveYYYYMMDD(startDate),
+            retriveYYYYMMDD(endDate),
+          ),
         ]);
         setTaskDetails(task);
         setTimeEntries((entries || []).reverse());
@@ -108,7 +153,7 @@ const View = () => {
       setTaskDetails(null);
       setTimeEntries([]);
     }
-  }, [isTasksFocused, isViewFocused, selectedTaskId, reload]);
+  }, [isTasksFocused, isViewFocused, selectedTaskId, reload, dateRangeDays]);
 
   const deleteSelectedEntry = async () => {
     if (timeEntries.length === 0) return;
@@ -138,7 +183,14 @@ const View = () => {
 
     await timeEntryModel.update(updates);
 
-    const updatedEntries = await timeEntryModel.selectByTaskId(selectedTaskId);
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - dateRangeDays);
+    const updatedEntries = await timeEntryModel.selectByTaskIdWithDateRange(
+      selectedTaskId,
+      retriveYYYYMMDD(startDate),
+      retriveYYYYMMDD(endDate),
+    );
     setTimeEntries((updatedEntries || []).reverse());
     setIsEditingStart(false);
     setIsEditingEnd(false);
@@ -147,6 +199,18 @@ const View = () => {
   const handleTimeCancel = () => {
     setIsEditingStart(false);
     setIsEditingEnd(false);
+  };
+
+  const handleRangeNext = () => {
+    setSelectedRangeIndex(prev =>
+      prev < RANGE_OPTIONS.length - 1 ? prev + 1 : 0,
+    );
+  };
+
+  const handleRangePrev = () => {
+    setSelectedRangeIndex(prev =>
+      prev > 0 ? prev - 1 : RANGE_OPTIONS.length - 1,
+    );
   };
 
   const isEditing = isEditingStart || isEditingEnd;
@@ -158,8 +222,13 @@ const View = () => {
           {key: 'd', action: deleteSelectedEntry},
           {key: 'e', action: handleEditStart},
           {key: 'E', action: handleEditEnd},
+          {key: 'h', action: handleRangePrev},
+          {key: 'l', action: handleRangeNext},
         ]
-      : [];
+      : [
+          {key: 'h', action: handleRangePrev},
+          {key: 'l', action: handleRangeNext},
+        ];
 
   useComponentKeys(VIEW, keyMappings, isViewFocused);
 
@@ -208,6 +277,21 @@ const View = () => {
 
     return (
       <Box flexDirection="column">
+        <Box marginBottom={1}>
+          <Text dimColor>Range: </Text>
+          {RANGE_OPTIONS.map((option, index) => (
+            <Text key={option.label}>
+              {index === selectedRangeIndex ? (
+                <Text color="green" bold>
+                  [{option.label}]
+                </Text>
+              ) : (
+                <Text dimColor> {option.label} </Text>
+              )}
+            </Text>
+          ))}
+          <Text dimColor> (h/l to change)</Text>
+        </Box>
         <Box flexDirection="row" marginBottom={1}>
           {/* Task Details Column */}
           <Box flexDirection="column" width={30}>
@@ -263,7 +347,8 @@ const View = () => {
                 </Text>
                 <Text>
                   <Text bold>Days: </Text>
-                  {analytics.distribution.daysWorked}/{analytics.distribution.dateRangeDays}
+                  {analytics.distribution.daysWorked}/
+                  {analytics.distribution.dateRangeDays}
                 </Text>
                 {analytics.distribution.peakHour !== null && (
                   <Text>
@@ -274,13 +359,17 @@ const View = () => {
                 {analytics.distribution.deepWorkCount > 0 && (
                   <Text>
                     <Text bold>Deep Work: </Text>
-                    <Text color="green">{analytics.distribution.deepWorkCount}</Text>
+                    <Text color="green">
+                      {analytics.distribution.deepWorkCount}
+                    </Text>
                   </Text>
                 )}
                 {analytics.distribution.lastActivityDate && (
                   <Text>
                     <Text bold>Last: </Text>
-                    {formatRelativeTime(analytics.distribution.lastActivityDate)}
+                    {formatRelativeTime(
+                      analytics.distribution.lastActivityDate,
+                    )}
                   </Text>
                 )}
               </>
@@ -313,7 +402,9 @@ const View = () => {
               </>
             ) : pricing && !pricing.hourlyRate ? (
               <>
-                <Text color="cyan" bold>Earnings:</Text>
+                <Text color="cyan" bold>
+                  Earnings:
+                </Text>
                 <Text dimColor>No rate set</Text>
               </>
             ) : null}
@@ -474,7 +565,7 @@ const View = () => {
       <Frame.Body>{renderContent()}</Frame.Body>
       <Frame.Footer>
         {isViewFocused && selectedTaskId && hasTimeEntries && (
-          <HelpBottom>j/k:navigate e:edit start E:edit end d:delete</HelpBottom>
+          <HelpBottom>h/l:range j/k:entries e/E:edit d:delete</HelpBottom>
         )}
       </Frame.Footer>
     </Frame>
