@@ -208,186 +208,117 @@ const View = () => {
 
     return (
       <Box flexDirection="column">
-        <Text color="cyan" bold>
-          Task Details:
-        </Text>
-        <Box flexDirection="column" marginTop={1} marginBottom={1}>
-          <Text>
-            <Text bold>Title: </Text>
-            {taskDetails.title}
-          </Text>
-          <Text>
-            <Text bold>Project: </Text>
-            {project?.name || 'Unknown'}
-          </Text>
-          <Text>
-            <Text bold>Client: </Text>
-            {client?.name || 'Unknown'}
-          </Text>
-          <Text>
-            <Text bold>Status: </Text>
-            {activeEntries > 0 ? (
-              <Text color="green">Active ({activeEntries} running)</Text>
-            ) : (
-              <Text>Stopped</Text>
-            )}
-          </Text>
-          <Text>
-            <Text bold>Estimation: </Text>
-            {formatEstimation(taskDetails.estimated_minutes) || (
-              <Text dimColor>No estimation</Text>
-            )}
-          </Text>
-          <Text>
-            <Text bold>Total Time: </Text>
-            <Text color={isOvertime ? 'red' : undefined}>
-              {formatTime(totalSeconds) || (
-                <Text dimColor>No time tracked</Text>
-              )}
-              {isOvertime && ' (overtime)'}
-            </Text>
-          </Text>
-          <Text>
-            <Text bold>Created: </Text>
-            {format(fromUTC(taskDetails.created_at), 'yyyy-MM-dd HH:mm:ss')}
-          </Text>
-        </Box>
-
-        {analyticsLoading ? (
-          <Text dimColor>Loading analytics...</Text>
-        ) : analytics ? (
-          <Box flexDirection="column" marginBottom={1}>
+        <Box flexDirection="row" marginBottom={1}>
+          {/* Task Details Column */}
+          <Box flexDirection="column" width={30}>
             <Text color="cyan" bold>
-              Analytics ({analytics.meta.dateRangeDays} days):
+              Task Details:
             </Text>
-            <Box flexDirection="column" marginLeft={2}>
-              {analytics.estimation.hasEstimation && (
-                <Text>
-                  <Text bold>Accuracy: </Text>
-                  <Text
-                    color={
-                      Math.abs(analytics.estimation.differencePercent) <= 10
-                        ? 'green'
-                        : Math.abs(analytics.estimation.differencePercent) <= 25
-                          ? 'yellow'
-                          : 'red'
-                    }
-                  >
-                    {formatPercentage(
-                      analytics.estimation.differencePercent,
-                      1,
-                    )}
-                  </Text>
-                  <Text dimColor>
-                    {' '}
-                    ({formatTimeDiff(analytics.estimation.differenceSeconds)})
-                  </Text>
-                </Text>
+            <Text>
+              <Text bold>Title: </Text>
+              {taskDetails.title}
+            </Text>
+            <Text>
+              <Text bold>Project: </Text>
+              {project?.name || 'Unknown'}
+            </Text>
+            <Text>
+              <Text bold>Client: </Text>
+              {client?.name || 'Unknown'}
+            </Text>
+            <Text>
+              <Text bold>Status: </Text>
+              {activeEntries > 0 ? (
+                <Text color="green">Active</Text>
+              ) : (
+                <Text>Stopped</Text>
               )}
-              <Text>
-                <Text bold>Sessions: </Text>
-                {analytics.distribution.sessionCount}
-                {analytics.distribution.avgSessionSeconds && (
-                  <Text dimColor>
-                    {' '}
-                    (avg {formatTime(analytics.distribution.avgSessionSeconds)}
-                    {analytics.distribution.medianSessionSeconds &&
-                      ` | med ${formatTime(analytics.distribution.medianSessionSeconds)}`}
-                    )
+            </Text>
+            <Text>
+              <Text bold>Estimation: </Text>
+              {formatEstimation(taskDetails.estimated_minutes) || (
+                <Text dimColor>None</Text>
+              )}
+            </Text>
+            <Text>
+              <Text bold>Total: </Text>
+              <Text color={isOvertime ? 'red' : undefined}>
+                {formatTime(totalSeconds) || '-'}
+              </Text>
+            </Text>
+          </Box>
+
+          {/* Analytics Column */}
+          <Box flexDirection="column" width={35} marginLeft={2}>
+            {analyticsLoading ? (
+              <Text dimColor>Loading...</Text>
+            ) : analytics ? (
+              <>
+                <Text color="cyan" bold>
+                  Analytics ({analytics.meta.dateRangeDays}d):
+                </Text>
+                <Text>
+                  <Text bold>Sessions: </Text>
+                  {analytics.distribution.sessionCount}
+                </Text>
+                <Text>
+                  <Text bold>Days: </Text>
+                  {analytics.distribution.daysWorked}/{analytics.distribution.dateRangeDays}
+                </Text>
+                {analytics.distribution.peakHour !== null && (
+                  <Text>
+                    <Text bold>Peak: </Text>
+                    {formatHour(analytics.distribution.peakHour)}
                   </Text>
                 )}
-              </Text>
-              <Text>
-                <Text bold>Days Worked: </Text>
-                {analytics.distribution.daysWorked} of{' '}
-                {analytics.distribution.dateRangeDays}
-              </Text>
-              {analytics.distribution.peakHour !== null && (
-                <Text>
-                  <Text bold>Peak Hour: </Text>
-                  {formatHour(analytics.distribution.peakHour)}
-                </Text>
-              )}
-              {analytics.distribution.deepWorkCount > 0 && (
-                <Text>
-                  <Text bold>Deep Work: </Text>
-                  <Text color="green">
-                    {analytics.distribution.deepWorkCount} sessions (&gt;1h)
+                {analytics.distribution.deepWorkCount > 0 && (
+                  <Text>
+                    <Text bold>Deep Work: </Text>
+                    <Text color="green">{analytics.distribution.deepWorkCount}</Text>
                   </Text>
-                </Text>
-              )}
-              {analytics.distribution.longestGapSeconds && (
-                <Text>
-                  <Text bold>Longest Gap: </Text>
-                  {formatTime(analytics.distribution.longestGapSeconds)}
-                </Text>
-              )}
-              {analytics.distribution.lastActivityDate && (
-                <Text>
-                  <Text bold>Last Activity: </Text>
-                  {formatRelativeTime(analytics.distribution.lastActivityDate)}
-                </Text>
-              )}
-              {analytics.budget.status !== 'no_estimation' && (
-                <Text>
-                  <Text bold>Budget: </Text>
-                  <Text
-                    color={
-                      analytics.budget.status === 'on_track'
-                        ? 'green'
-                        : analytics.budget.status === 'warning'
-                          ? 'yellow'
-                          : 'red'
-                    }
-                  >
-                    {analytics.budget.percentUsed.toFixed(0)}% used
+                )}
+                {analytics.distribution.lastActivityDate && (
+                  <Text>
+                    <Text bold>Last: </Text>
+                    {formatRelativeTime(analytics.distribution.lastActivityDate)}
                   </Text>
-                  {analytics.budget.remainingSeconds !== 0 && (
-                    <Text dimColor>
-                      {' '}
-                      ({formatTimeDiff(analytics.budget.remainingSeconds)})
-                    </Text>
-                  )}
-                </Text>
-              )}
-            </Box>
+                )}
+              </>
+            ) : null}
           </Box>
-        ) : null}
 
-        {pricingLoading ? (
-          <Text dimColor>Loading earnings...</Text>
-        ) : pricing && pricing.hourlyRate ? (
-          <Box flexDirection="column" marginBottom={1}>
-            <Text color="cyan" bold>
-              Earnings ({pricing.dateRangeDays} days):
-            </Text>
-            <Box flexDirection="column" marginLeft={2}>
-              <Text>
-                <Text bold>Rate: </Text>
-                {formatHourlyRate(pricing.hourlyRate, pricing.currency)}
-              </Text>
-              <Text>
-                <Text bold>Hours: </Text>
-                {pricing.hours.toFixed(2)}h
-              </Text>
-              <Text>
-                <Text bold>Earned: </Text>
-                <Text color="green">
-                  {formatCurrency(pricing.earnings, pricing.currency)}
+          {/* Earnings Column */}
+          <Box flexDirection="column" width={25} marginLeft={2}>
+            {pricingLoading ? (
+              <Text dimColor>Loading...</Text>
+            ) : pricing && pricing.hourlyRate ? (
+              <>
+                <Text color="cyan" bold>
+                  Earnings ({pricing.dateRangeDays}d):
                 </Text>
-              </Text>
-            </Box>
+                <Text>
+                  <Text bold>Rate: </Text>
+                  {formatHourlyRate(pricing.hourlyRate, pricing.currency)}
+                </Text>
+                <Text>
+                  <Text bold>Hours: </Text>
+                  {pricing.hours.toFixed(2)}h
+                </Text>
+                <Text>
+                  <Text bold>Earned: </Text>
+                  <Text color="green">
+                    {formatCurrency(pricing.earnings, pricing.currency)}
+                  </Text>
+                </Text>
+              </>
+            ) : pricing && !pricing.hourlyRate ? (
+              <>
+                <Text color="cyan" bold>Earnings:</Text>
+                <Text dimColor>No rate set</Text>
+              </>
+            ) : null}
           </Box>
-        ) : pricing && !pricing.hourlyRate ? (
-          <Box flexDirection="column" marginBottom={1}>
-            <Text color="cyan" bold>
-              Earnings:
-            </Text>
-            <Text dimColor marginLeft={2}>
-              No hourly rate set for client
-            </Text>
-          </Box>
-        ) : null}
+        </Box>
 
         <Text color="cyan" bold>
           Time Entries ({timeEntries.length}):
