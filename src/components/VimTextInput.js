@@ -30,6 +30,7 @@ const VimTextInput = ({
   onSubmit,
   onCancel,
   placeholder = '',
+  multiline = false,
 }) => {
   const {setInputLocked} = useNavigation();
   const [value, setValue] = useState(defaultValue);
@@ -82,7 +83,7 @@ const VimTextInput = ({
         setVimMode('normal');
         return;
       }
-      if (key.backspace) {
+      if (key.backspace || key.delete) {
         if (command.length > 0) {
           setCommand(prev => prev.slice(0, -1));
         } else {
@@ -150,13 +151,9 @@ const VimTextInput = ({
         return;
       }
 
-      // Backspace in normal mode - delete before cursor (like X in vim)
-      if (key.backspace) {
-        if (cursor > 0) {
-          setValue(prev => prev.slice(0, cursor - 1) + prev.slice(cursor));
-          setCursor(prev => prev - 1);
-          setError(null);
-        }
+      // Backspace in normal mode - move left (like h)
+      if (key.backspace || key.delete) {
+        setCursor(prev => Math.max(0, prev - 1));
         return;
       }
 
@@ -205,18 +202,20 @@ const VimTextInput = ({
         return;
       }
 
-      if (key.backspace) {
-        if (cursor > 0) {
-          setValue(prev => prev.slice(0, cursor - 1) + prev.slice(cursor));
-          setCursor(prev => prev - 1);
-          setError(null);
+      if (key.return) {
+        if (multiline) {
+          setValue(prev => prev.slice(0, cursor) + '\n' + prev.slice(cursor));
+          setCursor(prev => prev + 1);
+        } else {
+          submit();
         }
         return;
       }
 
-      if (key.delete) {
-        if (cursor < value.length) {
-          setValue(prev => prev.slice(0, cursor) + prev.slice(cursor + 1));
+      if (key.backspace || key.delete) {
+        if (cursor > 0) {
+          setValue(prev => prev.slice(0, cursor - 1) + prev.slice(cursor));
+          setCursor(prev => prev - 1);
           setError(null);
         }
         return;

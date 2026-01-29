@@ -1,17 +1,15 @@
 import React from 'react';
-import {Text, Box} from 'ink';
-import AutocompleteTextInput from '../AutocompleteTextInput.js';
+import VimTextInput from '../VimTextInput.js';
 
-const TaskCreatingForm = ({projectId, onSubmit, onCancel}) => {
+const TaskCreatingForm = ({onSubmit, onCancel}) => {
   return (
-    <Box flexDirection="column">
-      <Text>New task title:</Text>
-      <AutocompleteTextInput
-        projectId={projectId}
-        onSubmit={onSubmit}
-        onCancel={onCancel}
-      />
-    </Box>
+    <VimTextInput
+      label="New task title"
+      defaultValue=""
+      onSubmit={onSubmit}
+      onCancel={onCancel}
+      placeholder="Enter task name..."
+    />
   );
 };
 

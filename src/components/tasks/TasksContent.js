@@ -1,12 +1,11 @@
 import React from 'react';
-import {Text, Box} from 'ink';
 import TaskCreatingForm from './TaskCreatingForm.js';
 import TaskEditingForm from './TaskEditingForm.js';
 import EstimationEditingForm from './EstimationEditingForm.js';
 import NoProjectSelected from './NoProjectSelected.js';
 import NoTasksFound from './NoTasksFound.js';
 import TasksList from './TasksList.js';
-import BasicTextInput from '../BasicTextInput.js';
+import VimTextInput from '../VimTextInput.js';
 import {formatEstimation} from '../../utils.js';
 
 const TasksContent = ({
@@ -33,7 +32,6 @@ const TasksContent = ({
   if (isCreating) {
     return (
       <TaskCreatingForm
-        projectId={selectedProject?.id}
         onSubmit={handleCreateSubmit}
         onCancel={handleCreateCancel}
       />
@@ -63,13 +61,12 @@ const TasksContent = ({
 
   if (isDeleting) {
     return (
-      <Box flexDirection="column">
-        <Text color="red">Delete "{selectedTaskTitle}"? (y/n):</Text>
-        <BasicTextInput
-          onSubmit={handleDeleteConfirm}
-          onCancel={handleDeleteCancel}
-        />
-      </Box>
+      <VimTextInput
+        label={`Delete "${selectedTaskTitle}"? (y/n)`}
+        defaultValue=""
+        onSubmit={handleDeleteConfirm}
+        onCancel={handleDeleteCancel}
+      />
     );
   }
 
