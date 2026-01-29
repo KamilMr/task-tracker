@@ -1,3 +1,4 @@
+import {endOfMonth, eachDayOfInterval, isWeekend, startOfDay} from 'date-fns';
 import timeEntryModel from '../models/timeEntry.js';
 import taskModel from '../models/task.js';
 import projectModel from '../models/project.js';
@@ -66,17 +67,13 @@ const getMonthDateRange = () => {
   };
 };
 
-const getWorkingDaysLeft = () => {
-  const now = new Date();
-  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-  let workingDays = 0;
+const getDaysLeft = () => {
+  const today = startOfDay(new Date());
+  const monthEnd = endOfMonth(today);
+  const days = eachDayOfInterval({start: today, end: monthEnd});
+  const workingDays = days.filter(d => !isWeekend(d)).length;
 
-  for (let d = new Date(now); d <= endOfMonth; d.setDate(d.getDate() + 1)) {
-    const day = d.getDay();
-    if (day !== 0 && day !== 6) workingDays++;
-  }
-
-  return workingDays;
+  return {workingDays, calendarDays: days.length};
 };
 
 const pricingService = {
@@ -220,7 +217,8 @@ const pricingService = {
 
   getClientMonthlyTarget: async (clientId, targetHours = 170) => {
     const {startDateStr, endDateStr} = getMonthDateRange();
-    const workingDaysLeft = getWorkingDaysLeft();
+    const {workingDays: workingDaysLeft, calendarDays: calendarDaysLeft} =
+      getDaysLeft();
 
     const projects = await projectModel.selectByCliId(clientId);
 
@@ -244,16 +242,20 @@ const pricingService = {
 
     const workedHours = totalSeconds / 3600;
     const remainingHours = Math.max(0, targetHours - workedHours);
-    const hoursPerDayNeeded =
+    const hoursPerWorkDay =
       workingDaysLeft > 0 ? remainingHours / workingDaysLeft : 0;
+    const hoursPerCalDay =
+      calendarDaysLeft > 0 ? remainingHours / calendarDaysLeft : 0;
 
     return {
       targetHours,
       workedSeconds: totalSeconds,
       workedHours,
       workingDaysLeft,
+      calendarDaysLeft,
       remainingHours,
-      hoursPerDayNeeded,
+      hoursPerWorkDay,
+      hoursPerCalDay,
     };
   },
 };

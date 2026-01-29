@@ -8,9 +8,8 @@ import BasicTextInput from './BasicTextInput.js';
 import DelayedDisappear from './DelayedDisappear.js';
 import HelpBottom from './HelpBottom.js';
 import Frame from './Frame.js';
-import MonthlyTarget from './MonthlyTarget.js';
 import clientService from '../services/clientService.js';
-import {formatHourlyRate} from '../utils.js';
+import pricingService from '../services/pricingService.js';
 
 const Client = () => {
   const {isClientFocused, getBorderTitle, mode} = useNavigation();
@@ -23,6 +22,7 @@ const Client = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isSettingRate, setIsSettingRate] = useState(false);
+  const [monthlyData, setMonthlyData] = useState(null);
 
   useEffect(() => {
     const loadClients = async () => {
@@ -35,6 +35,19 @@ const Client = () => {
     };
     loadClients();
   }, [reload, selectedClientId]);
+
+  useEffect(() => {
+    if (!selectedClientId) {
+      setMonthlyData(null);
+      return;
+    }
+    const loadMonthlyData = async () => {
+      const data =
+        await pricingService.getClientMonthlyTarget(selectedClientId);
+      setMonthlyData(data);
+    };
+    loadMonthlyData();
+  }, [selectedClientId, reload]);
 
   const selectedClient = clients.find(c => c.id === selectedClientId) || null;
 
@@ -257,17 +270,21 @@ const Client = () => {
     }
 
     if (selectedClient) {
+      const rate = selectedClient.hourly_rate;
+      const currency = selectedClient.currency || 'PLN';
+      const currencyShort = currency === 'PLN' ? 'zl' : currency.toLowerCase();
+      const rateText = rate ? `${rate}${currencyShort}` : '-';
+
+      const statsText = monthlyData
+        ? ` ${rateText}|${Math.floor(monthlyData.workedHours)}/${monthlyData.targetHours}|${monthlyData.workingDaysLeft}/${monthlyData.calendarDaysLeft}|~${Math.ceil(monthlyData.hoursPerWorkDay)}h/${Math.ceil(monthlyData.hoursPerCalDay)}h`
+        : '';
+
       return (
         <Box flexDirection="column">
-          <Text>{selectedClient.name}</Text>
-          {selectedClient.hourly_rate && (
-            <Text dimColor>
-              {formatHourlyRate(
-                selectedClient.hourly_rate,
-                selectedClient.currency,
-              )}
-            </Text>
-          )}
+          <Text>
+            {selectedClient.name}
+            <Text dimColor>{statsText}</Text>
+          </Text>
         </Box>
       );
     }
@@ -283,7 +300,6 @@ const Client = () => {
         <Text color={borderColor} bold>
           {title}
           {clientCount > 0 && <Text dimColor> - {clientCount}</Text>}
-          <MonthlyTarget clientId={selectedClientId} />
         </Text>
         <DelayedDisappear key={message}>
           <Text color="yellow">{message}</Text>
