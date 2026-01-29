@@ -21,11 +21,15 @@ export const useNavigation = () => {
 export const NavigationProvider = ({children}) => {
   const [focusedSection, setFocusedSection] = useState(CLIENT);
   const [mode, setMode] = useState('normal');
+  const [inputLocked, setInputLocked] = useState(false);
 
   const {exit} = useApp();
   const componentKeyHandlers = useRef(new Map());
 
   useInput((input, key) => {
+    // When input is locked, completely ignore all keys (forms handle their own input)
+    if (inputLocked) return;
+
     if (key.escape) {
       setMode('normal');
       return;
@@ -82,6 +86,8 @@ export const NavigationProvider = ({children}) => {
     isTasksFocused: focusedSection === TASKS,
     mode,
     setMode,
+    inputLocked,
+    setInputLocked,
     registerKeyHandler,
     unregisterKeyHandler,
     getBorderTitle,

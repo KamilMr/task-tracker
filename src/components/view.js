@@ -14,6 +14,7 @@ import {useComponentKeys} from '../hooks/useComponentKeys.js';
 import useScrollableList from '../hooks/useScrollableList.js';
 import useTaskAnalytics from '../hooks/useTaskAnalytics.js';
 import usePricing from '../hooks/usePricing.js';
+import TimeEditForm from './TimeEditForm.js';
 import {
   formatTime,
   formatEstimation,
@@ -57,6 +58,8 @@ const View = () => {
     null,
     null,
   );
+  const [isEditingStart, setIsEditingStart] = useState(false);
+  const [isEditingEnd, setIsEditingEnd] = useState(false);
 
   useEffect(() => {
     const loadClients = async () => {
@@ -114,12 +117,47 @@ const View = () => {
     setTimeEntries(prev => prev.filter(e => e.id !== entryToDelete.id));
   };
 
+  const handleEditStart = () => {
+    if (timeEntries.length === 0) return;
+    setIsEditingStart(true);
+  };
+
+  const handleEditEnd = () => {
+    if (timeEntries.length === 0) return;
+    const entry = timeEntries[selectedEntryIndex];
+    if (!entry.end) return;
+    setIsEditingEnd(true);
+  };
+
+  const handleTimeSubmit = async newTime => {
+    const entry = timeEntries[selectedEntryIndex];
+    const updates = {id: entry.id};
+
+    if (isEditingStart) updates.start = newTime;
+    else if (isEditingEnd) updates.end = newTime;
+
+    await timeEntryModel.update(updates);
+
+    const updatedEntries = await timeEntryModel.selectByTaskId(selectedTaskId);
+    setTimeEntries((updatedEntries || []).reverse());
+    setIsEditingStart(false);
+    setIsEditingEnd(false);
+  };
+
+  const handleTimeCancel = () => {
+    setIsEditingStart(false);
+    setIsEditingEnd(false);
+  };
+
+  const isEditing = isEditingStart || isEditingEnd;
   const keyMappings =
-    selectedTaskId && taskDetails
+    selectedTaskId && taskDetails && !isEditing
       ? [
           {key: 'j', action: selectNextEntry},
           {key: 'k', action: selectPreviousEntry},
           {key: 'd', action: deleteSelectedEntry},
+          {key: 'e', action: handleEditStart},
+          {key: 'E', action: handleEditEnd},
         ]
       : [];
 
@@ -132,6 +170,30 @@ const View = () => {
 
   const renderTaskDetails = () => {
     if (!taskDetails) return <Text dimColor>Loading task details...</Text>;
+
+    if (isEditingStart && timeEntries.length > 0) {
+      const entry = timeEntries[selectedEntryIndex];
+      return (
+        <TimeEditForm
+          label="Edit Start Time"
+          currentTime={entry.start}
+          onSubmit={handleTimeSubmit}
+          onCancel={handleTimeCancel}
+        />
+      );
+    }
+
+    if (isEditingEnd && timeEntries.length > 0) {
+      const entry = timeEntries[selectedEntryIndex];
+      return (
+        <TimeEditForm
+          label="Edit End Time"
+          currentTime={entry.end}
+          onSubmit={handleTimeSubmit}
+          onCancel={handleTimeCancel}
+        />
+      );
+    }
 
     const project = allProjects.find(p => p.id === taskDetails.project_id);
     const client = clients.find(c => c.id === project?.client_id);
@@ -351,7 +413,7 @@ const View = () => {
               </Text>
             </Box>
 
-            <ScrollBox height={18} selectedIndex={selectedEntryIndex}>
+            <ScrollBox height={15} selectedIndex={selectedEntryIndex}>
               {timeEntries.map((entry, index) => {
                 const isSelected =
                   index === selectedEntryIndex && isViewFocused;
@@ -481,7 +543,7 @@ const View = () => {
       <Frame.Body>{renderContent()}</Frame.Body>
       <Frame.Footer>
         {isViewFocused && selectedTaskId && hasTimeEntries && (
-          <HelpBottom>j/k:navigate d:delete</HelpBottom>
+          <HelpBottom>j/k:navigate e:edit start E:edit end d:delete</HelpBottom>
         )}
       </Frame.Footer>
     </Frame>
