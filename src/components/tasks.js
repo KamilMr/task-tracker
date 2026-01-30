@@ -16,7 +16,7 @@ import {useData} from '../contexts/DataContext.js';
 import createTogglSync from '../toggl-sync/index.js';
 import syncedDay from '../models/syncedDay.js';
 
-const Tasks = () => {
+const Tasks = ({height}) => {
   const {isTasksFocused, getBorderTitle, mode} = useNavigation();
   const {
     selectedProjectId,
@@ -299,7 +299,7 @@ const Tasks = () => {
   const taskCount = dateTasks.length;
 
   return (
-    <Frame borderColor={borderColor} height={20}>
+    <Frame borderColor={borderColor} height={height}>
       <Frame.Header>
         <Text color={borderColor} bold>
           {baseTitle}

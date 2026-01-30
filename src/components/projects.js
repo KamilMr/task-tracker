@@ -16,7 +16,7 @@ import ScrollBox from './ScrollBox.js';
 import projectService from '../services/projectService.js';
 import clientService from '../services/clientService.js';
 
-const Projects = () => {
+const Projects = ({height}) => {
   const {isProjectsFocused, getBorderTitle, mode} = useNavigation();
   const {
     selectedClientId,
@@ -224,7 +224,10 @@ const Projects = () => {
         <Text color="cyan" bold>
           {selectedClient.name} Projects:
         </Text>
-        <ScrollBox height={15} selectedIndex={selectedIndex}>
+        <ScrollBox
+          height={Math.max(1, height - 5)}
+          selectedIndex={selectedIndex}
+        >
           {projects.map(project => (
             <Text
               key={project.id}
@@ -243,7 +246,7 @@ const Projects = () => {
   const projectCount = projects.length;
 
   return (
-    <Frame borderColor={borderColor} height={20}>
+    <Frame borderColor={borderColor} height={height}>
       <Frame.Header>
         <Text color={borderColor} bold>
           {title}

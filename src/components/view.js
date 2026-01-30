@@ -36,7 +36,7 @@ const RANGE_OPTIONS = [
   {label: 'All', type: 'all'},
 ];
 
-const View = () => {
+const View = ({height}) => {
   const {
     isViewFocused,
     isClientFocused,
@@ -421,7 +421,10 @@ const View = () => {
               </Text>
             </Box>
 
-            <ScrollBox height={15} selectedIndex={selectedEntryIndex}>
+            <ScrollBox
+              height={Math.max(5, height - 30)}
+              selectedIndex={selectedEntryIndex}
+            >
               {timeEntries.map((entry, index) => {
                 const isSelected =
                   index === selectedEntryIndex && isViewFocused;
@@ -541,7 +544,7 @@ const View = () => {
   const hasTimeEntries = timeEntries.length > 0;
 
   return (
-    <Frame borderColor={borderColor} width={'100%'} height={45}>
+    <Frame borderColor={borderColor} width={'100%'} height={height}>
       <Frame.Header>
         <Text color={borderColor} bold>
           {title}

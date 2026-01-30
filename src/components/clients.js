@@ -11,7 +11,7 @@ import Frame from './Frame.js';
 import clientService from '../services/clientService.js';
 import pricingService from '../services/pricingService.js';
 
-const Client = () => {
+const Client = ({height}) => {
   const {isClientFocused, getBorderTitle, mode} = useNavigation();
   const {selectedClientId, setSelectedClientId, reload, triggerReload} =
     useData();
@@ -295,7 +295,7 @@ const Client = () => {
   const clientCount = clients.length;
 
   return (
-    <Frame borderColor={borderColor} height={5}>
+    <Frame borderColor={borderColor} height={height}>
       <Frame.Header>
         <Text color={borderColor} bold>
           {title}
