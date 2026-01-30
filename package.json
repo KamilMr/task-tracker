@@ -10,6 +10,7 @@
   "main": "index.js",
   "scripts": {
     "migrate": "npx knex migrate:latest --knexfile src/db/knexfile.js",
+    "seed": "node src/db/seeds/testData.js",
     "build": "babel --out-dir=dist --watch src",
     "build:prod": "babel --out-dir=dist src",
     "start": "node --watch dist/index.js",
