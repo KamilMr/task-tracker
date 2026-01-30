@@ -1,13 +1,13 @@
 import {useState, useEffect} from 'react';
 import analyticsService from '../services/analyticsService.js';
 
-const useTaskAnalytics = (taskId, dateRangeDays = 7) => {
+const useTaskAnalytics = (taskId, startDate, endDate) => {
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!taskId) {
+    if (!taskId || !startDate || !endDate) {
       setAnalytics(null);
       return;
     }
@@ -18,7 +18,8 @@ const useTaskAnalytics = (taskId, dateRangeDays = 7) => {
       try {
         const data = await analyticsService.getTaskAnalytics(
           taskId,
-          dateRangeDays,
+          startDate,
+          endDate,
         );
         setAnalytics(data);
       } catch (err) {
@@ -30,7 +31,7 @@ const useTaskAnalytics = (taskId, dateRangeDays = 7) => {
     };
 
     fetchAnalytics();
-  }, [taskId, dateRangeDays]);
+  }, [taskId, startDate, endDate]);
 
   return {analytics, loading, error};
 };

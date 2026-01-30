@@ -70,13 +70,15 @@ const View = () => {
   } = useScrollableList(timeEntries, {wrap: true});
   const {analytics, loading: analyticsLoading} = useTaskAnalytics(
     selectedTaskId,
-    currentRange.days,
+    currentRange.startDate,
+    currentRange.endDate,
   );
   const {pricing, loading: pricingLoading} = usePricing(
     selectedTaskId,
     null,
     null,
-    currentRange.days,
+    currentRange.startDate,
+    currentRange.endDate,
   );
 
   useEffect(() => {

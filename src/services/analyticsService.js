@@ -1,11 +1,7 @@
+import {differenceInDays, parseISO} from 'date-fns';
 import timeEntryModel from '../models/timeEntry.js';
 import taskModel from '../models/task.js';
-import {
-  calculateDuration,
-  sumEntryDurations,
-  retriveYYYYMMDD,
-  getLocalNow,
-} from '../utils.js';
+import {calculateDuration, sumEntryDurations, getLocalNow} from '../utils.js';
 
 const calculateMedian = values => {
   if (!values || values.length === 0) return null;
@@ -150,21 +146,12 @@ const calculateBudgetAnalysis = (estimatedMinutes, entries) => {
 };
 
 const analyticsService = {
-  getTaskAnalytics: async (taskId, dateRangeDays = 7) => {
-    const endDate = new Date();
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - dateRangeDays);
-
-    const startDateStr = retriveYYYYMMDD(startDate);
-    const endDateStr = retriveYYYYMMDD(endDate);
+  getTaskAnalytics: async (taskId, startDate, endDate) => {
+    const days = differenceInDays(parseISO(endDate), parseISO(startDate)) + 1;
 
     const [task, entries] = await Promise.all([
       taskModel.selectById(taskId),
-      timeEntryModel.selectByTaskIdWithDateRange(
-        taskId,
-        startDateStr,
-        endDateStr,
-      ),
+      timeEntryModel.selectByTaskIdWithDateRange(taskId, startDate, endDate),
     ]);
 
     if (!task) return null;
@@ -173,10 +160,10 @@ const analyticsService = {
 
     return {
       estimation: calculateEstimationAccuracy(estimatedMinutes, entries),
-      distribution: calculateTimeDistribution(entries, dateRangeDays),
+      distribution: calculateTimeDistribution(entries, days),
       budget: calculateBudgetAnalysis(estimatedMinutes, entries),
       meta: {
-        dateRangeDays,
+        dateRangeDays: days,
         totalEntriesAnalyzed: entries.length,
       },
     };

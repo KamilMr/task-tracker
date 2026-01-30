@@ -1,19 +1,16 @@
-import {endOfMonth, eachDayOfInterval, isWeekend, startOfDay} from 'date-fns';
+import {
+  endOfMonth,
+  eachDayOfInterval,
+  isWeekend,
+  startOfDay,
+  differenceInDays,
+  parseISO,
+} from 'date-fns';
 import timeEntryModel from '../models/timeEntry.js';
 import taskModel from '../models/task.js';
 import projectModel from '../models/project.js';
 import clientRateHistory from '../models/clientRateHistory.js';
 import {calculateDuration, retriveYYYYMMDD} from '../utils.js';
-
-const getDateRange = (dateRangeDays = 30) => {
-  const endDate = new Date();
-  const startDate = new Date();
-  startDate.setDate(startDate.getDate() - dateRangeDays);
-  return {
-    startDateStr: retriveYYYYMMDD(startDate),
-    endDateStr: retriveYYYYMMDD(endDate),
-  };
-};
 
 // Find the applicable rate for a given date from sorted rate periods
 const findRateForDate = (rates, date) => {
@@ -77,20 +74,19 @@ const getDaysLeft = () => {
 };
 
 const pricingService = {
-  getTaskEarnings: async (taskId, dateRangeDays = 30) => {
+  getTaskEarnings: async (taskId, startDate, endDate) => {
+    const days = differenceInDays(parseISO(endDate), parseISO(startDate)) + 1;
+
     const task = await taskModel.selectById(taskId);
     if (!task) return null;
 
     const project = await projectModel.selectById(task.project_id);
     if (!project) return null;
 
-    const {startDateStr, endDateStr} = getDateRange(dateRangeDays);
-
-    // Get rate history for the date range
     const rates = await clientRateHistory.getRatesInRange(
       project.client_id,
-      startDateStr,
-      endDateStr,
+      startDate,
+      endDate,
     );
 
     const currentRate = await clientRateHistory.getCurrentRate(
@@ -101,8 +97,8 @@ const pricingService = {
 
     const entries = await timeEntryModel.selectByTaskIdWithDateRange(
       taskId,
-      startDateStr,
-      endDateStr,
+      startDate,
+      endDate,
     );
 
     const {totalSeconds, totalEarnings, currency} = calculateEntriesEarnings(
@@ -117,20 +113,20 @@ const pricingService = {
       hours,
       earnings: totalEarnings,
       currency,
-      dateRangeDays,
+      dateRangeDays: days,
     };
   },
 
-  getProjectEarnings: async (projectId, dateRangeDays = 30) => {
+  getProjectEarnings: async (projectId, startDate, endDate) => {
+    const days = differenceInDays(parseISO(endDate), parseISO(startDate)) + 1;
+
     const project = await projectModel.selectById(projectId);
     if (!project) return null;
 
-    const {startDateStr, endDateStr} = getDateRange(dateRangeDays);
-
     const rates = await clientRateHistory.getRatesInRange(
       project.client_id,
-      startDateStr,
-      endDateStr,
+      startDate,
+      endDate,
     );
 
     const currentRate = await clientRateHistory.getCurrentRate(
@@ -148,8 +144,8 @@ const pricingService = {
     for (const task of tasks) {
       const entries = await timeEntryModel.selectByTaskIdWithDateRange(
         task.id,
-        startDateStr,
-        endDateStr,
+        startDate,
+        endDate,
       );
       const result = calculateEntriesEarnings(entries, rates);
       totalSeconds += result.totalSeconds;
@@ -163,18 +159,18 @@ const pricingService = {
       hours: totalSeconds / 3600,
       earnings: totalEarnings,
       currency,
-      dateRangeDays,
+      dateRangeDays: days,
       taskCount: tasks.length,
     };
   },
 
-  getClientEarnings: async (clientId, dateRangeDays = 30) => {
-    const {startDateStr, endDateStr} = getDateRange(dateRangeDays);
+  getClientEarnings: async (clientId, startDate, endDate) => {
+    const days = differenceInDays(parseISO(endDate), parseISO(startDate)) + 1;
 
     const rates = await clientRateHistory.getRatesInRange(
       clientId,
-      startDateStr,
-      endDateStr,
+      startDate,
+      endDate,
     );
 
     const currentRate = await clientRateHistory.getCurrentRate(clientId);
@@ -194,8 +190,8 @@ const pricingService = {
       for (const task of tasks) {
         const entries = await timeEntryModel.selectByTaskIdWithDateRange(
           task.id,
-          startDateStr,
-          endDateStr,
+          startDate,
+          endDate,
         );
         const result = calculateEntriesEarnings(entries, rates);
         totalSeconds += result.totalSeconds;
@@ -209,7 +205,7 @@ const pricingService = {
       hours: totalSeconds / 3600,
       earnings: totalEarnings,
       currency: currentRate.currency || 'PLN',
-      dateRangeDays,
+      dateRangeDays: days,
       projectCount: projects.length,
       taskCount,
     };

@@ -1,13 +1,13 @@
 import {useState, useEffect} from 'react';
 import pricingService from '../services/pricingService.js';
 
-const usePricing = (taskId, projectId, clientId, dateRangeDays = 30) => {
+const usePricing = (taskId, projectId, clientId, startDate, endDate) => {
   const [pricing, setPricing] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!taskId && !projectId && !clientId) {
+    if ((!taskId && !projectId && !clientId) || !startDate || !endDate) {
       setPricing(null);
       return;
     }
@@ -20,16 +20,22 @@ const usePricing = (taskId, projectId, clientId, dateRangeDays = 30) => {
       try {
         let data = null;
         if (taskId)
-          data = await pricingService.getTaskEarnings(taskId, dateRangeDays);
+          data = await pricingService.getTaskEarnings(
+            taskId,
+            startDate,
+            endDate,
+          );
         else if (projectId)
           data = await pricingService.getProjectEarnings(
             projectId,
-            dateRangeDays,
+            startDate,
+            endDate,
           );
         else if (clientId)
           data = await pricingService.getClientEarnings(
             clientId,
-            dateRangeDays,
+            startDate,
+            endDate,
           );
         if (!cancelled) setPricing(data);
       } catch (err) {
@@ -46,7 +52,7 @@ const usePricing = (taskId, projectId, clientId, dateRangeDays = 30) => {
     return () => {
       cancelled = true;
     };
-  }, [taskId, projectId, clientId, dateRangeDays]);
+  }, [taskId, projectId, clientId, startDate, endDate]);
 
   return {pricing, loading, error};
 };
