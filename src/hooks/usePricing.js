@@ -1,7 +1,14 @@
 import {useState, useEffect} from 'react';
 import pricingService from '../services/pricingService.js';
 
-const usePricing = (taskId, projectId, clientId, startDate, endDate, reload) => {
+const usePricing = (
+  taskId,
+  projectId,
+  clientId,
+  startDate,
+  endDate,
+  reload,
+) => {
   const [pricing, setPricing] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
