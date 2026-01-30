@@ -24,36 +24,16 @@ import {
   formatHour,
   formatCurrency,
   formatHourlyRate,
-  retriveYYYYMMDD,
+  getDateRange,
 } from '../utils.js';
-import {
-  format,
-  startOfMonth,
-  endOfMonth,
-  subMonths,
-  differenceInDays,
-} from 'date-fns';
+import {format} from 'date-fns';
 
 const RANGE_OPTIONS = [
-  {label: '7d', days: 7},
-  {label: '30d', days: 30},
-  {
-    label: 'Month',
-    days: () => {
-      const now = new Date();
-      return differenceInDays(now, startOfMonth(now)) + 1;
-    },
-  },
-  {
-    label: 'Last',
-    days: () => {
-      const lastMonth = subMonths(new Date(), 1);
-      return (
-        differenceInDays(endOfMonth(lastMonth), startOfMonth(lastMonth)) + 1
-      );
-    },
-  },
-  {label: 'All', days: 365},
+  {label: 'Today', type: 'today'},
+  {label: 'Week', type: 'week'},
+  {label: 'This Month', type: 'thisMonth'},
+  {label: 'Prev Month', type: 'prevMonth'},
+  {label: 'All', type: 'all'},
 ];
 
 const View = () => {
@@ -64,8 +44,13 @@ const View = () => {
     isTasksFocused,
     getBorderTitle,
   } = useNavigation();
-  const {selectedClientId, selectedProjectId, selectedTaskId, reload} =
-    useData();
+  const {
+    selectedClientId,
+    selectedProjectId,
+    selectedTaskId,
+    reload,
+    triggerReload,
+  } = useData();
 
   const [clients, setClients] = useState([]);
   const [allProjects, setAllProjects] = useState([]);
@@ -76,11 +61,7 @@ const View = () => {
   const [isEditingEnd, setIsEditingEnd] = useState(false);
   const [selectedRangeIndex, setSelectedRangeIndex] = useState(0);
 
-  const getDateRangeDays = () => {
-    const option = RANGE_OPTIONS[selectedRangeIndex];
-    return typeof option.days === 'function' ? option.days() : option.days;
-  };
-  const dateRangeDays = getDateRangeDays();
+  const currentRange = getDateRange(RANGE_OPTIONS[selectedRangeIndex].type);
 
   const {
     selectedIndex: selectedEntryIndex,
@@ -89,13 +70,13 @@ const View = () => {
   } = useScrollableList(timeEntries, {wrap: true});
   const {analytics, loading: analyticsLoading} = useTaskAnalytics(
     selectedTaskId,
-    dateRangeDays,
+    currentRange.days,
   );
   const {pricing, loading: pricingLoading} = usePricing(
     selectedTaskId,
     null,
     null,
-    dateRangeDays,
+    currentRange.days,
   );
 
   useEffect(() => {
@@ -133,16 +114,12 @@ const View = () => {
   useEffect(() => {
     if (selectedTaskId && (isTasksFocused || isViewFocused)) {
       const loadTaskDetails = async () => {
-        const endDate = new Date();
-        const startDate = new Date();
-        startDate.setDate(startDate.getDate() - dateRangeDays);
-
         const [task, entries] = await Promise.all([
           taskService.selectById(selectedTaskId),
           timeEntryModel.selectByTaskIdWithDateRange(
             selectedTaskId,
-            retriveYYYYMMDD(startDate),
-            retriveYYYYMMDD(endDate),
+            currentRange.startDate,
+            currentRange.endDate,
           ),
         ]);
         setTaskDetails(task);
@@ -153,13 +130,21 @@ const View = () => {
       setTaskDetails(null);
       setTimeEntries([]);
     }
-  }, [isTasksFocused, isViewFocused, selectedTaskId, reload, dateRangeDays]);
+  }, [
+    isTasksFocused,
+    isViewFocused,
+    selectedTaskId,
+    reload,
+    currentRange.startDate,
+    currentRange.endDate,
+  ]);
 
   const deleteSelectedEntry = async () => {
     if (timeEntries.length === 0) return;
     const entryToDelete = timeEntries[selectedEntryIndex];
     await timeEntryModel.delete(entryToDelete.id);
     setTimeEntries(prev => prev.filter(e => e.id !== entryToDelete.id));
+    triggerReload();
   };
 
   const handleEditStart = () => {
@@ -183,17 +168,15 @@ const View = () => {
 
     await timeEntryModel.update(updates);
 
-    const endDate = new Date();
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - dateRangeDays);
     const updatedEntries = await timeEntryModel.selectByTaskIdWithDateRange(
       selectedTaskId,
-      retriveYYYYMMDD(startDate),
-      retriveYYYYMMDD(endDate),
+      currentRange.startDate,
+      currentRange.endDate,
     );
     setTimeEntries((updatedEntries || []).reverse());
     setIsEditingStart(false);
     setIsEditingEnd(false);
+    triggerReload();
   };
 
   const handleTimeCancel = () => {

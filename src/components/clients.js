@@ -276,7 +276,7 @@ const Client = () => {
       const rateText = rate ? `${rate}${currencyShort}` : '-';
 
       const statsText = monthlyData
-        ? ` ${rateText}|${Math.floor(monthlyData.workedHours)}/${monthlyData.targetHours}|${monthlyData.workingDaysLeft}/${monthlyData.calendarDaysLeft}|~${Math.ceil(monthlyData.hoursPerWorkDay)}h/${Math.ceil(monthlyData.hoursPerCalDay)}h`
+        ? ` ${rateText}|${Math.floor(monthlyData.workedHours)}/${monthlyData.targetHours}|${monthlyData.workingDaysLeft}/${monthlyData.calendarDaysLeft}|~${Math.ceil(monthlyData.hoursPerWorkDay)}h/~${Math.ceil(monthlyData.hoursPerCalDay)}h`
         : '';
 
       return (

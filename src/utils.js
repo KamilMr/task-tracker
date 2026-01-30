@@ -1,4 +1,12 @@
 import {TZDate} from '@date-fns/tz';
+import {
+  startOfWeek,
+  startOfMonth,
+  endOfMonth,
+  subMonths,
+  subDays,
+  differenceInDays,
+} from 'date-fns';
 
 // Timezone configuration
 export const getTimezone = () =>
@@ -70,6 +78,43 @@ export const retriveYYYYMMDD = (date = new Date()) => {
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
+};
+
+export const getDateRange = rangeType => {
+  const now = new Date();
+  let start, end;
+
+  switch (rangeType) {
+    case 'today':
+      start = end = now;
+      break;
+    case 'week':
+      start = startOfWeek(now, {weekStartsOn: 1});
+      end = now;
+      break;
+    case 'thisMonth':
+      start = startOfMonth(now);
+      end = now;
+      break;
+    case 'prevMonth': {
+      const lastMonth = subMonths(now, 1);
+      start = startOfMonth(lastMonth);
+      end = endOfMonth(lastMonth);
+      break;
+    }
+    case 'all':
+      start = subDays(now, 365);
+      end = now;
+      break;
+    default:
+      start = end = now;
+  }
+
+  return {
+    startDate: retriveYYYYMMDD(start),
+    endDate: retriveYYYYMMDD(end),
+    days: differenceInDays(end, start) + 1,
+  };
 };
 
 export const getFormatedDate = (now = new Date()) => {
