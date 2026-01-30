@@ -23,18 +23,62 @@ const PROJECTS = [
 ];
 
 const TASKS = [
-  {projectName: 'Website Redesign', title: 'Homepage UI', estimated_minutes: 480},
-  {projectName: 'Website Redesign', title: 'Contact Form', estimated_minutes: 120},
-  {projectName: 'Website Redesign', title: 'Navigation Menu', estimated_minutes: 180},
-  {projectName: 'Website Redesign', title: 'Footer Section', estimated_minutes: 90},
-  {projectName: 'Mobile App', title: 'User Authentication', estimated_minutes: 360},
-  {projectName: 'Mobile App', title: 'Push Notifications', estimated_minutes: 240},
-  {projectName: 'Mobile App', title: 'Profile Settings', estimated_minutes: 150},
+  {
+    projectName: 'Website Redesign',
+    title: 'Homepage UI',
+    estimated_minutes: 480,
+  },
+  {
+    projectName: 'Website Redesign',
+    title: 'Contact Form',
+    estimated_minutes: 120,
+  },
+  {
+    projectName: 'Website Redesign',
+    title: 'Navigation Menu',
+    estimated_minutes: 180,
+  },
+  {
+    projectName: 'Website Redesign',
+    title: 'Footer Section',
+    estimated_minutes: 90,
+  },
+  {
+    projectName: 'Mobile App',
+    title: 'User Authentication',
+    estimated_minutes: 360,
+  },
+  {
+    projectName: 'Mobile App',
+    title: 'Push Notifications',
+    estimated_minutes: 240,
+  },
+  {
+    projectName: 'Mobile App',
+    title: 'Profile Settings',
+    estimated_minutes: 150,
+  },
   {projectName: 'Mobile App', title: 'Data Sync', estimated_minutes: 300},
-  {projectName: 'Dashboard Analytics', title: 'Data Visualization', estimated_minutes: 540},
-  {projectName: 'Dashboard Analytics', title: 'Report Generation', estimated_minutes: 300},
-  {projectName: 'Dashboard Analytics', title: 'Export Module', estimated_minutes: 180},
-  {projectName: 'Dashboard Analytics', title: 'Filter System', estimated_minutes: 240},
+  {
+    projectName: 'Dashboard Analytics',
+    title: 'Data Visualization',
+    estimated_minutes: 540,
+  },
+  {
+    projectName: 'Dashboard Analytics',
+    title: 'Report Generation',
+    estimated_minutes: 300,
+  },
+  {
+    projectName: 'Dashboard Analytics',
+    title: 'Export Module',
+    estimated_minutes: 180,
+  },
+  {
+    projectName: 'Dashboard Analytics',
+    title: 'Filter System',
+    estimated_minutes: 240,
+  },
 ];
 
 const getWorkingDaysInJanuary2026 = () => {
@@ -61,7 +105,9 @@ const generateTimeEntries = (taskMap, workingDays) => {
       const underfilledTasks = taskIds.filter(id => entriesPerTask[id] < 20);
       const taskId =
         underfilledTasks.length > 0
-          ? underfilledTasks[Math.floor(Math.random() * underfilledTasks.length)]
+          ? underfilledTasks[
+              Math.floor(Math.random() * underfilledTasks.length)
+            ]
           : taskIds[Math.floor(Math.random() * taskIds.length)];
 
       const durationMinutes = 15 + Math.floor(Math.random() * 105);
@@ -75,7 +121,9 @@ const generateTimeEntries = (taskMap, workingDays) => {
       entries.push({
         task_id: taskId,
         start: start.toISOString().slice(0, 19).replace('T', ' '),
-        end: isLastDayLastEntry ? null : end.toISOString().slice(0, 19).replace('T', ' '),
+        end: isLastDayLastEntry
+          ? null
+          : end.toISOString().slice(0, 19).replace('T', ' '),
       });
 
       entriesPerTask[taskId]++;
