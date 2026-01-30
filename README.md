@@ -2,7 +2,7 @@
 
 A terminal-based time tracker with vim keybindings.
 
-![Task Tracker Screenshot](assets/screenshot.png)
+![Task Tracker Screenshot](assets/task-tracker.png)
 
 Time tracker that
 - Lives in my terminal
