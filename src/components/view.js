@@ -79,6 +79,7 @@ const View = () => {
     null,
     currentRange.startDate,
     currentRange.endDate,
+    reload,
   );
 
   useEffect(() => {
