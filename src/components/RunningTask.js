@@ -43,10 +43,12 @@ const RunningTask = ({timeSoFar = 0}) => {
   if (!isActive) return null;
 
   const total = timeSoFar + currentValue;
+  const hasPreviousTime = timeSoFar > 0;
 
   return (
     <Text>
-      {formatPadded(total)} ← {formatPadded(currentValue)}
+      {formatPadded(total)}
+      {hasPreviousTime && ` ← ${formatPadded(currentValue)}`}
     </Text>
   );
 };

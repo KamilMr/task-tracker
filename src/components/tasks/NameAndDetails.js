@@ -1,5 +1,5 @@
 import React from 'react';
-import {Text} from 'ink';
+import {Text, Box} from 'ink';
 import {formatEstimation} from '../../utils.js';
 import RunningTask from '../RunningTask.js';
 import MetadataBadges from './MetadataBadges.js';
@@ -13,28 +13,44 @@ const NameAndDetails = ({uniqueTask, isSelected, timeDisplay}) => {
   const timeColor = isOvertime ? 'red' : undefined;
   const isRunning = uniqueTask.isActive;
 
+  // Check if we have any time to display (stopped task with 0 time)
+  const hasTimeToShow = isRunning || uniqueTask.totalSec > 0;
+
   return (
-    <Text key={uniqueTask.title} color={baseColor}>
-      {isOvertime && <Text color="red">⚠ </Text>}
-      {!isOvertime && (isRunning ? '▶ ' : isSelected ? '• ' : '  ')}
-      {uniqueTask.title}{' '}
-      <Text dimColor={!isOvertime && !isRunning} color={timeColor}>
-        (
-        {isRunning ? (
-          <RunningTask timeSoFar={uniqueTask.totalSec} />
-        ) : (
-          timeDisplay
-        )}
-        {estimationDisplay && ` / ${estimationDisplay}`})
+    <Box flexDirection="column">
+      {/* Line 1: Indicator + Title */}
+      <Text color={baseColor} wrap="wrap">
+        {isOvertime && <Text color="red">⚠ </Text>}
+        {!isOvertime && (isRunning ? '▶ ' : isSelected ? '• ' : '  ')}
+        {uniqueTask.title}
       </Text>
-      <MetadataBadges
-        epic={uniqueTask.epic}
-        category={uniqueTask.category}
-        isExploration={uniqueTask.isExploration}
-        scope={uniqueTask.scope}
-        dimmed={!isSelected}
-      />
-    </Text>
+
+      {/* Line 2: Time + Metadata */}
+      <Text>
+        {'  '}
+        {hasTimeToShow && (
+          <Text dimColor={!isOvertime && !isRunning} color={timeColor}>
+            (
+            {isRunning ? (
+              <RunningTask timeSoFar={uniqueTask.totalSec} />
+            ) : (
+              timeDisplay
+            )}
+            {estimationDisplay && ` / ${estimationDisplay}`})
+          </Text>
+        )}
+        {!hasTimeToShow && estimationDisplay && (
+          <Text dimColor>(est: {estimationDisplay})</Text>
+        )}
+        <MetadataBadges
+          epic={uniqueTask.epic}
+          category={uniqueTask.category}
+          isExploration={uniqueTask.isExploration}
+          scope={uniqueTask.scope}
+          dimmed={!isSelected}
+        />
+      </Text>
+    </Box>
   );
 };
 
