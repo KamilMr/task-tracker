@@ -33,7 +33,8 @@ const MetadataBadges = ({
   scope,
   dimmed = false,
 }) => {
-  const hasBadges = epic || category || isExploration || scope;
+  const hasExploration = isExploration === true || isExploration === 1;
+  const hasBadges = epic || category || hasExploration || scope;
   if (!hasBadges) return null;
 
   return (
@@ -45,13 +46,19 @@ const MetadataBadges = ({
         </Text>
       )}
       {scope && <Text> [{SCOPE_SHORT[scope]}]</Text>}
-      {isExploration && (
+      {hasExploration && (
         <Text color={dimmed ? undefined : 'yellow'}> [exp]</Text>
       )}
       {epic && (
         <Text color={dimmed ? undefined : 'cyan'}>
           {' '}
-          [<TruncatedText text={epic} maxLength={12} color={dimmed ? undefined : 'cyan'} />]
+          [
+          <TruncatedText
+            text={epic}
+            maxLength={12}
+            color={dimmed ? undefined : 'cyan'}
+          />
+          ]
         </Text>
       )}
     </Text>

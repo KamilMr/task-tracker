@@ -21,10 +21,18 @@ const VALID_SCOPES = ['small', 'medium', 'large'];
 const validateMetadata = ({epic, category, scope}) => {
   if (epic !== undefined && epic !== null && epic.length > 100)
     throw new Error('Epic cannot exceed 100 characters');
-  if (category !== undefined && category !== null && !VALID_CATEGORIES.includes(category))
-    throw new Error(`Invalid category. Must be one of: ${VALID_CATEGORIES.join(', ')}`);
+  if (
+    category !== undefined &&
+    category !== null &&
+    !VALID_CATEGORIES.includes(category)
+  )
+    throw new Error(
+      `Invalid category. Must be one of: ${VALID_CATEGORIES.join(', ')}`,
+    );
   if (scope !== undefined && scope !== null && !VALID_SCOPES.includes(scope))
-    throw new Error(`Invalid scope. Must be one of: ${VALID_SCOPES.join(', ')}`);
+    throw new Error(
+      `Invalid scope. Must be one of: ${VALID_SCOPES.join(', ')}`,
+    );
 };
 
 const taskService = {
@@ -177,7 +185,13 @@ const taskService = {
 
     validateMetadata({epic, category, scope});
 
-    return taskModel.updateMetadata({id: taskId, epic, category, isExploration, scope});
+    return taskModel.updateMetadata({
+      id: taskId,
+      epic,
+      category,
+      isExploration,
+      scope,
+    });
   },
 
   toggleExploration: async taskId => {

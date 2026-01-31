@@ -2,6 +2,8 @@ import React from 'react';
 import TaskCreatingForm from './TaskCreatingForm.js';
 import TaskEditingForm from './TaskEditingForm.js';
 import EstimationEditingForm from './EstimationEditingForm.js';
+import MetadataEditingForm from './MetadataEditingForm.js';
+import CategoryQuickSelect from './CategoryQuickSelect.js';
 import NoProjectSelected from './NoProjectSelected.js';
 import NoTasksFound from './NoTasksFound.js';
 import TasksList from './TasksList.js';
@@ -12,12 +14,15 @@ const TasksContent = ({
   isCreating,
   isEditing,
   isEditingEstimation,
+  isEditingMetadata,
+  isSelectingCategory,
   isDeleting,
   dateTasks,
   selectedProject,
   selectedTaskId,
   selectedTaskTitle,
   selectedTaskEstimationMinutes,
+  selectedTaskMetadata,
   dateDisplay,
   isT1,
   handleCreateSubmit,
@@ -26,6 +31,10 @@ const TasksContent = ({
   handleEditCancel,
   handleEstimationSubmit,
   handleEstimationCancel,
+  handleMetadataSubmit,
+  handleMetadataCancel,
+  handleCategorySelect,
+  handleCategoryCancel,
   handleDeleteConfirm,
   handleDeleteCancel,
 }) => {
@@ -55,6 +64,27 @@ const TasksContent = ({
         taskTitle={selectedTaskTitle}
         onSubmit={handleEstimationSubmit}
         onCancel={handleEstimationCancel}
+      />
+    );
+  }
+
+  if (isEditingMetadata) {
+    return (
+      <MetadataEditingForm
+        taskTitle={selectedTaskTitle}
+        defaultValues={selectedTaskMetadata}
+        onSubmit={handleMetadataSubmit}
+        onCancel={handleMetadataCancel}
+      />
+    );
+  }
+
+  if (isSelectingCategory) {
+    return (
+      <CategoryQuickSelect
+        currentCategory={selectedTaskMetadata?.category}
+        onSelect={handleCategorySelect}
+        onCancel={handleCategoryCancel}
       />
     );
   }

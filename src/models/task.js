@@ -54,7 +54,15 @@ const task = {
       .where('project_id', projectId)
       .orderBy('title', 'asc'),
 
-  update: ({id, title, estimatedMinutes, epic, category, isExploration, scope}) => {
+  update: ({
+    id,
+    title,
+    estimatedMinutes,
+    epic,
+    category,
+    isExploration,
+    scope,
+  }) => {
     const updates = {};
     if (title !== undefined) updates.title = title;
     if (estimatedMinutes !== undefined)

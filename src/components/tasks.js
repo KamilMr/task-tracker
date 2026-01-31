@@ -33,6 +33,8 @@ const Tasks = ({height}) => {
   const [isCreating, setIsCreating] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isEditingEstimation, setIsEditingEstimation] = useState(false);
+  const [isEditingMetadata, setIsEditingMetadata] = useState(false);
+  const [isSelectingCategory, setIsSelectingCategory] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedDate, setSelectedDate] = useState(retriveYYYYMMDD());
   const [isSynced, setIsSynced] = useState(false);
@@ -219,6 +221,72 @@ const Tasks = ({height}) => {
     setMessage('');
   };
 
+  const handleEditMetadata = () => {
+    if (!selectedTaskId) {
+      setMessage('No task selected');
+      return;
+    }
+    setIsEditingMetadata(true);
+    setMessage('');
+  };
+
+  const handleMetadataSubmit = async metadata => {
+    try {
+      await taskService.updateMetadata(selectedTaskId, metadata);
+      setIsEditingMetadata(false);
+      setMessage('Metadata updated');
+      triggerReload();
+    } catch (error) {
+      setMessage(`Error: ${error.message}`);
+    }
+  };
+
+  const handleMetadataCancel = () => {
+    setIsEditingMetadata(false);
+    setMessage('');
+  };
+
+  const handleToggleExploration = async () => {
+    if (!selectedTaskId) {
+      setMessage('No task selected');
+      return;
+    }
+    try {
+      const newValue = await taskService.toggleExploration(selectedTaskId);
+      setMessage(
+        newValue ? 'Marked as exploration' : 'Unmarked as exploration',
+      );
+      triggerReload();
+    } catch (error) {
+      setMessage(`Error: ${error.message}`);
+    }
+  };
+
+  const handleQuickCategory = () => {
+    if (!selectedTaskId) {
+      setMessage('No task selected');
+      return;
+    }
+    setIsSelectingCategory(true);
+    setMessage('');
+  };
+
+  const handleCategorySelect = async category => {
+    try {
+      await taskService.updateMetadata(selectedTaskId, {category});
+      setIsSelectingCategory(false);
+      setMessage(`Category set to ${category}`);
+      triggerReload();
+    } catch (error) {
+      setMessage(`Error: ${error.message}`);
+    }
+  };
+
+  const handleCategoryCancel = () => {
+    setIsSelectingCategory(false);
+    setMessage('');
+  };
+
   const handleStartStopTask = async () => {
     if (!selectedTaskId) {
       setMessage('No task selected');
@@ -282,6 +350,9 @@ const Tasks = ({height}) => {
     {key: 'c', action: handleNewTask},
     {key: 'e', action: handleEditTask},
     {key: 'E', action: handleEditEstimation},
+    {key: 'M', action: handleEditMetadata},
+    {key: 'C', action: handleQuickCategory},
+    {key: 'X', action: handleToggleExploration},
     {key: 'd', action: handleDeleteTask},
     {key: 'j', action: selectNextUniqueTask},
     {key: 'k', action: selectPreviousUniqueTask},
@@ -295,7 +366,12 @@ const Tasks = ({height}) => {
   useComponentKeys(TASKS, keyMappings, isTasksFocused);
 
   const isInEditMode =
-    isCreating || isEditing || isEditingEstimation || isDeleting;
+    isCreating ||
+    isEditing ||
+    isEditingEstimation ||
+    isEditingMetadata ||
+    isSelectingCategory ||
+    isDeleting;
   const taskCount = dateTasks.length;
 
   return (
@@ -315,12 +391,20 @@ const Tasks = ({height}) => {
           isCreating={isCreating}
           isEditing={isEditing}
           isEditingEstimation={isEditingEstimation}
+          isEditingMetadata={isEditingMetadata}
+          isSelectingCategory={isSelectingCategory}
           isDeleting={isDeleting}
           dateTasks={dateTasks}
           selectedProject={selectedProject}
           selectedTaskId={selectedTaskId}
           selectedTaskTitle={selectedTask?.title}
           selectedTaskEstimationMinutes={selectedTask?.estimatedMinutes}
+          selectedTaskMetadata={{
+            epic: selectedTask?.epic,
+            category: selectedTask?.category,
+            isExploration: selectedTask?.isExploration,
+            scope: selectedTask?.scope,
+          }}
           dateDisplay={dateDisplay}
           isT1={isT1}
           handleCreateSubmit={handleCreateSubmit}
@@ -329,6 +413,10 @@ const Tasks = ({height}) => {
           handleEditCancel={handleEditCancel}
           handleEstimationSubmit={handleEstimationSubmit}
           handleEstimationCancel={handleEstimationCancel}
+          handleMetadataSubmit={handleMetadataSubmit}
+          handleMetadataCancel={handleMetadataCancel}
+          handleCategorySelect={handleCategorySelect}
+          handleCategoryCancel={handleCategoryCancel}
           handleDeleteConfirm={handleDeleteConfirm}
           handleDeleteCancel={handleDeleteCancel}
         />
@@ -336,8 +424,7 @@ const Tasks = ({height}) => {
       <Frame.Footer>
         {isTasksFocused && mode === 'normal' && !isInEditMode && (
           <HelpBottom>
-            j/k:nav c:new e:edit E:estimate d:del s:start/stop p/n:day t:
-            {isSynced ? 'synced' : 'sync'}
+            j/k:nav c:new e:edit E:est M:meta C:cat X:exp d:del s:start p/n:day
           </HelpBottom>
         )}
       </Frame.Footer>
