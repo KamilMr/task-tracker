@@ -1,6 +1,6 @@
 {
   "name": "task-tracker",
-  "version": "1.0.15",
+  "version": "1.0.16",
   "description": "Simple task-tracker for Nodejs",
   "homepage": "https://github.com/KamilMr/task-tracker#readme",
   "author": "kamil.mrowka@gmail.com",
