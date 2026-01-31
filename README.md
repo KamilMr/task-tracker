@@ -5,6 +5,7 @@ A terminal-based time tracker with vim keybindings.
 ![Task Tracker Screenshot](assets/task-tracker.png)
 
 Time tracker that
+
 - Lives in my terminal
 - Uses vim-style navigation (`j/k`, modes, single-key commands)
 - Tracks clients, projects, and earnings
@@ -28,14 +29,14 @@ docker compose up -d
 
 ## Basic Controls
 
-| Key | Action |
-|-----|--------|
-| `Tab` / `0-3` | Switch sections |
-| `j` / `k` | Navigate lists |
-| `i` / `Esc` | Insert/Normal mode |
-| `s` | Start/Stop task |
+| Key             | Action             |
+| --------------- | ------------------ |
+| `Tab` / `0-3`   | Switch sections    |
+| `j` / `k`       | Navigate lists     |
+| `i` / `Esc`     | Insert/Normal mode |
+| `s`             | Start/Stop task    |
 | `c` / `e` / `d` | Create/Edit/Delete |
-| `q` | Quit |
+| `q`             | Quit               |
 
 ## Discord
 
