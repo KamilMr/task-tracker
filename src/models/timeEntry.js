@@ -71,6 +71,10 @@ const timeEntry = {
         'task.title',
         'task.project_id',
         'task.estimated_minutes',
+        'task.epic',
+        'task.category',
+        'task.is_exploration',
+        'task.scope',
       )
       .where('time_entry.start', '>=', start)
       .andWhere('time_entry.start', '<=', end);

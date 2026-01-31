@@ -2,6 +2,7 @@ import React from 'react';
 import {Text} from 'ink';
 import {formatEstimation} from '../../utils.js';
 import RunningTask from '../RunningTask.js';
+import MetadataBadges from './MetadataBadges.js';
 
 const NameAndDetails = ({uniqueTask, isSelected, timeDisplay}) => {
   const estimatedMinutes = uniqueTask.estimatedMinutes;
@@ -26,6 +27,13 @@ const NameAndDetails = ({uniqueTask, isSelected, timeDisplay}) => {
         )}
         {estimationDisplay && ` / ${estimationDisplay}`})
       </Text>
+      <MetadataBadges
+        epic={uniqueTask.epic}
+        category={uniqueTask.category}
+        isExploration={uniqueTask.isExploration}
+        scope={uniqueTask.scope}
+        dimmed={!isSelected}
+      />
     </Text>
   );
 };

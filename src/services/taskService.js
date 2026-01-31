@@ -8,6 +8,25 @@ import {
   sumEntryDurations,
 } from '../utils.js';
 
+const VALID_CATEGORIES = [
+  'integration',
+  'feature',
+  'ui',
+  'fix',
+  'refactor',
+  'config',
+];
+const VALID_SCOPES = ['small', 'medium', 'large'];
+
+const validateMetadata = ({epic, category, scope}) => {
+  if (epic !== undefined && epic !== null && epic.length > 100)
+    throw new Error('Epic cannot exceed 100 characters');
+  if (category !== undefined && category !== null && !VALID_CATEGORIES.includes(category))
+    throw new Error(`Invalid category. Must be one of: ${VALID_CATEGORIES.join(', ')}`);
+  if (scope !== undefined && scope !== null && !VALID_SCOPES.includes(scope))
+    throw new Error(`Invalid scope. Must be one of: ${VALID_SCOPES.join(', ')}`);
+};
+
 const taskService = {
   create: async ({title, projectId, estimatedMinutes = null}) => {
     if (!title || title.trim().length === 0)
@@ -152,6 +171,24 @@ const taskService = {
     return taskModel.update({id: taskId, estimatedMinutes});
   },
 
+  updateMetadata: async (taskId, {epic, category, isExploration, scope}) => {
+    const task = await taskModel.selectById(taskId);
+    if (!task) throw new Error('Task not found');
+
+    validateMetadata({epic, category, scope});
+
+    return taskModel.updateMetadata({id: taskId, epic, category, isExploration, scope});
+  },
+
+  toggleExploration: async taskId => {
+    const task = await taskModel.selectById(taskId);
+    if (!task) throw new Error('Task not found');
+
+    const newValue = !task.is_exploration;
+    await taskModel.updateMetadata({id: taskId, isExploration: newValue});
+    return newValue;
+  },
+
   delete: async id => {
     // Delete all time entries for this task first
     await timeEntryModel.deleteByTaskId(id);
@@ -235,6 +272,10 @@ const taskService = {
           title: activeTask.title,
           project_id: activeTask.project_id,
           estimated_minutes: activeTask.estimated_minutes,
+          epic: activeTask.epic,
+          category: activeTask.category,
+          is_exploration: activeTask.is_exploration,
+          scope: activeTask.scope,
         });
       }
     }
@@ -249,6 +290,10 @@ const taskService = {
           title: entry.title,
           projectId: entry.project_id,
           estimatedMinutes: entry.estimated_minutes,
+          epic: entry.epic,
+          category: entry.category,
+          isExploration: entry.is_exploration,
+          scope: entry.scope,
           totalSec: 0,
           segments: [],
         };

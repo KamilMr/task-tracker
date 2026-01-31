@@ -9,11 +9,23 @@ const task = {
       .join('project', 'task.project_id', 'project.id')
       .select('task.*', 'project.name as project_name'),
 
-  create: ({title, projectId, estimatedMinutes = null}) =>
+  create: ({
+    title,
+    projectId,
+    estimatedMinutes = null,
+    epic = null,
+    category = null,
+    isExploration = false,
+    scope = null,
+  }) =>
     db(TABLE).insert({
       title,
       project_id: projectId,
       estimated_minutes: estimatedMinutes,
+      epic,
+      category,
+      is_exploration: isExploration,
+      scope,
     }),
 
   selectById: id => db(TABLE).select().where('id', id).first(),
@@ -42,11 +54,24 @@ const task = {
       .where('project_id', projectId)
       .orderBy('title', 'asc'),
 
-  update: ({id, title, estimatedMinutes}) => {
+  update: ({id, title, estimatedMinutes, epic, category, isExploration, scope}) => {
     const updates = {};
     if (title !== undefined) updates.title = title;
     if (estimatedMinutes !== undefined)
       updates.estimated_minutes = estimatedMinutes;
+    if (epic !== undefined) updates.epic = epic;
+    if (category !== undefined) updates.category = category;
+    if (isExploration !== undefined) updates.is_exploration = isExploration;
+    if (scope !== undefined) updates.scope = scope;
+    return db(TABLE).where({id}).update(updates);
+  },
+
+  updateMetadata: ({id, epic, category, isExploration, scope}) => {
+    const updates = {};
+    if (epic !== undefined) updates.epic = epic;
+    if (category !== undefined) updates.category = category;
+    if (isExploration !== undefined) updates.is_exploration = isExploration;
+    if (scope !== undefined) updates.scope = scope;
     return db(TABLE).where({id}).update(updates);
   },
 
