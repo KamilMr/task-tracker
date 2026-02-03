@@ -9,7 +9,7 @@ import {DataProvider} from './contexts/DataContext.js';
 import useTerminalSize from './hooks/useTerminalSize.js';
 
 const LAYOUT = {
-  leftColumnWidth: 30,
+  leftColumnWidth: 40,
   clientHeight: 10,
   projectHeight: 40,
   taskHeight: 50,

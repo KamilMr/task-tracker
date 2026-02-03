@@ -8,6 +8,7 @@ import BasicTextInput from './BasicTextInput.js';
 import DelayedDisappear from './DelayedDisappear.js';
 import HelpBottom from './HelpBottom.js';
 import Frame from './Frame.js';
+import ScrollBox from './ScrollBox.js';
 import clientService from '../services/clientService.js';
 import pricingService from '../services/pricingService.js';
 
@@ -269,23 +270,32 @@ const Client = ({height}) => {
       );
     }
 
-    if (selectedClient) {
-      const rate = selectedClient.hourly_rate;
-      const currency = selectedClient.currency || 'PLN';
-      const currencyShort = currency === 'PLN' ? 'zl' : currency.toLowerCase();
-      const rateText = rate ? `${rate}${currencyShort}` : '-';
-
-      const statsText = monthlyData
-        ? ` ${rateText}|${Math.floor(monthlyData.workedHours)}/${monthlyData.targetHours}|${monthlyData.workingDaysLeft}/${monthlyData.calendarDaysLeft}|~${Math.ceil(monthlyData.hoursPerWorkDay)}h/~${Math.ceil(monthlyData.hoursPerCalDay)}h`
-        : '';
+    if (clients.length > 0) {
+      const selectedIndex = clients.findIndex(c => c.id === selectedClientId);
 
       return (
-        <Box flexDirection="column">
-          <Text>
-            {selectedClient.name}
-            <Text dimColor>{statsText}</Text>
-          </Text>
-        </Box>
+        <ScrollBox height={2} selectedIndex={selectedIndex}>
+          {clients.map(client => {
+            const isSelected = client.id === selectedClientId;
+            const rate = client.hourly_rate;
+            const currency = client.currency || 'PLN';
+            const currencyShort = currency === 'PLN' ? 'zl' : currency.toLowerCase();
+            const rateText = rate ? `${rate}${currencyShort}` : '-';
+
+            const statsText =
+              isSelected && monthlyData
+                ? ` ${rateText}|${Math.floor(monthlyData.workedHours)}/${monthlyData.targetHours}|${monthlyData.workingDaysLeft}/${monthlyData.calendarDaysLeft}|~${Math.ceil(monthlyData.hoursPerWorkDay)}h/~${Math.ceil(monthlyData.hoursPerCalDay)}h`
+                : '';
+
+            return (
+              <Text key={client.id}>
+                {isSelected ? '> ' : '  '}
+                <Text bold={isSelected}>{client.name}</Text>
+                {isSelected && <Text dimColor>{statsText}</Text>}
+              </Text>
+            );
+          })}
+        </ScrollBox>
       );
     }
 
