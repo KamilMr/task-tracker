@@ -8,6 +8,7 @@ import NoProjectSelected from './NoProjectSelected.js';
 import NoTasksFound from './NoTasksFound.js';
 import TasksList from './TasksList.js';
 import VimTextInput from '../VimTextInput.js';
+import AutocompleteTextInput from '../AutocompleteTextInput.js';
 import {formatEstimation} from '../../utils.js';
 
 const TasksContent = ({
@@ -17,6 +18,7 @@ const TasksContent = ({
   isEditingMetadata,
   isSelectingCategory,
   isDeleting,
+  isSearching,
   dateTasks,
   selectedProject,
   selectedTaskId,
@@ -37,7 +39,21 @@ const TasksContent = ({
   handleCategoryCancel,
   handleDeleteConfirm,
   handleDeleteCancel,
+  handleSearchSubmit,
+  handleSearchCancel,
+  selectedProjectId,
 }) => {
+  if (isSearching) {
+    return (
+      <AutocompleteTextInput
+        label="Search task"
+        projectId={selectedProjectId}
+        onSubmit={handleSearchSubmit}
+        onCancel={handleSearchCancel}
+      />
+    );
+  }
+
   if (isCreating) {
     return (
       <TaskCreatingForm

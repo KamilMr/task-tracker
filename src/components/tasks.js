@@ -36,6 +36,7 @@ const Tasks = ({height}) => {
   const [isEditingMetadata, setIsEditingMetadata] = useState(false);
   const [isSelectingCategory, setIsSelectingCategory] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   const [selectedDate, setSelectedDate] = useState(retriveYYYYMMDD());
   const [isSynced, setIsSynced] = useState(false);
 
@@ -103,6 +104,36 @@ const Tasks = ({height}) => {
       return;
     }
     setIsCreating(true);
+    setMessage('');
+  };
+
+  const handleSearchTask = () => {
+    if (!selectedProjectId) {
+      setMessage('Select a project first');
+      return;
+    }
+    setIsSearching(true);
+    setMessage('');
+  };
+
+  const handleSearchSubmit = async title => {
+    if (!title.trim()) return;
+    try {
+      const result = await taskService.toggleTask({
+        title: title.trim(),
+        projectId: selectedProjectId,
+      });
+      setIsSearching(false);
+      setSelectedTaskId(result.taskId);
+      setMessage(`Started task: ${title}`);
+      triggerReload();
+    } catch (error) {
+      setMessage(`Error: ${error.message}`);
+    }
+  };
+
+  const handleSearchCancel = () => {
+    setIsSearching(false);
     setMessage('');
   };
 
@@ -361,6 +392,7 @@ const Tasks = ({height}) => {
     {key: 'n', action: handleNextDay},
     {key: 'x', action: handleSetIsT1},
     {key: 't', action: handleTogglSync},
+    {key: '/', action: handleSearchTask},
   ];
 
   useComponentKeys(TASKS, keyMappings, isTasksFocused);
@@ -371,7 +403,8 @@ const Tasks = ({height}) => {
     isEditingEstimation ||
     isEditingMetadata ||
     isSelectingCategory ||
-    isDeleting;
+    isDeleting ||
+    isSearching;
   const taskCount = dateTasks.length;
 
   return (
@@ -394,6 +427,7 @@ const Tasks = ({height}) => {
           isEditingMetadata={isEditingMetadata}
           isSelectingCategory={isSelectingCategory}
           isDeleting={isDeleting}
+          isSearching={isSearching}
           dateTasks={dateTasks}
           selectedProject={selectedProject}
           selectedTaskId={selectedTaskId}
@@ -419,12 +453,15 @@ const Tasks = ({height}) => {
           handleCategoryCancel={handleCategoryCancel}
           handleDeleteConfirm={handleDeleteConfirm}
           handleDeleteCancel={handleDeleteCancel}
+          handleSearchSubmit={handleSearchSubmit}
+          handleSearchCancel={handleSearchCancel}
+          selectedProjectId={selectedProjectId}
         />
       </Frame.Body>
       <Frame.Footer>
         {isTasksFocused && mode === 'normal' && !isInEditMode && (
           <HelpBottom>
-            j/k:nav c:new e:edit E:est M:meta C:cat X:exp d:del s:start p/n:day
+            j/k:nav c:new /:search e:edit E:est M:meta C:cat d:del s:start p/n:day
           </HelpBottom>
         )}
       </Frame.Footer>

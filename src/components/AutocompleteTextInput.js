@@ -9,12 +9,13 @@ const AutocompleteTextInput = ({
   projectId,
   onSubmit,
   onCancel,
+  label = '',
 }) => {
   const [value, setValue] = useState(defaultValue);
   const [allSuggestions, setAllSuggestions] = useState([]);
   const [filteredSuggestions, setFilteredSuggestions] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const {setMode} = useNavigation();
+  const {setInputLocked} = useNavigation();
 
   // Fetch suggestions on mount
   useEffect(() => {
@@ -25,15 +26,23 @@ const AutocompleteTextInput = ({
       }
     };
 
-    setMode('insert');
+    setInputLocked(true);
     setValue(defaultValue);
     fetchSuggestions();
-  }, [setMode, defaultValue, projectId]);
+
+    return () => setInputLocked(false);
+  }, [setInputLocked, defaultValue, projectId]);
 
   // Filter suggestions whenever value changes
   useEffect(() => {
-    if (!value.trim() || allSuggestions.length === 0) {
+    if (allSuggestions.length === 0) {
       setFilteredSuggestions([]);
+      setSelectedIndex(0);
+      return;
+    }
+
+    if (!value.trim()) {
+      setFilteredSuggestions(allSuggestions);
       setSelectedIndex(0);
       return;
     }
@@ -45,7 +54,7 @@ const AutocompleteTextInput = ({
     });
 
     const results = fuse.search(value);
-    const matches = results.slice(0, 5).map(result => result.item);
+    const matches = results.map(result => result.item);
     setFilteredSuggestions(matches);
     setSelectedIndex(0);
   }, [value, allSuggestions]);
@@ -73,17 +82,16 @@ const AutocompleteTextInput = ({
     }
 
     if (key.return) {
-      // Use the typed value directly
+      setInputLocked(false);
       onSubmit(value);
       setValue('');
-      setMode('normal');
       return;
     }
 
     if (key.escape) {
+      setInputLocked(false);
       onCancel();
       setValue('');
-      setMode('normal');
       return;
     }
 
@@ -99,6 +107,11 @@ const AutocompleteTextInput = ({
 
   return (
     <Box flexDirection="column">
+      {label && (
+        <Text color="cyan" bold>
+          {label}
+        </Text>
+      )}
       <Text>
         {value}
         <Text inverse> </Text>
