@@ -35,14 +35,16 @@ export const NavigationProvider = ({children}) => {
       return;
     }
 
-    if (input === 'i') {
-      setMode('insert');
-      return;
-    }
-
     if (input === 'q' && mode === 'normal') exit();
 
     if (mode !== 'normal') return;
+
+    // Component handlers get priority over global keys
+    const currentHandler = componentKeyHandlers.current.get(focusedSection);
+    if (currentHandler && currentHandler[input]) {
+      currentHandler[input]();
+      return;
+    }
 
     if (key.tab) {
       const sections = [VIEW, CLIENT, PROJECTS, TASKS];
@@ -55,12 +57,6 @@ export const NavigationProvider = ({children}) => {
     if (input === '1') setFocusedSection(CLIENT);
     if (input === '2') setFocusedSection(PROJECTS);
     if (input === '3') setFocusedSection(TASKS);
-
-    const currentHandler = componentKeyHandlers.current.get(focusedSection);
-    if (currentHandler && currentHandler[input]) {
-      currentHandler[input]();
-      return;
-    }
   });
 
   const registerKeyHandler = (componentId, keyHandler) => {
