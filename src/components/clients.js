@@ -274,7 +274,7 @@ const Client = ({height}) => {
       const selectedIndex = clients.findIndex(c => c.id === selectedClientId);
 
       return (
-        <ScrollBox height={2} selectedIndex={selectedIndex}>
+        <ScrollBox height={Math.max(1, height - 5)} selectedIndex={selectedIndex}>
           {clients.map(client => {
             const isSelected = client.id === selectedClientId;
             const rate = client.hourly_rate;
@@ -284,7 +284,7 @@ const Client = ({height}) => {
 
             const statsText =
               isSelected && monthlyData
-                ? ` ${rateText}|${Math.floor(monthlyData.workedHours)}/${monthlyData.targetHours}|${monthlyData.workingDaysLeft}/${monthlyData.calendarDaysLeft}|~${Math.ceil(monthlyData.hoursPerWorkDay)}h/~${Math.ceil(monthlyData.hoursPerCalDay)}h`
+                ? ` ${rateText}|${Math.floor(monthlyData.workedHours)}/${monthlyData.targetHours}|${monthlyData.workingDaysLeft}/${monthlyData.calendarDaysLeft}|~${monthlyData.hoursPerWorkDay}h/~${monthlyData.hoursPerCalDay}h`
                 : '';
 
             return (

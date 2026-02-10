@@ -237,6 +237,12 @@ export const formatHour = hour => {
   return `${formatH(hour)}-${formatH(nextHour)}`;
 };
 
+export const formatDecimalHoursToHHmm = hours => {
+  const h = Math.floor(hours);
+  const m = Math.round((hours - h) * 60);
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+};
+
 // Pricing formatting utilities
 export const formatCurrency = (amount, currency = 'PLN') => {
   if (amount === null || amount === undefined) return null;

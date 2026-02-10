@@ -10,7 +10,7 @@ import timeEntryModel from '../models/timeEntry.js';
 import taskModel from '../models/task.js';
 import projectModel from '../models/project.js';
 import clientRateHistory from '../models/clientRateHistory.js';
-import {calculateDuration, retriveYYYYMMDD} from '../utils.js';
+import {calculateDuration, retriveYYYYMMDD, formatDecimalHoursToHHmm} from '../utils.js';
 
 // Find the applicable rate for a given date from sorted rate periods
 const findRateForDate = (rates, date) => {
@@ -250,8 +250,8 @@ const pricingService = {
       workingDaysLeft,
       calendarDaysLeft,
       remainingHours,
-      hoursPerWorkDay,
-      hoursPerCalDay,
+      hoursPerWorkDay:formatDecimalHoursToHHmm(hoursPerWorkDay),
+      hoursPerCalDay: formatDecimalHoursToHHmm(hoursPerCalDay),
     };
   },
 };
