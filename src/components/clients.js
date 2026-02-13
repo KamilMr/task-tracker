@@ -11,6 +11,7 @@ import Frame from './Frame.js';
 import ScrollBox from './ScrollBox.js';
 import clientService from '../services/clientService.js';
 import pricingService from '../services/pricingService.js';
+import ProgressBar from './ProgressBar.js';
 
 const Client = ({height}) => {
   const {isClientFocused, getBorderTitle, mode} = useNavigation();
@@ -277,21 +278,38 @@ const Client = ({height}) => {
         <ScrollBox height={Math.max(1, height - 5)} selectedIndex={selectedIndex}>
           {clients.map(client => {
             const isSelected = client.id === selectedClientId;
-            const rate = client.hourly_rate;
-            const currency = client.currency || 'PLN';
-            const currencyShort = currency === 'PLN' ? 'zl' : currency.toLowerCase();
-            const rateText = rate ? `${rate}${currencyShort}` : '-';
 
-            const statsText =
-              isSelected && monthlyData
-                ? ` ${rateText}|${Math.floor(monthlyData.workedHours)}/${monthlyData.targetHours}|${monthlyData.workingDaysLeft}/${monthlyData.calendarDaysLeft}|~${monthlyData.hoursPerWorkDay}h/~${monthlyData.hoursPerCalDay}h`
-                : '';
+            if (isSelected && monthlyData) {
+              const rate = client.hourly_rate;
+              const currency = client.currency || 'PLN';
+              const currencyShort = currency === 'PLN' ? 'zl' : currency.toLowerCase();
+              const rateText = rate ? ` ${rate}${currencyShort}` : '';
+
+              return (
+                <Box key={client.id} flexDirection="column">
+                  <Text>
+                    {'> '}
+                    <Text bold>{client.name}</Text>
+                    <Text dimColor>{rateText}</Text>
+                  </Text>
+                  <Text>
+                    {'  '}
+                    <ProgressBar
+                      workedHours={monthlyData.workedHours}
+                      targetHours={monthlyData.targetHours}
+                      remainingHours={monthlyData.remainingHours}
+                      workingDaysLeft={monthlyData.workingDaysLeft}
+                      hoursPerWorkDay={monthlyData.hoursPerWorkDay}
+                    />
+                  </Text>
+                </Box>
+              );
+            }
 
             return (
               <Text key={client.id}>
                 {isSelected ? '> ' : '  '}
                 <Text bold={isSelected}>{client.name}</Text>
-                {isSelected && <Text dimColor>{statsText}</Text>}
               </Text>
             );
           })}
