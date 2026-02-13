@@ -62,8 +62,12 @@ const View = ({height}) => {
   const [isEditingStart, setIsEditingStart] = useState(false);
   const [isEditingEnd, setIsEditingEnd] = useState(false);
   const [selectedRangeIndex, setSelectedRangeIndex] = useState(0);
+  const [projectRangeIndex, setProjectRangeIndex] = useState(0);
+  const [clientRangeIndex, setClientRangeIndex] = useState(0);
 
   const currentRange = getDateRange(RANGE_OPTIONS[selectedRangeIndex].type);
+  const projectRange = getDateRange(RANGE_OPTIONS[projectRangeIndex].type);
+  const clientRange = getDateRange(RANGE_OPTIONS[clientRangeIndex].type);
 
   const {
     selectedIndex: selectedEntryIndex,
@@ -81,6 +85,22 @@ const View = ({height}) => {
     null,
     currentRange.startDate,
     currentRange.endDate,
+    reload,
+  );
+  const {pricing: projectPricing, loading: projectPricingLoading} = usePricing(
+    null,
+    selectedProjectId,
+    null,
+    projectRange.startDate,
+    projectRange.endDate,
+    reload,
+  );
+  const {pricing: clientPricing, loading: clientPricingLoading} = usePricing(
+    null,
+    null,
+    selectedClientId,
+    clientRange.startDate,
+    clientRange.endDate,
     reload,
   );
 
@@ -201,22 +221,41 @@ const View = ({height}) => {
     );
   };
 
+  const makeRangeHandlers = setter => ({
+    next: () => setter(prev => (prev < RANGE_OPTIONS.length - 1 ? prev + 1 : 0)),
+    prev: () => setter(prev => (prev > 0 ? prev - 1 : RANGE_OPTIONS.length - 1)),
+  });
+
+  const projectRangeHandlers = makeRangeHandlers(setProjectRangeIndex);
+  const clientRangeHandlers = makeRangeHandlers(setClientRangeIndex);
+
   const isEditing = isEditingStart || isEditingEnd;
-  const keyMappings =
-    selectedTaskId && taskDetails && !isEditing
-      ? [
-          {key: 'j', action: selectNextEntry},
-          {key: 'k', action: selectPreviousEntry},
-          {key: 'd', action: deleteSelectedEntry},
-          {key: 'e', action: handleEditStart},
-          {key: 'E', action: handleEditEnd},
-          {key: 'h', action: handleRangePrev},
-          {key: 'l', action: handleRangeNext},
-        ]
-      : [
-          {key: 'h', action: handleRangePrev},
-          {key: 'l', action: handleRangeNext},
-        ];
+  let keyMappings;
+  if ((isTasksFocused || isViewFocused) && selectedTaskId && taskDetails && !isEditing)
+    keyMappings = [
+      {key: 'j', action: selectNextEntry},
+      {key: 'k', action: selectPreviousEntry},
+      {key: 'd', action: deleteSelectedEntry},
+      {key: 'e', action: handleEditStart},
+      {key: 'E', action: handleEditEnd},
+      {key: 'h', action: handleRangePrev},
+      {key: 'l', action: handleRangeNext},
+    ];
+  else if (isProjectsFocused && selectedProjectId)
+    keyMappings = [
+      {key: 'h', action: projectRangeHandlers.prev},
+      {key: 'l', action: projectRangeHandlers.next},
+    ];
+  else if (isClientFocused && selectedClientId)
+    keyMappings = [
+      {key: 'h', action: clientRangeHandlers.prev},
+      {key: 'l', action: clientRangeHandlers.next},
+    ];
+  else
+    keyMappings = [
+      {key: 'h', action: handleRangePrev},
+      {key: 'l', action: handleRangeNext},
+    ];
 
   useComponentKeys(VIEW, keyMappings, isViewFocused);
 
@@ -368,20 +407,74 @@ const View = ({height}) => {
     );
   };
 
+  const renderProjectDetails = () => {
+    const project = allProjects.find(p => p.id === selectedProjectId);
+    if (!project) return <Text dimColor>Loading...</Text>;
+
+    const client = clients.find(c => c.id === project.client_id);
+
+    return (
+      <Box flexDirection="column">
+        <RangeSelector options={RANGE_OPTIONS} selectedIndex={projectRangeIndex} />
+        <Box flexDirection="row">
+          <Box width={30}>
+            <KeyValue
+              label="Project Details:"
+              items={[
+                {key: 'Name', value: project.name},
+                {key: 'Client', value: client?.name || 'Unknown'},
+              ]}
+            />
+          </Box>
+          <Box width={30} marginLeft={2}>
+            <Earnings pricing={projectPricing} loading={projectPricingLoading} />
+          </Box>
+        </Box>
+      </Box>
+    );
+  };
+
+  const renderClientDetails = () => {
+    const client = clients.find(c => c.id === selectedClientId);
+    if (!client) return <Text dimColor>Loading...</Text>;
+
+    return (
+      <Box flexDirection="column">
+        <RangeSelector options={RANGE_OPTIONS} selectedIndex={clientRangeIndex} />
+        <Box flexDirection="row">
+          <Box width={30}>
+            <KeyValue
+              label="Client Details:"
+              items={[{key: 'Name', value: client.name}]}
+            />
+          </Box>
+          <Box width={30} marginLeft={2}>
+            <Earnings pricing={clientPricing} loading={clientPricingLoading} />
+          </Box>
+        </Box>
+      </Box>
+    );
+  };
+
   const renderContent = () => {
-    if (isClientFocused && clients.length > 0) {
-      return (
-        <SelectableList
-          label="All Clients:"
-          items={clients}
-          selectedId={selectedClientId}
-          getId={c => c.id}
-          renderLabel={c => c.name}
-        />
-      );
+    if (isClientFocused) {
+      if (selectedClientId) return renderClientDetails();
+      if (clients.length > 0) {
+        return (
+          <SelectableList
+            label="All Clients:"
+            items={clients}
+            selectedId={selectedClientId}
+            getId={c => c.id}
+            renderLabel={c => c.name}
+          />
+        );
+      }
+      return <Text dimColor>No clients found</Text>;
     }
 
     if (isProjectsFocused) {
+      if (selectedProjectId) return renderProjectDetails();
       if (allProjects.length === 0)
         return <Text dimColor>No projects found</Text>;
 
@@ -430,13 +523,21 @@ const View = ({height}) => {
       <Frame.Header>
         <Text color={borderColor} bold>
           {title}
-          {taskDetails && <Text dimColor> - {taskDetails.title}</Text>}
+          {taskDetails && (isTasksFocused || isViewFocused) && <Text dimColor> - {taskDetails.title}</Text>}
+          {isProjectsFocused && selectedProjectId && <Text dimColor> - {allProjects.find(p => p.id === selectedProjectId)?.name}</Text>}
+          {isClientFocused && selectedClientId && <Text dimColor> - {clients.find(c => c.id === selectedClientId)?.name}</Text>}
         </Text>
       </Frame.Header>
       <Frame.Body>{renderContent()}</Frame.Body>
       <Frame.Footer>
         {isViewFocused && selectedTaskId && hasTimeEntries && (
           <HelpBottom>h/l:range j/k:entries e/E:edit d:delete</HelpBottom>
+        )}
+        {isProjectsFocused && selectedProjectId && (
+          <HelpBottom>h/l:range</HelpBottom>
+        )}
+        {isClientFocused && selectedClientId && (
+          <HelpBottom>h/l:range</HelpBottom>
         )}
       </Frame.Footer>
     </Frame>
