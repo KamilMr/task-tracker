@@ -15,6 +15,7 @@ import useScrollableList from '../hooks/useScrollableList.js';
 import useTaskAnalytics from '../hooks/useTaskAnalytics.js';
 import usePricing from '../hooks/usePricing.js';
 import TimeEditForm from './TimeEditForm.js';
+import KeyValue from './KeyValue.js';
 import {
   formatTime,
   formatEstimation,
@@ -279,120 +280,51 @@ const View = ({height}) => {
           <Text dimColor> (h/l to change)</Text>
         </Box>
         <Box flexDirection="row" marginBottom={1}>
-          {/* Task Details Column */}
-          <Box flexDirection="column" width={30}>
-            <Text color="cyan" bold>
-              Task Details:
-            </Text>
-            <Text>
-              <Text bold>Title: </Text>
-              {taskDetails.title}
-            </Text>
-            <Text>
-              <Text bold>Project: </Text>
-              {project?.name || 'Unknown'}
-            </Text>
-            <Text>
-              <Text bold>Client: </Text>
-              {client?.name || 'Unknown'}
-            </Text>
-            <Text>
-              <Text bold>Status: </Text>
-              {activeEntries > 0 ? (
-                <Text color="green">Active</Text>
-              ) : (
-                <Text>Stopped</Text>
-              )}
-            </Text>
-            <Text>
-              <Text bold>Estimation: </Text>
-              {formatEstimation(taskDetails.estimated_minutes) || (
-                <Text dimColor>None</Text>
-              )}
-            </Text>
-            <Text>
-              <Text bold>Total: </Text>
-              <Text color={isOvertime ? 'red' : undefined}>
-                {formatTime(totalSeconds) || '-'}
-              </Text>
-            </Text>
+          <Box width={30}>
+            <KeyValue
+              label="Task Details:"
+              items={[
+                {key: 'Title', value: taskDetails.title},
+                {key: 'Project', value: project?.name || 'Unknown'},
+                {key: 'Client', value: client?.name || 'Unknown'},
+                {key: 'Status', value: activeEntries > 0 ? <Text color="green">Active</Text> : 'Stopped'},
+                {key: 'Estimation', value: formatEstimation(taskDetails.estimated_minutes) || <Text dimColor>None</Text>},
+                {key: 'Total', value: <Text color={isOvertime ? 'red' : undefined}>{formatTime(totalSeconds) || '-'}</Text>},
+              ]}
+            />
           </Box>
 
-          {/* Analytics Column */}
-          <Box flexDirection="column" width={35} marginLeft={2}>
+          <Box width={35} marginLeft={2}>
             {analyticsLoading ? (
               <Text dimColor>Loading...</Text>
             ) : analytics ? (
-              <>
-                <Text color="cyan" bold>
-                  Analytics ({analytics.meta.dateRangeDays}d):
-                </Text>
-                <Text>
-                  <Text bold>Sessions: </Text>
-                  {analytics.distribution.sessionCount}
-                </Text>
-                <Text>
-                  <Text bold>Days: </Text>
-                  {analytics.distribution.daysWorked}/
-                  {analytics.distribution.dateRangeDays}
-                </Text>
-                {analytics.distribution.peakHour !== null && (
-                  <Text>
-                    <Text bold>Peak: </Text>
-                    {formatHour(analytics.distribution.peakHour)}
-                  </Text>
-                )}
-                {analytics.distribution.deepWorkCount > 0 && (
-                  <Text>
-                    <Text bold>Deep Work: </Text>
-                    <Text color="green">
-                      {analytics.distribution.deepWorkCount}
-                    </Text>
-                  </Text>
-                )}
-                {analytics.distribution.lastActivityDate && (
-                  <Text>
-                    <Text bold>Last: </Text>
-                    {formatRelativeTime(
-                      analytics.distribution.lastActivityDate,
-                    )}
-                  </Text>
-                )}
-              </>
+              <KeyValue
+                label={`Analytics (${analytics.meta.dateRangeDays}d):`}
+                items={[
+                  {key: 'Sessions', value: analytics.distribution.sessionCount},
+                  {key: 'Days', value: `${analytics.distribution.daysWorked}/${analytics.distribution.dateRangeDays}`},
+                  ...(analytics.distribution.peakHour !== null ? [{key: 'Peak', value: formatHour(analytics.distribution.peakHour)}] : []),
+                  ...(analytics.distribution.deepWorkCount > 0 ? [{key: 'Deep Work', value: <Text color="green">{analytics.distribution.deepWorkCount}</Text>}] : []),
+                  ...(analytics.distribution.lastActivityDate ? [{key: 'Last', value: formatRelativeTime(analytics.distribution.lastActivityDate)}] : []),
+                ]}
+              />
             ) : null}
           </Box>
 
-          {/* Earnings Column */}
-          <Box flexDirection="column" width={25} marginLeft={2}>
+          <Box width={25} marginLeft={2}>
             {pricingLoading ? (
               <Text dimColor>Loading...</Text>
             ) : pricing && pricing.hourlyRate ? (
-              <>
-                <Text color="cyan" bold>
-                  Earnings ({pricing.dateRangeDays}d):
-                </Text>
-                <Text>
-                  <Text bold>Rate: </Text>
-                  {formatHourlyRate(pricing.hourlyRate, pricing.currency)}
-                </Text>
-                <Text>
-                  <Text bold>Hours: </Text>
-                  {pricing.hours.toFixed(2)}h
-                </Text>
-                <Text>
-                  <Text bold>Earned: </Text>
-                  <Text color="green">
-                    {formatCurrency(pricing.earnings, pricing.currency)}
-                  </Text>
-                </Text>
-              </>
+              <KeyValue
+                label={`Earnings (${pricing.dateRangeDays}d):`}
+                items={[
+                  {key: 'Rate', value: formatHourlyRate(pricing.hourlyRate, pricing.currency)},
+                  {key: 'Hours', value: `${pricing.hours.toFixed(2)}h`},
+                  {key: 'Earned', value: <Text color="green">{formatCurrency(pricing.earnings, pricing.currency)}</Text>},
+                ]}
+              />
             ) : pricing && !pricing.hourlyRate ? (
-              <>
-                <Text color="cyan" bold>
-                  Earnings:
-                </Text>
-                <Text dimColor>No rate set</Text>
-              </>
+              <KeyValue label="Earnings:" items={[{key: 'Status', value: <Text dimColor>No rate set</Text>}]} />
             ) : null}
           </Box>
         </Box>
