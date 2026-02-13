@@ -279,7 +279,7 @@ const Client = ({height}) => {
           {clients.map(client => {
             const isSelected = client.id === selectedClientId;
 
-            if (isSelected && monthlyData) {
+            if (isSelected && monthlyData && !isClientFocused) {
               const rate = client.hourly_rate;
               const currency = client.currency || 'PLN';
               const currencyShort = currency === 'PLN' ? 'zl' : currency.toLowerCase();

@@ -12,9 +12,9 @@ import pkg from '../package.json' with {type: 'json'};
 
 const LAYOUT = {
   leftColumnWidth: 40,
-  clientHeight: 10,
-  projectHeight: 40,
-  taskHeight: 50,
+  clientHeight: 15,
+  projectHeight: 37,
+  taskHeight: 48,
 };
 
 const AppContent = () => {
