@@ -217,8 +217,10 @@ const pricingService = {
       getDaysLeft();
 
     const projects = await projectModel.selectByCliId(clientId);
+    const todayStr = retriveYYYYMMDD(new Date());
 
     let totalSeconds = 0;
+    let workedTodaySeconds = 0;
 
     for (const project of projects) {
       const tasks = await taskModel.selectByProjectId(project.id);
@@ -230,18 +232,29 @@ const pricingService = {
           endDateStr,
         );
         for (const entry of entries) {
-          if (entry.end)
-            totalSeconds += calculateDuration(entry.start, entry.end);
+          const entryDate = retriveYYYYMMDD(new Date(entry.start));
+          if (entry.end) {
+            const duration = calculateDuration(entry.start, entry.end);
+            totalSeconds += duration;
+            if (entryDate === todayStr) workedTodaySeconds += duration;
+          } else if (entryDate === todayStr) {
+            const activeDuration = calculateDuration(entry.start, new Date());
+            workedTodaySeconds += activeDuration;
+            totalSeconds += activeDuration;
+          }
         }
       }
     }
 
     const workedHours = totalSeconds / 3600;
+    const workedTodayHours = workedTodaySeconds / 3600;
+    const workedBeforeTodayHours = workedHours - workedTodayHours;
     const remainingHours = Math.max(0, targetHours - workedHours);
-    const hoursPerWorkDay =
-      workingDaysLeft > 0 ? remainingHours / workingDaysLeft : 0;
-    const hoursPerCalDay =
-      calendarDaysLeft > 0 ? remainingHours / calendarDaysLeft : 0;
+    const remainingAtStartOfDay = Math.max(0, targetHours - workedBeforeTodayHours);
+    const dailyShareWork = workingDaysLeft > 0 ? remainingAtStartOfDay / workingDaysLeft : 0;
+    const dailyShareCal = calendarDaysLeft > 0 ? remainingAtStartOfDay / calendarDaysLeft : 0;
+    const hoursPerWorkDay = Math.max(0, dailyShareWork - workedTodayHours);
+    const hoursPerCalDay = Math.max(0, dailyShareCal - workedTodayHours);
 
     return {
       targetHours,
@@ -250,7 +263,7 @@ const pricingService = {
       workingDaysLeft,
       calendarDaysLeft,
       remainingHours,
-      hoursPerWorkDay:formatDecimalHoursToHHmm(hoursPerWorkDay),
+      hoursPerWorkDay: formatDecimalHoursToHHmm(hoursPerWorkDay),
       hoursPerCalDay: formatDecimalHoursToHHmm(hoursPerCalDay),
     };
   },
