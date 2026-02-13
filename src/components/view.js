@@ -16,6 +16,9 @@ import useTaskAnalytics from '../hooks/useTaskAnalytics.js';
 import usePricing from '../hooks/usePricing.js';
 import TimeEditForm from './TimeEditForm.js';
 import KeyValue from './KeyValue.js';
+import RangeSelector from './RangeSelector.js';
+import Earnings from './Earnings.js';
+import SelectableList from './SelectableList.js';
 import {
   formatTime,
   formatEstimation,
@@ -23,8 +26,6 @@ import {
   calculateDuration,
   formatRelativeTime,
   formatHour,
-  formatCurrency,
-  formatHourlyRate,
   getDateRange,
 } from '../utils.js';
 import {format} from 'date-fns';
@@ -264,21 +265,7 @@ const View = ({height}) => {
 
     return (
       <Box flexDirection="column">
-        <Box marginBottom={1}>
-          <Text dimColor>Range: </Text>
-          {RANGE_OPTIONS.map((option, index) => (
-            <Text key={option.label}>
-              {index === selectedRangeIndex ? (
-                <Text color="green" bold>
-                  [{option.label}]
-                </Text>
-              ) : (
-                <Text dimColor> {option.label} </Text>
-              )}
-            </Text>
-          ))}
-          <Text dimColor> (h/l to change)</Text>
-        </Box>
+        <RangeSelector options={RANGE_OPTIONS} selectedIndex={selectedRangeIndex} />
         <Box flexDirection="row" marginBottom={1}>
           <Box width={30}>
             <KeyValue
@@ -312,20 +299,7 @@ const View = ({height}) => {
           </Box>
 
           <Box width={25} marginLeft={2}>
-            {pricingLoading ? (
-              <Text dimColor>Loading...</Text>
-            ) : pricing && pricing.hourlyRate ? (
-              <KeyValue
-                label={`Earnings (${pricing.dateRangeDays}d):`}
-                items={[
-                  {key: 'Rate', value: formatHourlyRate(pricing.hourlyRate, pricing.currency)},
-                  {key: 'Hours', value: `${pricing.hours.toFixed(2)}h`},
-                  {key: 'Earned', value: <Text color="green">{formatCurrency(pricing.earnings, pricing.currency)}</Text>},
-                ]}
-              />
-            ) : pricing && !pricing.hourlyRate ? (
-              <KeyValue label="Earnings:" items={[{key: 'Status', value: <Text dimColor>No rate set</Text>}]} />
-            ) : null}
+            <Earnings pricing={pricing} loading={pricingLoading} />
           </Box>
         </Box>
 
@@ -397,20 +371,13 @@ const View = ({height}) => {
   const renderContent = () => {
     if (isClientFocused && clients.length > 0) {
       return (
-        <Box flexDirection="column">
-          <Text color="cyan" bold>
-            All Clients:
-          </Text>
-          {clients.map(client => (
-            <Text
-              key={client.id}
-              color={client.id === selectedClientId ? 'green' : 'white'}
-            >
-              {client.id === selectedClientId ? '• ' : '  '}
-              {client.name}
-            </Text>
-          ))}
-        </Box>
+        <SelectableList
+          label="All Clients:"
+          items={clients}
+          selectedId={selectedClientId}
+          getId={c => c.id}
+          renderLabel={c => c.name}
+        />
       );
     }
 
@@ -419,24 +386,16 @@ const View = ({height}) => {
         return <Text dimColor>No projects found</Text>;
 
       return (
-        <Box flexDirection="column">
-          <Text color="cyan" bold>
-            All Projects:
-          </Text>
-          {allProjects.map(project => {
-            const client = clients.find(c => c.id === project.client_id);
-            return (
-              <Text
-                key={project.id}
-                color={project.id === selectedProjectId ? 'green' : 'white'}
-              >
-                {project.id === selectedProjectId ? '• ' : '  '}
-                {project.name}
-                {client && <Text dimColor> ({client.name})</Text>}
-              </Text>
-            );
-          })}
-        </Box>
+        <SelectableList
+          label="All Projects:"
+          items={allProjects}
+          selectedId={selectedProjectId}
+          getId={p => p.id}
+          renderLabel={p => {
+            const client = clients.find(c => c.id === p.client_id);
+            return <>{p.name}{client && <Text dimColor> ({client.name})</Text>}</>;
+          }}
+        />
       );
     }
 
@@ -445,26 +404,17 @@ const View = ({height}) => {
       if (allTasks.length === 0) return <Text dimColor>No tasks found</Text>;
 
       return (
-        <Box flexDirection="column">
-          <Text color="cyan" bold>
-            All Tasks:
-          </Text>
-          {allTasks.slice(0, 10).map(task => {
-            const project = allProjects.find(p => p.id === task.project_id);
+        <SelectableList
+          label="All Tasks:"
+          items={allTasks.slice(0, 10)}
+          selectedId={selectedTaskId}
+          getId={t => t.id}
+          renderLabel={t => {
+            const project = allProjects.find(p => p.id === t.project_id);
             const client = clients.find(c => c.id === project?.client_id);
-            return (
-              <Text
-                key={task.id}
-                color={task.id === selectedTaskId ? 'green' : 'white'}
-              >
-                {task.id === selectedTaskId ? '• ' : '  '}
-                {task.title}
-                {project && <Text dimColor> ({project.name}</Text>}
-                {client && <Text dimColor> - {client.name})</Text>}
-              </Text>
-            );
-          })}
-        </Box>
+            return <>{t.title}{project && <Text dimColor> ({project.name}</Text>}{client && <Text dimColor> - {client.name})</Text>}</>;
+          }}
+        />
       );
     }
 
