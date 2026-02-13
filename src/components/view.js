@@ -61,6 +61,13 @@ const View = ({height}) => {
   const [timeEntries, setTimeEntries] = useState([]);
   const [isEditingStart, setIsEditingStart] = useState(false);
   const [isEditingEnd, setIsEditingEnd] = useState(false);
+  const [lastSection, setLastSection] = useState(null);
+
+  useEffect(() => {
+    if (isClientFocused) setLastSection('client');
+    else if (isProjectsFocused) setLastSection('project');
+    else if (isTasksFocused) setLastSection('task');
+  }, [isClientFocused, isProjectsFocused, isTasksFocused]);
   const [selectedRangeIndex, setSelectedRangeIndex] = useState(0);
   const [projectRangeIndex, setProjectRangeIndex] = useState(0);
   const [clientRangeIndex, setClientRangeIndex] = useState(0);
@@ -230,8 +237,12 @@ const View = ({height}) => {
   const clientRangeHandlers = makeRangeHandlers(setClientRangeIndex);
 
   const isEditing = isEditingStart || isEditingEnd;
+  const activeSection = isViewFocused ? lastSection : (
+    isClientFocused ? 'client' : isProjectsFocused ? 'project' : 'task'
+  );
+
   let keyMappings;
-  if ((isTasksFocused || isViewFocused) && selectedTaskId && taskDetails && !isEditing)
+  if (activeSection === 'task' && selectedTaskId && taskDetails && !isEditing)
     keyMappings = [
       {key: 'j', action: selectNextEntry},
       {key: 'k', action: selectPreviousEntry},
@@ -241,12 +252,12 @@ const View = ({height}) => {
       {key: 'h', action: handleRangePrev},
       {key: 'l', action: handleRangeNext},
     ];
-  else if (isProjectsFocused && selectedProjectId)
+  else if (activeSection === 'project' && selectedProjectId)
     keyMappings = [
       {key: 'h', action: projectRangeHandlers.prev},
       {key: 'l', action: projectRangeHandlers.next},
     ];
-  else if (isClientFocused && selectedClientId)
+  else if (activeSection === 'client' && selectedClientId)
     keyMappings = [
       {key: 'h', action: clientRangeHandlers.prev},
       {key: 'l', action: clientRangeHandlers.next},
@@ -511,7 +522,11 @@ const View = ({height}) => {
       );
     }
 
-    if (isViewFocused && selectedTaskId) return renderTaskDetails();
+    if (isViewFocused) {
+      if (lastSection === 'client' && selectedClientId) return renderClientDetails();
+      if (lastSection === 'project' && selectedProjectId) return renderProjectDetails();
+      if (selectedTaskId) return renderTaskDetails();
+    }
 
     return <Text dimColor>Select an item to view details</Text>;
   };
@@ -530,13 +545,13 @@ const View = ({height}) => {
       </Frame.Header>
       <Frame.Body>{renderContent()}</Frame.Body>
       <Frame.Footer>
-        {isViewFocused && selectedTaskId && hasTimeEntries && (
+        {activeSection === 'task' && selectedTaskId && hasTimeEntries && (
           <HelpBottom>h/l:range j/k:entries e/E:edit d:delete</HelpBottom>
         )}
-        {isProjectsFocused && selectedProjectId && (
+        {activeSection === 'project' && selectedProjectId && (
           <HelpBottom>h/l:range</HelpBottom>
         )}
-        {isClientFocused && selectedClientId && (
+        {activeSection === 'client' && selectedClientId && (
           <HelpBottom>h/l:range</HelpBottom>
         )}
       </Frame.Footer>
