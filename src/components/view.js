@@ -31,6 +31,7 @@ import {
 import {format} from 'date-fns';
 
 const RANGE_OPTIONS = [
+  {label: 'Dashboard', type: 'dashboard'},
   {label: 'Today', type: 'today'},
   {label: 'Week', type: 'week'},
   {label: 'This Month', type: 'thisMonth'},
@@ -62,15 +63,16 @@ const View = ({height}) => {
   const [isEditingStart, setIsEditingStart] = useState(false);
   const [isEditingEnd, setIsEditingEnd] = useState(false);
   const [lastSection, setLastSection] = useState(null);
+  const [dashboardTasks, setDashboardTasks] = useState([]);
 
   useEffect(() => {
     if (isClientFocused) setLastSection('client');
     else if (isProjectsFocused) setLastSection('project');
     else if (isTasksFocused) setLastSection('task');
   }, [isClientFocused, isProjectsFocused, isTasksFocused]);
-  const [selectedRangeIndex, setSelectedRangeIndex] = useState(0);
-  const [projectRangeIndex, setProjectRangeIndex] = useState(0);
-  const [clientRangeIndex, setClientRangeIndex] = useState(0);
+  const [selectedRangeIndex, setSelectedRangeIndex] = useState(1);
+  const [projectRangeIndex, setProjectRangeIndex] = useState(1);
+  const [clientRangeIndex, setClientRangeIndex] = useState(1);
 
   const currentRange = getDateRange(RANGE_OPTIONS[selectedRangeIndex].type);
   const projectRange = getDateRange(RANGE_OPTIONS[projectRangeIndex].type);
@@ -112,36 +114,26 @@ const View = ({height}) => {
   );
 
   useEffect(() => {
-    const loadClients = async () => {
-      const clientData = await clientService.selectAll();
+    const loadInitialData = async () => {
+      const [clientData, projectData] = await Promise.all([
+        clientService.selectAll(),
+        projectService.selectAll(),
+      ]);
       setClients(clientData);
+      setAllProjects(projectData);
     };
-    loadClients();
+    loadInitialData();
   }, [reload]);
 
   useEffect(() => {
-    if (isProjectsFocused) {
-      const loadAllProjects = async () => {
-        const projectData = await projectService.selectAll();
-        setAllProjects(projectData);
-      };
-      loadAllProjects();
-    }
-  }, [isProjectsFocused, reload]);
-
-  useEffect(() => {
     if (isTasksFocused) {
-      const loadAllTasks = async () => {
-        const [taskData, projectData] = await Promise.all([
-          taskService.selectAll(),
-          projectService.selectAll(),
-        ]);
-        setAllTasks(taskData);
-        setAllProjects(projectData);
-      };
-      loadAllTasks();
+      taskService.selectAll().then(setAllTasks);
     }
   }, [isTasksFocused, reload]);
+
+  useEffect(() => {
+    taskService.getAllTasksFromToday(new Date(), null).then(setDashboardTasks);
+  }, [reload]);
 
   useEffect(() => {
     if (selectedTaskId && (isTasksFocused || isViewFocused)) {
@@ -467,7 +459,67 @@ const View = ({height}) => {
     );
   };
 
+  const renderDashboard = () => {
+    const activeTask = dashboardTasks.find(t => t.isActive);
+    const totalSec = dashboardTasks.reduce((sum, t) => sum + t.totalSec, 0);
+
+    const clientBreakdown = dashboardTasks.reduce((acc, task) => {
+      const project = allProjects.find(p => p.id === task.projectId);
+      const client = clients.find(c => c.id === project?.client_id);
+      const clientName = client?.name || 'Unknown';
+
+      if (!acc[clientName]) acc[clientName] = {totalSec: 0, taskCount: 0};
+      acc[clientName].totalSec += task.totalSec;
+      acc[clientName].taskCount += 1;
+      return acc;
+    }, {});
+
+    return (
+      <Box flexDirection="column">
+        <Box marginBottom={1}>
+          <KeyValue
+            label="Today's Dashboard:"
+            items={[
+              {key: 'Active', value: activeTask ? <Text color="green">{activeTask.title}</Text> : <Text dimColor>None</Text>},
+              {key: 'Total', value: formatTime(totalSec) || '0h 0m'},
+              {key: 'Tasks', value: dashboardTasks.length},
+            ]}
+          />
+        </Box>
+
+        {Object.keys(clientBreakdown).length > 0 && (
+          <KeyValue
+            label="Per Client:"
+            items={Object.entries(clientBreakdown).map(([name, data]) => ({
+              key: name,
+              value: `${formatTime(data.totalSec) || '0m'} (${data.taskCount} task${data.taskCount !== 1 ? 's' : ''})`,
+            }))}
+          />
+        )}
+      </Box>
+    );
+  };
+
   const renderContent = () => {
+    let activeRangeIndex;
+    if (activeSection === 'task' && selectedTaskId && taskDetails && !isEditing)
+      activeRangeIndex = selectedRangeIndex;
+    else if (activeSection === 'project' && selectedProjectId)
+      activeRangeIndex = projectRangeIndex;
+    else if (activeSection === 'client' && selectedClientId)
+      activeRangeIndex = clientRangeIndex;
+    else
+      activeRangeIndex = selectedRangeIndex;
+
+    if (RANGE_OPTIONS[activeRangeIndex].type === 'dashboard') {
+      return (
+        <Box flexDirection="column">
+          <RangeSelector options={RANGE_OPTIONS} selectedIndex={activeRangeIndex} />
+          {renderDashboard()}
+        </Box>
+      );
+    }
+
     if (isClientFocused) {
       if (selectedClientId) return renderClientDetails();
       if (clients.length > 0) {
@@ -528,7 +580,7 @@ const View = ({height}) => {
       if (selectedTaskId) return renderTaskDetails();
     }
 
-    return <Text dimColor>Select an item to view details</Text>;
+    return renderDashboard();
   };
 
   const hasTimeEntries = timeEntries.length > 0;
