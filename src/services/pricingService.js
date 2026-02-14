@@ -10,6 +10,7 @@ import {
 import timeEntryModel from '../models/timeEntry.js';
 import taskModel from '../models/task.js';
 import projectModel from '../models/project.js';
+import clientModel from '../models/client.js';
 import clientRateHistory from '../models/clientRateHistory.js';
 import {calculateDuration, retriveYYYYMMDD, formatDecimalHoursToHHmm} from '../utils.js';
 
@@ -218,7 +219,11 @@ const pricingService = {
     };
   },
 
-  getClientMonthlyTarget: async (clientId, targetHours = 170) => {
+  getClientMonthlyTarget: async clientId => {
+    const client = await clientModel.selectById(clientId);
+    const targetHours = client?.monthly_hours || 170;
+    const dailyTarget = client?.daily_hours ? parseFloat(client.daily_hours) : null;
+
     const {startDateStr, endDateStr} = getMonthDateRange();
     const {workingDays: workingDaysLeft, calendarDays: calendarDaysLeft, isTodayWorkDay} =
       getDaysLeft();
@@ -257,9 +262,17 @@ const pricingService = {
     const workedHours = totalSeconds / 3600;
     const remainingHours = Math.max(0, targetHours - workedHours);
     const hoursPerWorkDay = workingDaysLeft > 0 ? remainingHours / workingDaysLeft : 0;
-    const idealDailyRate = totalWorkingDays > 0 ? targetHours / totalWorkingDays : 0;
-    const futureWorkingDays = isTodayWorkDay ? workingDaysLeft - 1 : workingDaysLeft;
-    const hoursToWorkToday = Math.max(0, remainingHours - idealDailyRate * futureWorkingDays);
+
+    // Overflow: how many extra hours beyond the weekday plan
+    let overflowHours;
+    if (dailyTarget) {
+      const futureWorkingDays = isTodayWorkDay ? workingDaysLeft - 1 : workingDaysLeft;
+      overflowHours = Math.max(0, remainingHours - dailyTarget * futureWorkingDays);
+    } else {
+      const idealDailyRate = totalWorkingDays > 0 ? targetHours / totalWorkingDays : 0;
+      const futureWorkingDays = isTodayWorkDay ? workingDaysLeft - 1 : workingDaysLeft;
+      overflowHours = Math.max(0, remainingHours - idealDailyRate * futureWorkingDays);
+    }
 
     return {
       targetHours,
@@ -269,7 +282,7 @@ const pricingService = {
       calendarDaysLeft,
       remainingHours,
       hoursPerWorkDay: formatDecimalHoursToHHmm(hoursPerWorkDay),
-      hoursToWorkToday: formatDecimalHoursToHHmm(hoursToWorkToday),
+      overflowHours: formatDecimalHoursToHHmm(overflowHours),
     };
   },
 };

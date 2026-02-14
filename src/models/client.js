@@ -19,6 +19,14 @@ const client = {
     if (Object.keys(updates).length === 0) return Promise.resolve(0);
     return db(CLIENT_TABLE).where({id}).update(updates);
   },
+
+  updateWorkTargets: (id, {monthlyHours, dailyHours}) => {
+    const updates = {};
+    if (monthlyHours !== undefined) updates.monthly_hours = monthlyHours;
+    if (dailyHours !== undefined) updates.daily_hours = dailyHours;
+    if (Object.keys(updates).length === 0) return Promise.resolve(0);
+    return db(CLIENT_TABLE).where({id}).update(updates);
+  },
 };
 
 export default client;

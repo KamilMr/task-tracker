@@ -29,14 +29,13 @@ const MonthlyTarget = ({clientId}) => {
 
   if (!data) return null;
 
-  const {targetHours, workedHours, workingDaysLeft, hoursPerDayNeeded} = data;
-  const dailyNeededSeconds = hoursPerDayNeeded * 3600;
+  const {targetHours, workedHours, workingDaysLeft, hoursPerWorkDay} = data;
 
   return (
     <Text dimColor>
       {' - '}
       {Math.floor(workedHours)}h/{targetHours}h / {workingDaysLeft} days left /
-      {formatHoursMinutes(dailyNeededSeconds)} work daily
+      {hoursPerWorkDay}h/wd
     </Text>
   );
 };

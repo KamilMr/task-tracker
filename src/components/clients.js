@@ -9,6 +9,7 @@ import DelayedDisappear from './DelayedDisappear.js';
 import HelpBottom from './HelpBottom.js';
 import Frame from './Frame.js';
 import ScrollBox from './ScrollBox.js';
+import EditForm from './EditForm.js';
 import clientService from '../services/clientService.js';
 import pricingService from '../services/pricingService.js';
 import ProgressBar from './ProgressBar.js';
@@ -23,7 +24,6 @@ const Client = ({height}) => {
   const [isCreating, setIsAdding] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [isSettingRate, setIsSettingRate] = useState(false);
   const [monthlyData, setMonthlyData] = useState(null);
 
   useEffect(() => {
@@ -147,17 +147,18 @@ const Client = ({height}) => {
     setMessage('Delete cancelled');
   };
 
-  const handleEditSubmit = async newName => {
-    if (newName.trim() && selectedClient) {
-      try {
-        await clientService.update(selectedClient.id, newName.trim());
-        triggerReload();
-        setMessage('Client renamed successfully');
-      } catch (error) {
-        setMessage('Failed to rename client');
-      }
-    } else {
-      setMessage('Invalid client name');
+  const handleEditSubmit = async values => {
+    try {
+      await clientService.updateAll(selectedClient.id, {
+        name: values.name,
+        hourlyRate: values.rate,
+        monthlyHours: values.monthlyHours,
+        dailyHours: values.dailyHours,
+      });
+      triggerReload();
+      setMessage('Client updated');
+    } catch (error) {
+      setMessage(`Error: ${error.message || 'Failed to update client'}`);
     }
     setIsEditing(false);
   };
@@ -167,58 +168,17 @@ const Client = ({height}) => {
     setMessage('Edit cancelled');
   };
 
-  const handleSetRate = () => {
-    if (selectedClient) {
-      setIsSettingRate(true);
-      setMessage('');
-    } else {
-      setMessage('No client selected');
-    }
-  };
-
-  const handleRateSubmit = async rate => {
-    setIsSettingRate(false);
-
-    if (!rate.trim()) {
-      setMessage('Rate unchanged');
-      return;
-    }
-
-    const parsedRate = parseInt(rate.trim(), 10);
-    if (isNaN(parsedRate) || parsedRate <= 0) {
-      setMessage('Invalid rate - must be positive number');
-      return;
-    }
-
-    try {
-      await clientService.updatePricing(selectedClient.id, {
-        hourlyRate: parsedRate,
-      });
-      triggerReload();
-      setMessage(`Rate set to ${parsedRate} PLN/h`);
-    } catch (error) {
-      console.error('Rate update error:', error);
-      setMessage(`Error: ${error.message || 'Failed to update rate'}`);
-    }
-  };
-
-  const handleRateCancel = () => {
-    setIsSettingRate(false);
-    setMessage('');
-  };
-
   const keyMappings = [
     {key: 'c', action: handleNewClient},
     {key: 'e', action: handleEditClient},
     {key: 'd', action: handleDeleteClient},
-    {key: 'r', action: handleSetRate},
     {key: 'j', action: selectNextClient},
     {key: 'k', action: selectPreviousClient},
   ];
 
   useComponentKeys(CLIENT, keyMappings, isClientFocused);
 
-  const isInEditMode = isCreating || isDeleting || isEditing || isSettingRate;
+  const isInEditMode = isCreating || isDeleting || isEditing;
 
   const renderContent = () => {
     if (isCreating) {
@@ -247,27 +207,17 @@ const Client = ({height}) => {
 
     if (isEditing) {
       return (
-        <Box flexDirection="column">
-          <Text>Edit client name:</Text>
-          <BasicTextInput
-            defaultValue={selectedClient?.name || ''}
-            onSubmit={handleEditSubmit}
-            onCancel={handleEditCancel}
-          />
-        </Box>
-      );
-    }
-
-    if (isSettingRate) {
-      return (
-        <Box flexDirection="column">
-          <Text>Hourly rate (PLN):</Text>
-          <BasicTextInput
-            defaultValue={selectedClient?.hourly_rate?.toString() || ''}
-            onSubmit={handleRateSubmit}
-            onCancel={handleRateCancel}
-          />
-        </Box>
+        <EditForm
+          title={`Edit: ${selectedClient?.name}`}
+          fields={[
+            {name: 'name', label: 'Name', defaultValue: selectedClient?.name || ''},
+            {name: 'rate', label: 'Rate (PLN/h)', defaultValue: selectedClient?.hourly_rate?.toString() || ''},
+            {name: 'monthlyHours', label: 'Monthly hours', defaultValue: selectedClient?.monthly_hours?.toString() || ''},
+            {name: 'dailyHours', label: 'Daily hours', defaultValue: selectedClient?.daily_hours?.toString() || ''},
+          ]}
+          onSubmit={handleEditSubmit}
+          onCancel={handleEditCancel}
+        />
       );
     }
 
@@ -300,7 +250,7 @@ const Client = ({height}) => {
                       remainingHours={monthlyData.remainingHours}
                       workingDaysLeft={monthlyData.workingDaysLeft}
                       hoursPerWorkDay={monthlyData.hoursPerWorkDay}
-                      hoursToWorkToday={monthlyData.hoursToWorkToday}
+                      overflowHours={monthlyData.overflowHours}
                     />
                   </Text>
                 </Box>
@@ -337,7 +287,7 @@ const Client = ({height}) => {
       <Frame.Body>{renderContent()}</Frame.Body>
       <Frame.Footer>
         {isClientFocused && mode === 'normal' && !isInEditMode && (
-          <HelpBottom>c:new e:edit d:delete r:rate j/k:nav</HelpBottom>
+          <HelpBottom>c:new e:edit d:delete j/k:nav</HelpBottom>
         )}
       </Frame.Footer>
     </Frame>
