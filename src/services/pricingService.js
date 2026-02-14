@@ -1,7 +1,6 @@
 import {
   endOfMonth,
   startOfMonth,
-  startOfWeek,
   eachDayOfInterval,
   isWeekend,
   startOfDay,
@@ -299,50 +298,19 @@ const pricingService = {
     const dailyTarget = monthly.dailyTarget || (monthly.totalWorkingDays > 0 ? monthly.targetHours / monthly.totalWorkingDays : 0);
     const workedTodayHours = monthly.workedTodaySeconds / 3600;
     const dailyRequired = monthly.hoursPerWorkDayRaw;
-    const dailyOverflow = Math.max(0, dailyRequired - dailyTarget);
-
-    // Weekly: query entries from start of week to now
-    const now = new Date();
-    const weekStart = startOfWeek(now, {weekStartsOn: 1});
-    const weekStartStr = retriveYYYYMMDD(weekStart);
-    const todayStr = retriveYYYYMMDD(now);
-
-    const projects = await projectModel.selectByCliId(clientId);
-    let weeklySeconds = 0;
-
-    for (const project of projects) {
-      const tasks = await taskModel.selectByProjectId(project.id);
-      for (const task of tasks) {
-        const entries = await timeEntryModel.selectByTaskIdWithDateRange(task.id, weekStartStr, todayStr);
-        for (const entry of entries) {
-          if (entry.end) weeklySeconds += calculateDuration(entry.start, entry.end);
-          else weeklySeconds += calculateDuration(entry.start, new Date());
-        }
-      }
-    }
-
-    const weeklyWorkedHours = weeklySeconds / 3600;
-    const weeklyTarget = dailyTarget * 5;
-    const weeksLeft = monthly.workingDaysLeft > 0 ? monthly.workingDaysLeft / 5 : 0;
-    const weeklyRequired = weeksLeft > 0 ? monthly.remainingHours / weeksLeft : 0;
+    const percentage = monthly.targetHours > 0 ? Math.round((monthly.workedHours / monthly.targetHours) * 100) : 0;
 
     return {
-      daily: {
-        target: dailyTarget,
-        required: dailyRequired,
-        worked: workedTodayHours,
-        overflow: dailyOverflow,
-      },
-      weekly: {
-        target: weeklyTarget,
-        required: weeklyRequired,
-        worked: weeklyWorkedHours,
-      },
       monthly: {
         target: monthly.targetHours,
         worked: monthly.workedHours,
-        remaining: monthly.remainingHours,
-        workingDaysLeft: monthly.workingDaysLeft,
+        percentage,
+      },
+      today: {
+        target: dailyTarget,
+        required: dailyRequired,
+        worked: workedTodayHours,
+        catchup: monthly.overflowHoursRaw,
       },
     };
   },
