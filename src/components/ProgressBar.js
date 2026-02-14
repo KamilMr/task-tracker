@@ -11,7 +11,7 @@ const getPaceColor = (remainingHours, workingDaysLeft) => {
   return 'green';
 };
 
-const ProgressBar = ({workedHours, targetHours, remainingHours, workingDaysLeft, hoursPerWorkDay}) => {
+const ProgressBar = ({workedHours, targetHours, remainingHours, workingDaysLeft, hoursPerWorkDay, hoursToWorkToday}) => {
   const progress = targetHours > 0
     ? Math.min(1, workedHours / targetHours)
     : 0;
@@ -19,11 +19,13 @@ const ProgressBar = ({workedHours, targetHours, remainingHours, workingDaysLeft,
   const bar = '█'.repeat(filled) + '░'.repeat(BAR_WIDTH - filled);
   const percentage = Math.round(progress * 100);
   const color = getPaceColor(remainingHours, workingDaysLeft);
+  const todayPart = hoursToWorkToday && hoursToWorkToday !== '00:00'
+    ? `(+${hoursToWorkToday}h)` : '';
 
   return (
     <Text>
       <Text color={color}>{bar}</Text>
-      {` ${percentage}% ${Math.floor(workedHours)}/${targetHours}h ~${hoursPerWorkDay}h/wd`}
+      {` ${percentage}% ${Math.floor(workedHours)}/${targetHours}h ~${hoursPerWorkDay}h${todayPart}/wd`}
     </Text>
   );
 };

@@ -1,5 +1,6 @@
 import {
   endOfMonth,
+  startOfMonth,
   eachDayOfInterval,
   isWeekend,
   startOfDay,
@@ -70,7 +71,13 @@ const getDaysLeft = () => {
   const days = eachDayOfInterval({start: today, end: monthEnd});
   const workingDays = days.filter(d => !isWeekend(d)).length;
 
-  return {workingDays, calendarDays: days.length};
+  return {workingDays, calendarDays: days.length, isTodayWorkDay: !isWeekend(today)};
+};
+
+const getTotalWorkingDaysInMonth = () => {
+  const now = new Date();
+  const days = eachDayOfInterval({start: startOfMonth(now), end: endOfMonth(now)});
+  return days.filter(d => !isWeekend(d)).length;
 };
 
 const pricingService = {
@@ -213,8 +220,9 @@ const pricingService = {
 
   getClientMonthlyTarget: async (clientId, targetHours = 170) => {
     const {startDateStr, endDateStr} = getMonthDateRange();
-    const {workingDays: workingDaysLeft, calendarDays: calendarDaysLeft} =
+    const {workingDays: workingDaysLeft, calendarDays: calendarDaysLeft, isTodayWorkDay} =
       getDaysLeft();
+    const totalWorkingDays = getTotalWorkingDaysInMonth();
 
     const projects = await projectModel.selectByCliId(clientId);
     const todayStr = retriveYYYYMMDD(new Date());
@@ -247,14 +255,11 @@ const pricingService = {
     }
 
     const workedHours = totalSeconds / 3600;
-    const workedTodayHours = workedTodaySeconds / 3600;
-    const workedBeforeTodayHours = workedHours - workedTodayHours;
     const remainingHours = Math.max(0, targetHours - workedHours);
-    const remainingAtStartOfDay = Math.max(0, targetHours - workedBeforeTodayHours);
-    const dailyShareWork = workingDaysLeft > 0 ? remainingAtStartOfDay / workingDaysLeft : 0;
-    const dailyShareCal = calendarDaysLeft > 0 ? remainingAtStartOfDay / calendarDaysLeft : 0;
-    const hoursPerWorkDay = Math.max(0, dailyShareWork - workedTodayHours);
-    const hoursPerCalDay = Math.max(0, dailyShareCal - workedTodayHours);
+    const hoursPerWorkDay = workingDaysLeft > 0 ? remainingHours / workingDaysLeft : 0;
+    const idealDailyRate = totalWorkingDays > 0 ? targetHours / totalWorkingDays : 0;
+    const futureWorkingDays = isTodayWorkDay ? workingDaysLeft - 1 : workingDaysLeft;
+    const hoursToWorkToday = Math.max(0, remainingHours - idealDailyRate * futureWorkingDays);
 
     return {
       targetHours,
@@ -264,7 +269,7 @@ const pricingService = {
       calendarDaysLeft,
       remainingHours,
       hoursPerWorkDay: formatDecimalHoursToHHmm(hoursPerWorkDay),
-      hoursPerCalDay: formatDecimalHoursToHHmm(hoursPerCalDay),
+      hoursToWorkToday: formatDecimalHoursToHHmm(hoursToWorkToday),
     };
   },
 };

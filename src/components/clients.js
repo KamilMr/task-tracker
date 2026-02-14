@@ -300,6 +300,7 @@ const Client = ({height}) => {
                       remainingHours={monthlyData.remainingHours}
                       workingDaysLeft={monthlyData.workingDaysLeft}
                       hoursPerWorkDay={monthlyData.hoursPerWorkDay}
+                      hoursToWorkToday={monthlyData.hoursToWorkToday}
                     />
                   </Text>
                 </Box>
