@@ -18,6 +18,8 @@ import TimeEditForm from './TimeEditForm.js';
 import KeyValue from './KeyValue.js';
 import RangeSelector from './RangeSelector.js';
 import Earnings from './Earnings.js';
+import WorkTargets from './WorkTargets.js';
+import pricingService from '../services/pricingService.js';
 import SelectableList from './SelectableList.js';
 import {
   formatTime,
@@ -64,6 +66,19 @@ const View = ({height}) => {
   const [isEditingEnd, setIsEditingEnd] = useState(false);
   const [lastSection, setLastSection] = useState(null);
   const [dashboardTasks, setDashboardTasks] = useState([]);
+  const [workBreakdown, setWorkBreakdown] = useState(null);
+  const [workBreakdownLoading, setWorkBreakdownLoading] = useState(false);
+
+  useEffect(() => {
+    if (selectedClientId) {
+      setWorkBreakdownLoading(true);
+      pricingService.getClientWorkBreakdown(selectedClientId)
+        .then(setWorkBreakdown)
+        .finally(() => setWorkBreakdownLoading(false));
+    } else {
+      setWorkBreakdown(null);
+    }
+  }, [selectedClientId, reload]);
 
   useEffect(() => {
     if (isClientFocused) setLastSection('client');
@@ -453,6 +468,9 @@ const View = ({height}) => {
           </Box>
           <Box width={30} marginLeft={2}>
             <Earnings pricing={clientPricing} loading={clientPricingLoading} />
+          </Box>
+          <Box width={30} marginLeft={2}>
+            <WorkTargets breakdown={workBreakdown} loading={workBreakdownLoading} />
           </Box>
         </Box>
       </Box>
