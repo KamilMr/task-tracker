@@ -12,7 +12,11 @@ import taskModel from '../models/task.js';
 import projectModel from '../models/project.js';
 import clientModel from '../models/client.js';
 import clientRateHistory from '../models/clientRateHistory.js';
-import {calculateDuration, retriveYYYYMMDD, formatDecimalHoursToHHmm} from '../utils.js';
+import {
+  calculateDuration,
+  retriveYYYYMMDD,
+  formatDecimalHoursToHHmm,
+} from '../utils.js';
 
 // Find the applicable rate for a given date from sorted rate periods
 const findRateForDate = (rates, date) => {
@@ -72,12 +76,19 @@ const getDaysLeft = () => {
   const days = eachDayOfInterval({start: today, end: monthEnd});
   const workingDays = days.filter(d => !isWeekend(d)).length;
 
-  return {workingDays, calendarDays: days.length, isTodayWorkDay: !isWeekend(today)};
+  return {
+    workingDays,
+    calendarDays: days.length,
+    isTodayWorkDay: !isWeekend(today),
+  };
 };
 
 const getTotalWorkingDaysInMonth = () => {
   const now = new Date();
-  const days = eachDayOfInterval({start: startOfMonth(now), end: endOfMonth(now)});
+  const days = eachDayOfInterval({
+    start: startOfMonth(now),
+    end: endOfMonth(now),
+  });
   return days.filter(d => !isWeekend(d)).length;
 };
 
@@ -220,13 +231,29 @@ const pricingService = {
   },
 
   getClientMonthlyTarget: async clientId => {
+    // Monthly target calculation with dynamic daily average
+    //
+    // 10wd, worked 0h:     0/80 ~8:00h/wd          - initial target 8h/day
+    // 10wd, worked 8h:     8/80 ~8:00h/wd          - daily duty met, average unchanged
+    // 10wd, worked 10h:   10/80 ~7:50h(+02:00h)/wd - worked +2h extra, future average drops
+    // 9wd,  worked 0h:    10/80 ~7:50h/wd          - next day, no work, average holds
+    // 8wd,  worked 0h:    10/80 ~8:50h/wd          - skipped day, average rises
+    // 8wd,  worked 8h:    18/80 ~8:50h/wd          - daily duty met, average unchanged
+    // 8wd,  worked 8:50h: 18/80 ~8:50h/wd          - worked exactly the daily goal
+    // 8wd,  worked 9:50h: 18/80 ~8:40h(+01:00h)/wd - worked +1h extra, future average drops
+
     const client = await clientModel.selectById(clientId);
     const targetHours = client?.monthly_hours || 170;
-    const dailyTarget = client?.daily_hours ? parseFloat(client.daily_hours) : null;
+    const dailyTarget = client?.daily_hours
+      ? parseFloat(client.daily_hours)
+      : null;
 
     const {startDateStr, endDateStr} = getMonthDateRange();
-    const {workingDays: workingDaysLeft, calendarDays: calendarDaysLeft, isTodayWorkDay} =
-      getDaysLeft();
+    const {
+      workingDays: workingDaysLeft,
+      calendarDays: calendarDaysLeft,
+      isTodayWorkDay,
+    } = getDaysLeft();
     const totalWorkingDays = getTotalWorkingDaysInMonth();
 
     const projects = await projectModel.selectByCliId(clientId);
@@ -260,19 +287,29 @@ const pricingService = {
     }
 
     const workedHours = totalSeconds / 3600;
+    const workedTodayHours = workedTodaySeconds / 3600;
     const remainingHours = Math.max(0, targetHours - workedHours);
-    const hoursPerWorkDay = workingDaysLeft > 0 ? remainingHours / workingDaysLeft : 0;
 
-    // Overflow: how many extra hours beyond the weekday plan
-    let overflowHours;
-    if (dailyTarget) {
-      const futureWorkingDays = isTodayWorkDay ? workingDaysLeft - 1 : workingDaysLeft;
-      overflowHours = Math.max(0, remainingHours - dailyTarget * futureWorkingDays);
-    } else {
-      const idealDailyRate = totalWorkingDays > 0 ? targetHours / totalWorkingDays : 0;
-      const futureWorkingDays = isTodayWorkDay ? workingDaysLeft - 1 : workingDaysLeft;
-      overflowHours = Math.max(0, remainingHours - idealDailyRate * futureWorkingDays);
-    }
+    // Exclude today from divisor when user has already worked today
+    const hasWorkedToday = workedTodaySeconds > 0;
+    const effectiveWorkingDays =
+      isTodayWorkDay && hasWorkedToday ? workingDaysLeft - 1 : workingDaysLeft;
+    const hoursPerWorkDay =
+      effectiveWorkingDays > 0 ? remainingHours / effectiveWorkingDays : 0;
+
+    // Overflow: how much extra worked today beyond the daily baseline
+    const remainingAtStartOfDay = Math.max(
+      0,
+      targetHours - (workedHours - workedTodayHours),
+    );
+    const todayBaseline = dailyTarget
+      ? dailyTarget
+      : workingDaysLeft > 0
+        ? remainingAtStartOfDay / workingDaysLeft
+        : 0;
+    const overflowHours = isTodayWorkDay
+      ? Math.max(0, workedTodayHours - todayBaseline)
+      : 0;
 
     return {
       targetHours,
@@ -295,10 +332,17 @@ const pricingService = {
   getClientWorkBreakdown: async clientId => {
     const monthly = await pricingService.getClientMonthlyTarget(clientId);
 
-    const dailyTarget = monthly.dailyTarget || (monthly.totalWorkingDays > 0 ? monthly.targetHours / monthly.totalWorkingDays : 0);
+    const dailyTarget =
+      monthly.dailyTarget ||
+      (monthly.totalWorkingDays > 0
+        ? monthly.targetHours / monthly.totalWorkingDays
+        : 0);
     const workedTodayHours = monthly.workedTodaySeconds / 3600;
     const dailyRequired = monthly.hoursPerWorkDayRaw;
-    const percentage = monthly.targetHours > 0 ? Math.round((monthly.workedHours / monthly.targetHours) * 100) : 0;
+    const percentage =
+      monthly.targetHours > 0
+        ? Math.round((monthly.workedHours / monthly.targetHours) * 100)
+        : 0;
 
     return {
       monthly: {
