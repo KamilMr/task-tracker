@@ -248,8 +248,8 @@ const Client = ({height}) => {
                       workedHours={monthlyData.workedHours}
                       targetHours={monthlyData.targetHours}
                       remainingHours={monthlyData.remainingHours}
-                      workingDaysLeft={monthlyData.workingDaysLeft}
                       hoursPerWorkDay={monthlyData.hoursPerWorkDay}
+                      hoursPerWorkDayRaw={monthlyData.hoursPerWorkDayRaw}
                       overflowHours={monthlyData.overflowHours}
                     />
                   </Text>

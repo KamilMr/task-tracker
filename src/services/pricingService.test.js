@@ -23,14 +23,18 @@ describe('computeMonthlyTarget', () => {
       expect(result.overflowHoursRaw).toBe(0);
     });
 
-    it('10wd, worked 8h today - daily duty met, average unchanged', () => {
-      const result = computeMonthlyTarget({
+    it('10wd, average stays stable while working within baseline', () => {
+      const at = todayHours => computeMonthlyTarget({
         ...base,
-        totalSeconds: h(8),
-        workedTodaySeconds: h(8),
-      });
-      expect(result.hoursPerWorkDayRaw).toBeCloseTo(8, 2);
-      expect(result.overflowHoursRaw).toBe(0);
+        totalSeconds: h(todayHours),
+        workedTodaySeconds: h(todayHours),
+      }).hoursPerWorkDayRaw;
+
+      expect(at(0)).toBeCloseTo(8, 2);
+      expect(at(1)).toBeCloseTo(8, 2);
+      expect(at(4)).toBeCloseTo(8, 2);
+      expect(at(7)).toBeCloseTo(8, 2);
+      expect(at(8)).toBeCloseTo(8, 2);
     });
 
     it('10wd, worked 10h today - future average drops, +2h overflow', () => {
@@ -75,8 +79,8 @@ describe('computeMonthlyTarget', () => {
         workedTodaySeconds: h(8),
         workingDaysLeft: 8,
       });
-      // 62 remaining / 7 future days = 8.857
-      expect(result.hoursPerWorkDayRaw).toBeCloseTo(62 / 7, 2);
+      // 8h < baseline (70/8 = 8.75), average stays stable
+      expect(result.hoursPerWorkDayRaw).toBeCloseTo(8.75, 2);
       expect(result.overflowHoursRaw).toBe(0);
     });
 
@@ -118,26 +122,39 @@ describe('computeMonthlyTarget', () => {
       expect(result.hoursPerWorkDayRaw).toBeCloseTo(8, 2);
     });
 
-    it('last working day, already worked - shows remaining hours', () => {
+    it('last working day, within baseline - average stays stable', () => {
       const result = computeMonthlyTarget({
         ...base,
         workingDaysLeft: 1,
         totalSeconds: h(76),
         workedTodaySeconds: h(4),
       });
-      // 4h remaining, last day, shows remaining directly
-      expect(result.hoursPerWorkDayRaw).toBeCloseTo(4, 2);
+      // Plan for today is 8h, still within baseline
+      expect(result.hoursPerWorkDayRaw).toBeCloseTo(8, 2);
       expect(result.remainingHours).toBeCloseTo(4, 2);
     });
 
-    it('last working day, target met', () => {
+    it('last working day, exceeded baseline - shows remaining', () => {
+      const result = computeMonthlyTarget({
+        ...base,
+        workingDaysLeft: 1,
+        totalSeconds: h(81),
+        workedTodaySeconds: h(9),
+      });
+      // baseline = (80-72)/1 = 8, worked 9h > 8 → exceeded
+      expect(result.hoursPerWorkDayRaw).toBe(0);
+      expect(result.overflowHoursRaw).toBeCloseTo(1, 2);
+    });
+
+    it('last working day, target met exactly', () => {
       const result = computeMonthlyTarget({
         ...base,
         workingDaysLeft: 1,
         totalSeconds: h(80),
         workedTodaySeconds: h(8),
       });
-      expect(result.hoursPerWorkDayRaw).toBe(0);
+      // 8h = baseline (8), not exceeded → stable daily plan holds
+      expect(result.hoursPerWorkDayRaw).toBeCloseTo(8, 2);
       expect(result.remainingHours).toBe(0);
     });
 

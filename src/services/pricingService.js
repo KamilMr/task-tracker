@@ -106,18 +106,7 @@ export const computeMonthlyTarget = ({
   const workedTodayHours = workedTodaySeconds / 3600;
   const remainingHours = Math.max(0, targetHours - workedHours);
 
-  // Exclude today from divisor when user has already worked today
-  const hasWorkedToday = workedTodaySeconds > 0;
-  const effectiveWorkingDays =
-    isTodayWorkDay && hasWorkedToday ? workingDaysLeft - 1 : workingDaysLeft;
-  const hoursPerWorkDay =
-    effectiveWorkingDays > 0
-      ? remainingHours / effectiveWorkingDays
-      : isTodayWorkDay
-        ? remainingHours
-        : 0;
-
-  // Overflow: how much extra worked today beyond the daily baseline
+  // Remaining as of start of day (stable — doesn't change as you work)
   const remainingAtStartOfDay = Math.max(
     0,
     targetHours - (workedHours - workedTodayHours),
@@ -127,6 +116,19 @@ export const computeMonthlyTarget = ({
     : workingDaysLeft > 0
       ? remainingAtStartOfDay / workingDaysLeft
       : 0;
+
+  // Stable while working within baseline, recalculates only when exceeded
+  const hasExceededBaseline = isTodayWorkDay && workedTodayHours > todayBaseline;
+  let hoursPerWorkDay;
+  if (hasExceededBaseline) {
+    const futureDays = workingDaysLeft - 1;
+    hoursPerWorkDay = futureDays > 0 ? remainingHours / futureDays : remainingHours;
+  } else {
+    hoursPerWorkDay = workingDaysLeft > 0
+      ? remainingAtStartOfDay / workingDaysLeft
+      : 0;
+  }
+
   const overflowHours = isTodayWorkDay
     ? Math.max(0, workedTodayHours - todayBaseline)
     : 0;
