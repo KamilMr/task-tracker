@@ -92,6 +92,63 @@ const getTotalWorkingDaysInMonth = () => {
   return days.filter(d => !isWeekend(d)).length;
 };
 
+export const computeMonthlyTarget = ({
+  targetHours,
+  dailyTarget,
+  totalSeconds,
+  workedTodaySeconds,
+  workingDaysLeft,
+  calendarDaysLeft,
+  isTodayWorkDay,
+  totalWorkingDays,
+}) => {
+  const workedHours = totalSeconds / 3600;
+  const workedTodayHours = workedTodaySeconds / 3600;
+  const remainingHours = Math.max(0, targetHours - workedHours);
+
+  // Exclude today from divisor when user has already worked today
+  const hasWorkedToday = workedTodaySeconds > 0;
+  const effectiveWorkingDays =
+    isTodayWorkDay && hasWorkedToday ? workingDaysLeft - 1 : workingDaysLeft;
+  const hoursPerWorkDay =
+    effectiveWorkingDays > 0
+      ? remainingHours / effectiveWorkingDays
+      : isTodayWorkDay
+        ? remainingHours
+        : 0;
+
+  // Overflow: how much extra worked today beyond the daily baseline
+  const remainingAtStartOfDay = Math.max(
+    0,
+    targetHours - (workedHours - workedTodayHours),
+  );
+  const todayBaseline = dailyTarget
+    ? dailyTarget
+    : workingDaysLeft > 0
+      ? remainingAtStartOfDay / workingDaysLeft
+      : 0;
+  const overflowHours = isTodayWorkDay
+    ? Math.max(0, workedTodayHours - todayBaseline)
+    : 0;
+
+  return {
+    targetHours,
+    dailyTarget,
+    workedSeconds: totalSeconds,
+    workedTodaySeconds,
+    workedHours,
+    workingDaysLeft,
+    calendarDaysLeft,
+    remainingHours,
+    hoursPerWorkDay: formatDecimalHoursToHHmm(hoursPerWorkDay),
+    hoursPerWorkDayRaw: hoursPerWorkDay,
+    overflowHours: formatDecimalHoursToHHmm(overflowHours),
+    overflowHoursRaw: overflowHours,
+    totalWorkingDays,
+    isTodayWorkDay,
+  };
+};
+
 const pricingService = {
   getTaskEarnings: async (taskId, startDate, endDate) => {
     const days = differenceInDays(parseISO(endDate), parseISO(startDate)) + 1;
@@ -286,47 +343,16 @@ const pricingService = {
       }
     }
 
-    const workedHours = totalSeconds / 3600;
-    const workedTodayHours = workedTodaySeconds / 3600;
-    const remainingHours = Math.max(0, targetHours - workedHours);
-
-    // Exclude today from divisor when user has already worked today
-    const hasWorkedToday = workedTodaySeconds > 0;
-    const effectiveWorkingDays =
-      isTodayWorkDay && hasWorkedToday ? workingDaysLeft - 1 : workingDaysLeft;
-    const hoursPerWorkDay =
-      effectiveWorkingDays > 0 ? remainingHours / effectiveWorkingDays : 0;
-
-    // Overflow: how much extra worked today beyond the daily baseline
-    const remainingAtStartOfDay = Math.max(
-      0,
-      targetHours - (workedHours - workedTodayHours),
-    );
-    const todayBaseline = dailyTarget
-      ? dailyTarget
-      : workingDaysLeft > 0
-        ? remainingAtStartOfDay / workingDaysLeft
-        : 0;
-    const overflowHours = isTodayWorkDay
-      ? Math.max(0, workedTodayHours - todayBaseline)
-      : 0;
-
-    return {
+    return computeMonthlyTarget({
       targetHours,
       dailyTarget,
-      workedSeconds: totalSeconds,
+      totalSeconds,
       workedTodaySeconds,
-      workedHours,
       workingDaysLeft,
       calendarDaysLeft,
-      remainingHours,
-      hoursPerWorkDay: formatDecimalHoursToHHmm(hoursPerWorkDay),
-      hoursPerWorkDayRaw: hoursPerWorkDay,
-      overflowHours: formatDecimalHoursToHHmm(overflowHours),
-      overflowHoursRaw: overflowHours,
-      totalWorkingDays: getTotalWorkingDaysInMonth(),
       isTodayWorkDay,
-    };
+      totalWorkingDays,
+    });
   },
 
   getClientWorkBreakdown: async clientId => {
