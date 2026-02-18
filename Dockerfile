@@ -9,7 +9,7 @@ RUN pnpm exec babel --out-dir=dist src
 
 FROM node:20-alpine AS production
 WORKDIR /app
-RUN npm install -g pnpm
+RUN apk add --no-cache neovim && npm install -g pnpm
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --prod --frozen-lockfile
 COPY --from=builder /app/dist ./dist 
