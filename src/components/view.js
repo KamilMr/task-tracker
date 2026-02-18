@@ -14,7 +14,7 @@ import {useComponentKeys} from '../hooks/useComponentKeys.js';
 import useScrollableList from '../hooks/useScrollableList.js';
 import useTaskAnalytics from '../hooks/useTaskAnalytics.js';
 import usePricing from '../hooks/usePricing.js';
-import TimeEditForm from './TimeEditForm.js';
+import useEditorBuffer from '../hooks/useEditorBuffer.js';
 import KeyValue from './KeyValue.js';
 import RangeSelector from './RangeSelector.js';
 import Earnings from './Earnings.js';
@@ -62,8 +62,6 @@ const View = ({height}) => {
   const [allTasks, setAllTasks] = useState([]);
   const [taskDetails, setTaskDetails] = useState(null);
   const [timeEntries, setTimeEntries] = useState([]);
-  const [isEditingStart, setIsEditingStart] = useState(false);
-  const [isEditingEnd, setIsEditingEnd] = useState(false);
   const [lastSection, setLastSection] = useState(null);
   const [dashboardTasks, setDashboardTasks] = useState([]);
   const [workBreakdown, setWorkBreakdown] = useState(null);
@@ -72,7 +70,8 @@ const View = ({height}) => {
   useEffect(() => {
     if (selectedClientId) {
       setWorkBreakdownLoading(true);
-      pricingService.getClientWorkBreakdown(selectedClientId)
+      pricingService
+        .getClientWorkBreakdown(selectedClientId)
         .then(setWorkBreakdown)
         .finally(() => setWorkBreakdownLoading(false));
     } else {
@@ -186,41 +185,11 @@ const View = ({height}) => {
     triggerReload();
   };
 
-  const handleEditStart = () => {
+  const {openEditor} = useEditorBuffer(triggerReload);
+
+  const handleEditorOpen = () => {
     if (timeEntries.length === 0) return;
-    setIsEditingStart(true);
-  };
-
-  const handleEditEnd = () => {
-    if (timeEntries.length === 0) return;
-    const entry = timeEntries[selectedEntryIndex];
-    if (!entry.end) return;
-    setIsEditingEnd(true);
-  };
-
-  const handleTimeSubmit = async newTime => {
-    const entry = timeEntries[selectedEntryIndex];
-    const updates = {id: entry.id};
-
-    if (isEditingStart) updates.start = newTime;
-    else if (isEditingEnd) updates.end = newTime;
-
-    await timeEntryModel.update(updates);
-
-    const updatedEntries = await timeEntryModel.selectByTaskIdWithDateRange(
-      selectedTaskId,
-      currentRange.startDate,
-      currentRange.endDate,
-    );
-    setTimeEntries((updatedEntries || []).reverse());
-    setIsEditingStart(false);
-    setIsEditingEnd(false);
-    triggerReload();
-  };
-
-  const handleTimeCancel = () => {
-    setIsEditingStart(false);
-    setIsEditingEnd(false);
+    openEditor(timeEntries, taskDetails?.title || 'Unknown Task');
   };
 
   const handleRangeNext = () => {
@@ -236,26 +205,30 @@ const View = ({height}) => {
   };
 
   const makeRangeHandlers = setter => ({
-    next: () => setter(prev => (prev < RANGE_OPTIONS.length - 1 ? prev + 1 : 0)),
-    prev: () => setter(prev => (prev > 0 ? prev - 1 : RANGE_OPTIONS.length - 1)),
+    next: () =>
+      setter(prev => (prev < RANGE_OPTIONS.length - 1 ? prev + 1 : 0)),
+    prev: () =>
+      setter(prev => (prev > 0 ? prev - 1 : RANGE_OPTIONS.length - 1)),
   });
 
   const projectRangeHandlers = makeRangeHandlers(setProjectRangeIndex);
   const clientRangeHandlers = makeRangeHandlers(setClientRangeIndex);
 
-  const isEditing = isEditingStart || isEditingEnd;
-  const activeSection = isViewFocused ? lastSection : (
-    isClientFocused ? 'client' : isProjectsFocused ? 'project' : 'task'
-  );
+  const activeSection = isViewFocused
+    ? lastSection
+    : isClientFocused
+      ? 'client'
+      : isProjectsFocused
+        ? 'project'
+        : 'task';
 
   let keyMappings;
-  if (activeSection === 'task' && selectedTaskId && taskDetails && !isEditing)
+  if (activeSection === 'task' && selectedTaskId && taskDetails)
     keyMappings = [
       {key: 'j', action: selectNextEntry},
       {key: 'k', action: selectPreviousEntry},
       {key: 'd', action: deleteSelectedEntry},
-      {key: 'e', action: handleEditStart},
-      {key: 'E', action: handleEditEnd},
+      {key: 'e', action: handleEditorOpen},
       {key: 'h', action: handleRangePrev},
       {key: 'l', action: handleRangeNext},
     ];
@@ -285,30 +258,6 @@ const View = ({height}) => {
   const renderTaskDetails = () => {
     if (!taskDetails) return <Text dimColor>Loading task details...</Text>;
 
-    if (isEditingStart && timeEntries.length > 0) {
-      const entry = timeEntries[selectedEntryIndex];
-      return (
-        <TimeEditForm
-          label="Edit Start Time"
-          currentTime={entry.start}
-          onSubmit={handleTimeSubmit}
-          onCancel={handleTimeCancel}
-        />
-      );
-    }
-
-    if (isEditingEnd && timeEntries.length > 0) {
-      const entry = timeEntries[selectedEntryIndex];
-      return (
-        <TimeEditForm
-          label="Edit End Time"
-          currentTime={entry.end}
-          onSubmit={handleTimeSubmit}
-          onCancel={handleTimeCancel}
-        />
-      );
-    }
-
     const project = allProjects.find(p => p.id === taskDetails.project_id);
     const client = clients.find(c => c.id === project?.client_id);
 
@@ -322,7 +271,10 @@ const View = ({height}) => {
 
     return (
       <Box flexDirection="column">
-        <RangeSelector options={RANGE_OPTIONS} selectedIndex={selectedRangeIndex} />
+        <RangeSelector
+          options={RANGE_OPTIONS}
+          selectedIndex={selectedRangeIndex}
+        />
         <Box flexDirection="row" marginBottom={1}>
           <Box width={30}>
             <KeyValue
@@ -331,9 +283,29 @@ const View = ({height}) => {
                 {key: 'Title', value: taskDetails.title},
                 {key: 'Project', value: project?.name || 'Unknown'},
                 {key: 'Client', value: client?.name || 'Unknown'},
-                {key: 'Status', value: activeEntries > 0 ? <Text color="green">Active</Text> : 'Stopped'},
-                {key: 'Estimation', value: formatEstimation(taskDetails.estimated_minutes) || <Text dimColor>None</Text>},
-                {key: 'Total', value: <Text color={isOvertime ? 'red' : undefined}>{formatTime(totalSeconds) || '-'}</Text>},
+                {
+                  key: 'Status',
+                  value:
+                    activeEntries > 0 ? (
+                      <Text color="green">Active</Text>
+                    ) : (
+                      'Stopped'
+                    ),
+                },
+                {
+                  key: 'Estimation',
+                  value: formatEstimation(taskDetails.estimated_minutes) || (
+                    <Text dimColor>None</Text>
+                  ),
+                },
+                {
+                  key: 'Total',
+                  value: (
+                    <Text color={isOvertime ? 'red' : undefined}>
+                      {formatTime(totalSeconds) || '-'}
+                    </Text>
+                  ),
+                },
               ]}
             />
           </Box>
@@ -346,10 +318,40 @@ const View = ({height}) => {
                 label={`Analytics (${analytics.meta.dateRangeDays}d):`}
                 items={[
                   {key: 'Sessions', value: analytics.distribution.sessionCount},
-                  {key: 'Days', value: `${analytics.distribution.daysWorked}/${analytics.distribution.dateRangeDays}`},
-                  ...(analytics.distribution.peakHour !== null ? [{key: 'Peak', value: formatHour(analytics.distribution.peakHour)}] : []),
-                  ...(analytics.distribution.deepWorkCount > 0 ? [{key: 'Deep Work', value: <Text color="green">{analytics.distribution.deepWorkCount}</Text>}] : []),
-                  ...(analytics.distribution.lastActivityDate ? [{key: 'Last', value: formatRelativeTime(analytics.distribution.lastActivityDate)}] : []),
+                  {
+                    key: 'Days',
+                    value: `${analytics.distribution.daysWorked}/${analytics.distribution.dateRangeDays}`,
+                  },
+                  ...(analytics.distribution.peakHour !== null
+                    ? [
+                        {
+                          key: 'Peak',
+                          value: formatHour(analytics.distribution.peakHour),
+                        },
+                      ]
+                    : []),
+                  ...(analytics.distribution.deepWorkCount > 0
+                    ? [
+                        {
+                          key: 'Deep Work',
+                          value: (
+                            <Text color="green">
+                              {analytics.distribution.deepWorkCount}
+                            </Text>
+                          ),
+                        },
+                      ]
+                    : []),
+                  ...(analytics.distribution.lastActivityDate
+                    ? [
+                        {
+                          key: 'Last',
+                          value: formatRelativeTime(
+                            analytics.distribution.lastActivityDate,
+                          ),
+                        },
+                      ]
+                    : []),
                 ]}
               />
             ) : null}
@@ -433,7 +435,10 @@ const View = ({height}) => {
 
     return (
       <Box flexDirection="column">
-        <RangeSelector options={RANGE_OPTIONS} selectedIndex={projectRangeIndex} />
+        <RangeSelector
+          options={RANGE_OPTIONS}
+          selectedIndex={projectRangeIndex}
+        />
         <Box flexDirection="row">
           <Box width={30}>
             <KeyValue
@@ -445,7 +450,10 @@ const View = ({height}) => {
             />
           </Box>
           <Box width={30} marginLeft={2}>
-            <Earnings pricing={projectPricing} loading={projectPricingLoading} />
+            <Earnings
+              pricing={projectPricing}
+              loading={projectPricingLoading}
+            />
           </Box>
         </Box>
       </Box>
@@ -458,7 +466,10 @@ const View = ({height}) => {
 
     return (
       <Box flexDirection="column">
-        <RangeSelector options={RANGE_OPTIONS} selectedIndex={clientRangeIndex} />
+        <RangeSelector
+          options={RANGE_OPTIONS}
+          selectedIndex={clientRangeIndex}
+        />
         <Box flexDirection="row">
           <Box width={30}>
             <KeyValue
@@ -470,7 +481,10 @@ const View = ({height}) => {
             <Earnings pricing={clientPricing} loading={clientPricingLoading} />
           </Box>
           <Box width={30} marginLeft={2}>
-            <WorkTargets breakdown={workBreakdown} loading={workBreakdownLoading} />
+            <WorkTargets
+              breakdown={workBreakdown}
+              loading={workBreakdownLoading}
+            />
           </Box>
         </Box>
       </Box>
@@ -498,7 +512,14 @@ const View = ({height}) => {
           <KeyValue
             label="Today's Dashboard:"
             items={[
-              {key: 'Active', value: activeTask ? <Text color="green">{activeTask.title}</Text> : <Text dimColor>None</Text>},
+              {
+                key: 'Active',
+                value: activeTask ? (
+                  <Text color="green">{activeTask.title}</Text>
+                ) : (
+                  <Text dimColor>None</Text>
+                ),
+              },
               {key: 'Total', value: formatTime(totalSec) || '0h 0m'},
               {key: 'Tasks', value: dashboardTasks.length},
             ]}
@@ -520,19 +541,21 @@ const View = ({height}) => {
 
   const renderContent = () => {
     let activeRangeIndex;
-    if (activeSection === 'task' && selectedTaskId && taskDetails && !isEditing)
+    if (activeSection === 'task' && selectedTaskId && taskDetails)
       activeRangeIndex = selectedRangeIndex;
     else if (activeSection === 'project' && selectedProjectId)
       activeRangeIndex = projectRangeIndex;
     else if (activeSection === 'client' && selectedClientId)
       activeRangeIndex = clientRangeIndex;
-    else
-      activeRangeIndex = selectedRangeIndex;
+    else activeRangeIndex = selectedRangeIndex;
 
     if (RANGE_OPTIONS[activeRangeIndex].type === 'dashboard') {
       return (
         <Box flexDirection="column">
-          <RangeSelector options={RANGE_OPTIONS} selectedIndex={activeRangeIndex} />
+          <RangeSelector
+            options={RANGE_OPTIONS}
+            selectedIndex={activeRangeIndex}
+          />
           {renderDashboard()}
         </Box>
       );
@@ -567,7 +590,12 @@ const View = ({height}) => {
           getId={p => p.id}
           renderLabel={p => {
             const client = clients.find(c => c.id === p.client_id);
-            return <>{p.name}{client && <Text dimColor> ({client.name})</Text>}</>;
+            return (
+              <>
+                {p.name}
+                {client && <Text dimColor> ({client.name})</Text>}
+              </>
+            );
           }}
         />
       );
@@ -586,15 +614,23 @@ const View = ({height}) => {
           renderLabel={t => {
             const project = allProjects.find(p => p.id === t.project_id);
             const client = clients.find(c => c.id === project?.client_id);
-            return <>{t.title}{project && <Text dimColor> ({project.name}</Text>}{client && <Text dimColor> - {client.name})</Text>}</>;
+            return (
+              <>
+                {t.title}
+                {project && <Text dimColor> ({project.name}</Text>}
+                {client && <Text dimColor> - {client.name})</Text>}
+              </>
+            );
           }}
         />
       );
     }
 
     if (isViewFocused) {
-      if (lastSection === 'client' && selectedClientId) return renderClientDetails();
-      if (lastSection === 'project' && selectedProjectId) return renderProjectDetails();
+      if (lastSection === 'client' && selectedClientId)
+        return renderClientDetails();
+      if (lastSection === 'project' && selectedProjectId)
+        return renderProjectDetails();
       if (selectedTaskId) return renderTaskDetails();
     }
 
@@ -608,15 +644,27 @@ const View = ({height}) => {
       <Frame.Header>
         <Text color={borderColor} bold>
           {title}
-          {taskDetails && (isTasksFocused || isViewFocused) && <Text dimColor> - {taskDetails.title}</Text>}
-          {isProjectsFocused && selectedProjectId && <Text dimColor> - {allProjects.find(p => p.id === selectedProjectId)?.name}</Text>}
-          {isClientFocused && selectedClientId && <Text dimColor> - {clients.find(c => c.id === selectedClientId)?.name}</Text>}
+          {taskDetails && (isTasksFocused || isViewFocused) && (
+            <Text dimColor> - {taskDetails.title}</Text>
+          )}
+          {isProjectsFocused && selectedProjectId && (
+            <Text dimColor>
+              {' '}
+              - {allProjects.find(p => p.id === selectedProjectId)?.name}
+            </Text>
+          )}
+          {isClientFocused && selectedClientId && (
+            <Text dimColor>
+              {' '}
+              - {clients.find(c => c.id === selectedClientId)?.name}
+            </Text>
+          )}
         </Text>
       </Frame.Header>
       <Frame.Body>{renderContent()}</Frame.Body>
       <Frame.Footer>
         {activeSection === 'task' && selectedTaskId && hasTimeEntries && (
-          <HelpBottom>h/l:range j/k:entries e/E:edit d:delete</HelpBottom>
+          <HelpBottom>h/l:range j/k:entries e:edit d:delete</HelpBottom>
         )}
         {activeSection === 'project' && selectedProjectId && (
           <HelpBottom>h/l:range</HelpBottom>
