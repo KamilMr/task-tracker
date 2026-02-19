@@ -118,15 +118,16 @@ export const computeMonthlyTarget = ({
       : 0;
 
   // Stable while working within baseline, recalculates only when exceeded
-  const hasExceededBaseline = isTodayWorkDay && workedTodayHours > todayBaseline;
+  const hasExceededBaseline =
+    isTodayWorkDay && workedTodayHours > todayBaseline;
   let hoursPerWorkDay;
   if (hasExceededBaseline) {
     const futureDays = workingDaysLeft - 1;
-    hoursPerWorkDay = futureDays > 0 ? remainingHours / futureDays : remainingHours;
+    hoursPerWorkDay =
+      futureDays > 0 ? remainingHours / futureDays : remainingHours;
   } else {
-    hoursPerWorkDay = workingDaysLeft > 0
-      ? remainingAtStartOfDay / workingDaysLeft
-      : 0;
+    hoursPerWorkDay =
+      workingDaysLeft > 0 ? remainingAtStartOfDay / workingDaysLeft : 0;
   }
 
   const overflowHours = isTodayWorkDay

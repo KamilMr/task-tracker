@@ -146,15 +146,15 @@ const View = ({height}) => {
   useEffect(() => {
     if (selectedTaskId && (isTasksFocused || isViewFocused)) {
       const loadTaskDetails = async () => {
-        const [task, entries] = await Promise.all([
-          taskService.selectById(selectedTaskId),
-          timeEntryModel.selectByTaskIdWithDateRange(
-            selectedTaskId,
-            currentRange.startDate,
-            currentRange.endDate,
-          ),
-        ]);
+        const task = await taskService.selectById(selectedTaskId);
         setTaskDetails(task);
+        const project = allProjects.find(p => p.id === task?.project_id);
+        const clientId = project?.client_id || null;
+        const entries = await timeEntryModel.selectByDateRangeWithTask({
+          startDate: currentRange.startDate,
+          endDate: currentRange.endDate,
+          clientId,
+        });
         setTimeEntries((entries || []).reverse());
       };
       loadTaskDetails();
@@ -183,7 +183,7 @@ const View = ({height}) => {
 
   const handleEditorOpen = () => {
     if (timeEntries.length === 0) return;
-    openEditor(timeEntries, taskDetails?.title || 'Unknown Task');
+    openEditor(timeEntries, taskDetails?.title || 'All Entries');
   };
 
   const handleRangeNext = () => {
@@ -255,7 +255,10 @@ const View = ({height}) => {
     const project = allProjects.find(p => p.id === taskDetails.project_id);
     const client = clients.find(c => c.id === project?.client_id);
 
-    const totalSeconds = sumEntryDurations(timeEntries);
+    const selectedTaskEntries = timeEntries.filter(
+      e => e.task_id === selectedTaskId,
+    );
+    const totalSeconds = sumEntryDurations(selectedTaskEntries);
 
     const activeEntries = timeEntries.filter(e => !e.end).length;
     const estimatedSec = taskDetails.estimated_minutes
@@ -361,20 +364,27 @@ const View = ({height}) => {
         </Text>
         {timeEntries.length === 0 ? (
           <Text dimColor marginLeft={2}>
-            No time entries for this task
+            No time entries
           </Text>
         ) : (
           <Box flexDirection="column" marginTop={1}>
-            <Box>
-              <Text bold dimColor width={4}>
-                {'  '}
-              </Text>
-              <Text bold dimColor width={22}>
-                Start
-              </Text>
-              <Text bold dimColor width={22}>
-                End
-              </Text>
+            <Box gap={1}>
+              <Box width={2} />
+              <Box width={16}>
+                <Text bold dimColor>
+                  Task
+                </Text>
+              </Box>
+              <Box width={19}>
+                <Text bold dimColor>
+                  Start
+                </Text>
+              </Box>
+              <Box width={19}>
+                <Text bold dimColor>
+                  End
+                </Text>
+              </Box>
               <Text bold dimColor>
                 Duration
               </Text>
@@ -385,22 +395,31 @@ const View = ({height}) => {
               selectedIndex={selectedEntryIndex}
             >
               {timeEntries.map((entry, index) => {
-                const isSelected =
-                  index === selectedEntryIndex && isViewFocused;
+                const isCursor = index === selectedEntryIndex && isViewFocused;
+                const isSelectedTask = entry.task_id === selectedTaskId;
+                const color = isCursor
+                  ? 'green'
+                  : isSelectedTask
+                    ? '#E8A030'
+                    : 'white';
                 const duration = entry.end
                   ? calculateDuration(entry.start, entry.end)
                   : 0;
+                const taskName = (entry.title || '').slice(0, 16);
 
                 return (
-                  <Box key={entry.id}>
-                    <Text color={isSelected ? 'green' : 'white'} width={4}>
-                      {isSelected ? '• ' : '  '}
-                    </Text>
-                    <Text color={isSelected ? 'green' : 'white'} width={22}>
-                      {format(entry.start, 'yyyy-MM-dd HH:mm:ss')}
-                    </Text>
-                    <Box paddingX={1}>
-                      <Text color={isSelected ? 'green' : 'white'} width={22}>
+                  <Box key={entry.id} gap={1}>
+                    <Text color={color}>{isCursor ? '• ' : '  '}</Text>
+                    <Box width={16}>
+                      <Text color={color}>{taskName}</Text>
+                    </Box>
+                    <Box width={19}>
+                      <Text color={color}>
+                        {format(entry.start, 'yyyy-MM-dd HH:mm:ss')}
+                      </Text>
+                    </Box>
+                    <Box width={19}>
+                      <Text color={color}>
                         {entry.end ? (
                           format(entry.end, 'yyyy-MM-dd HH:mm:ss')
                         ) : (
@@ -408,7 +427,7 @@ const View = ({height}) => {
                         )}
                       </Text>
                     </Box>
-                    <Text color={isSelected ? 'green' : 'white'}>
+                    <Text color={color}>
                       {duration > 0 ? formatTime(duration) : '-'}
                     </Text>
                   </Box>

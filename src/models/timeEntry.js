@@ -81,6 +81,34 @@ const timeEntry = {
     return _convertEntries(entries);
   },
 
+  selectByDateRangeWithTask: async ({
+    startDate,
+    endDate,
+    clientId,
+    projectId,
+  }) => {
+    const startRange = getUTCDateRange(startDate);
+    const endRange = getUTCDateRange(endDate);
+    let query = db(TABLE)
+      .join('task', 'time_entry.task_id', 'task.id')
+      .join('project', 'task.project_id', 'project.id')
+      .select(
+        'time_entry.id',
+        'time_entry.task_id',
+        'time_entry.start',
+        'time_entry.end',
+        'task.title',
+        'task.project_id',
+      )
+      .where('time_entry.start', '>=', startRange.start)
+      .andWhere('time_entry.start', '<=', endRange.end)
+      .orderBy('time_entry.start', 'asc');
+
+    if (clientId) query = query.where('project.client_id', clientId);
+    if (projectId) query = query.where('task.project_id', projectId);
+    return _convertEntries(await query);
+  },
+
   update: ({id, start, end}) => {
     const updates = {};
     if (start !== undefined) updates.start = _toUTC(start);

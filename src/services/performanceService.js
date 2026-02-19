@@ -15,9 +15,7 @@ const getCpuUsage = () => {
   const currentTime = Date.now();
   const elapsed = (currentTime - prevTime) * 1000;
   const cpuPercent =
-    elapsed > 0
-      ? ((currentCpu.user + currentCpu.system) / elapsed) * 100
-      : 0;
+    elapsed > 0 ? ((currentCpu.user + currentCpu.system) / elapsed) * 100 : 0;
 
   prevCpuUsage = process.cpuUsage();
   prevTime = currentTime;

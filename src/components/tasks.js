@@ -461,7 +461,8 @@ const Tasks = ({height}) => {
       <Frame.Footer>
         {isTasksFocused && mode === 'normal' && !isInEditMode && (
           <HelpBottom>
-            j/k:nav c:new /:search i:edit E:est M:meta C:cat d:del s:start p/n:day
+            j/k:nav c:new /:search i:edit E:est M:meta C:cat d:del s:start
+            p/n:day
           </HelpBottom>
         )}
       </Frame.Footer>

@@ -78,7 +78,9 @@ const EditForm = ({title, fields, onSubmit, onCancel}) => {
   return (
     <Box flexDirection="column">
       <Text bold>{title}</Text>
-      <Text dimColor>Tab: next | Shift+Tab: prev | Esc: cancel | Enter: confirm</Text>
+      <Text dimColor>
+        Tab: next | Shift+Tab: prev | Esc: cancel | Enter: confirm
+      </Text>
       <Text> </Text>
       {fields.map((f, i) => {
         const isActive = i === currentField;
@@ -96,9 +98,7 @@ const EditForm = ({title, fields, onSubmit, onCancel}) => {
                 <Text inverse> </Text>
               </Text>
             ) : (
-              <Text dimColor={!displayValue}>
-                {displayValue || '(empty)'}
-              </Text>
+              <Text dimColor={!displayValue}>{displayValue || '(empty)'}</Text>
             )}
           </Box>
         );

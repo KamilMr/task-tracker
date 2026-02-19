@@ -24,11 +24,12 @@ describe('computeMonthlyTarget', () => {
     });
 
     it('10wd, average stays stable while working within baseline', () => {
-      const at = todayHours => computeMonthlyTarget({
-        ...base,
-        totalSeconds: h(todayHours),
-        workedTodaySeconds: h(todayHours),
-      }).hoursPerWorkDayRaw;
+      const at = todayHours =>
+        computeMonthlyTarget({
+          ...base,
+          totalSeconds: h(todayHours),
+          workedTodaySeconds: h(todayHours),
+        }).hoursPerWorkDayRaw;
 
       expect(at(0)).toBeCloseTo(8, 2);
       expect(at(1)).toBeCloseTo(8, 2);

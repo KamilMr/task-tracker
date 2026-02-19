@@ -6,7 +6,7 @@ import {format} from 'date-fns';
 import {TZDate} from '@date-fns/tz';
 import {getTimezone} from '../utils.js';
 
-const ENTRY_REGEX = /^\s*(\d+)\s*\|\s*(.+?)\s*\|\s*(.+?)\s*$/;
+const ENTRY_REGEX = /^\s*(\d+)\s*\|\s*(.+?)\s*\|\s*(.+?)\s*\|\s*(.+?)\s*$/;
 const DATETIME_REGEX = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/;
 
 export const formatBuffer = (entries, taskTitle) => {
@@ -14,7 +14,7 @@ export const formatBuffer = (entries, taskTitle) => {
     `# Task: ${taskTitle}`,
     '#',
     '# Edit times below. Lines starting with # are ignored.',
-    '# Format: ID | YYYY-MM-DD HH:mm:ss | YYYY-MM-DD HH:mm:ss',
+    '# Format: ID | Task | YYYY-MM-DD HH:mm:ss | YYYY-MM-DD HH:mm:ss',
     '# Delete a line to remove the entry.',
     '# Abort with :cq (quit without saving).',
     '#',
@@ -25,7 +25,8 @@ export const formatBuffer = (entries, taskTitle) => {
     const endStr = entry.end
       ? format(entry.end, 'yyyy-MM-dd HH:mm:ss')
       : 'Running...';
-    lines.push(`${entry.id} | ${startStr} | ${endStr}`);
+    const title = entry.title || taskTitle;
+    lines.push(`${entry.id} | ${title} | ${startStr} | ${endStr}`);
   }
 
   return lines.join('\n') + '\n';
@@ -73,8 +74,8 @@ export const parseBuffer = content => {
     }
 
     const id = parseInt(match[1], 10);
-    const startStr = match[2].trim();
-    const endStr = match[3].trim();
+    const startStr = match[3].trim();
+    const endStr = match[4].trim();
     const isRunning = endStr === 'Running...';
 
     const startErr = validateDateTime(startStr);

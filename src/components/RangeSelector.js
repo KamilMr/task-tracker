@@ -7,7 +7,9 @@ const RangeSelector = ({options, selectedIndex}) => (
     {options.map((option, index) => (
       <Text key={option.label}>
         {index === selectedIndex ? (
-          <Text color="green" bold>[{option.label}]</Text>
+          <Text color="green" bold>
+            [{option.label}]
+          </Text>
         ) : (
           <Text dimColor> {option.label} </Text>
         )}

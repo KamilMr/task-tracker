@@ -15,13 +15,35 @@ const WorkTargets = ({breakdown, loading}) => {
     <KeyValue
       label="Work Targets:"
       items={[
-        {key: 'Monthly', value: <Text>{fmt(monthly.worked)}<Text dimColor> / {fmt(monthly.target)}</Text> ({monthly.percentage}%)</Text>},
+        {
+          key: 'Monthly',
+          value: (
+            <Text>
+              {fmt(monthly.worked)}
+              <Text dimColor> / {fmt(monthly.target)}</Text> (
+              {monthly.percentage}%)
+            </Text>
+          ),
+        },
         {key: 'Today', value: `${fmt(today.worked)} worked`},
-        {key: 'Pace', value: <Text color={today.required > today.target ? 'yellow' : 'green'}>~{fmt(today.required)} /wd</Text>},
+        {
+          key: 'Pace',
+          value: (
+            <Text color={today.required > today.target ? 'yellow' : 'green'}>
+              ~{fmt(today.required)} /wd
+            </Text>
+          ),
+        },
         {key: 'Target', value: `${fmt(today.target)} /wd`},
-        {key: 'Catch up', value: today.catchup > 0
-          ? <Text color="red">{fmt(today.catchup)}</Text>
-          : <Text color="green">You are on track :-)</Text>},
+        {
+          key: 'Catch up',
+          value:
+            today.catchup > 0 ? (
+              <Text color="red">{fmt(today.catchup)}</Text>
+            ) : (
+              <Text color="green">You are on track :-)</Text>
+            ),
+        },
       ]}
     />
   );

@@ -18,4 +18,3 @@ export const usePolling = (fetcher, deps = [], interval = 30000) => {
 
   return [data, refetch];
 };
-

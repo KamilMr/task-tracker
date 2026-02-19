@@ -10,16 +10,21 @@ const getPaceColor = (hoursPerDay, remainingHours) => {
   return 'green';
 };
 
-const ProgressBar = ({workedHours, targetHours, remainingHours, hoursPerWorkDay, hoursPerWorkDayRaw, overflowHours}) => {
-  const progress = targetHours > 0
-    ? Math.min(1, workedHours / targetHours)
-    : 0;
+const ProgressBar = ({
+  workedHours,
+  targetHours,
+  remainingHours,
+  hoursPerWorkDay,
+  hoursPerWorkDayRaw,
+  overflowHours,
+}) => {
+  const progress = targetHours > 0 ? Math.min(1, workedHours / targetHours) : 0;
   const filled = Math.round(progress * BAR_WIDTH);
   const bar = '█'.repeat(filled) + '░'.repeat(BAR_WIDTH - filled);
   const percentage = Math.round(progress * 100);
   const color = getPaceColor(hoursPerWorkDayRaw, remainingHours);
-  const overflowPart = overflowHours && overflowHours !== '00:00'
-    ? `(+${overflowHours}h)` : '';
+  const overflowPart =
+    overflowHours && overflowHours !== '00:00' ? `(+${overflowHours}h)` : '';
 
   return (
     <Text>
