@@ -3,6 +3,7 @@ import {Text, Box} from 'ink';
 import {useNavigation} from '../contexts/NavigationContext.js';
 import {useData} from '../contexts/DataContext.js';
 import {useComponentKeys} from '../hooks/useComponentKeys.js';
+import {usePolling} from '../hooks/hooks.js';
 import {BORDER_COLOR_DEFAULT, BORDER_COLOR_FOCUSED, CLIENT} from '../consts.js';
 import BasicTextInput from './BasicTextInput.js';
 import DelayedDisappear from './DelayedDisappear.js';
@@ -24,7 +25,13 @@ const Client = ({height}) => {
   const [isCreating, setIsAdding] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [monthlyData, setMonthlyData] = useState(null);
+  const [monthlyData] = usePolling(
+    () =>
+      selectedClientId
+        ? pricingService.getClientMonthlyTarget(selectedClientId)
+        : null,
+    [selectedClientId, reload],
+  );
 
   useEffect(() => {
     const loadClients = async () => {
@@ -37,19 +44,6 @@ const Client = ({height}) => {
     };
     loadClients();
   }, [reload, selectedClientId]);
-
-  useEffect(() => {
-    if (!selectedClientId) {
-      setMonthlyData(null);
-      return;
-    }
-    const loadMonthlyData = async () => {
-      const data =
-        await pricingService.getClientMonthlyTarget(selectedClientId);
-      setMonthlyData(data);
-    };
-    loadMonthlyData();
-  }, [selectedClientId, reload]);
 
   const selectedClient = clients.find(c => c.id === selectedClientId) || null;
 
@@ -210,10 +204,26 @@ const Client = ({height}) => {
         <EditForm
           title={`Edit: ${selectedClient?.name}`}
           fields={[
-            {name: 'name', label: 'Name', defaultValue: selectedClient?.name || ''},
-            {name: 'rate', label: 'Rate (PLN/h)', defaultValue: selectedClient?.hourly_rate?.toString() || ''},
-            {name: 'monthlyHours', label: 'Monthly hours', defaultValue: selectedClient?.monthly_hours?.toString() || ''},
-            {name: 'dailyHours', label: 'Daily hours', defaultValue: selectedClient?.daily_hours?.toString() || ''},
+            {
+              name: 'name',
+              label: 'Name',
+              defaultValue: selectedClient?.name || '',
+            },
+            {
+              name: 'rate',
+              label: 'Rate (PLN/h)',
+              defaultValue: selectedClient?.hourly_rate?.toString() || '',
+            },
+            {
+              name: 'monthlyHours',
+              label: 'Monthly hours',
+              defaultValue: selectedClient?.monthly_hours?.toString() || '',
+            },
+            {
+              name: 'dailyHours',
+              label: 'Daily hours',
+              defaultValue: selectedClient?.daily_hours?.toString() || '',
+            },
           ]}
           onSubmit={handleEditSubmit}
           onCancel={handleEditCancel}
@@ -225,14 +235,18 @@ const Client = ({height}) => {
       const selectedIndex = clients.findIndex(c => c.id === selectedClientId);
 
       return (
-        <ScrollBox height={Math.max(1, height - 5)} selectedIndex={selectedIndex}>
+        <ScrollBox
+          height={Math.max(1, height - 5)}
+          selectedIndex={selectedIndex}
+        >
           {clients.map(client => {
             const isSelected = client.id === selectedClientId;
 
             if (isSelected && monthlyData) {
               const rate = client.hourly_rate;
               const currency = client.currency || 'PLN';
-              const currencyShort = currency === 'PLN' ? 'zl' : currency.toLowerCase();
+              const currencyShort =
+                currency === 'PLN' ? 'zl' : currency.toLowerCase();
               const rateText = rate ? ` ${rate}${currencyShort}` : '';
 
               return (

@@ -11,6 +11,7 @@ import taskService from '../services/taskService.js';
 import clientService from '../services/clientService.js';
 import timeEntryModel from '../models/timeEntry.js';
 import {useComponentKeys} from '../hooks/useComponentKeys.js';
+import {usePolling} from '../hooks/hooks.js';
 import useScrollableList from '../hooks/useScrollableList.js';
 import useTaskAnalytics from '../hooks/useTaskAnalytics.js';
 import usePricing from '../hooks/usePricing.js';
@@ -64,20 +65,13 @@ const View = ({height}) => {
   const [timeEntries, setTimeEntries] = useState([]);
   const [lastSection, setLastSection] = useState(null);
   const [dashboardTasks, setDashboardTasks] = useState([]);
-  const [workBreakdown, setWorkBreakdown] = useState(null);
-  const [workBreakdownLoading, setWorkBreakdownLoading] = useState(false);
-
-  useEffect(() => {
-    if (selectedClientId) {
-      setWorkBreakdownLoading(true);
-      pricingService
-        .getClientWorkBreakdown(selectedClientId)
-        .then(setWorkBreakdown)
-        .finally(() => setWorkBreakdownLoading(false));
-    } else {
-      setWorkBreakdown(null);
-    }
-  }, [selectedClientId, reload]);
+  const [workBreakdown] = usePolling(
+    () =>
+      selectedClientId
+        ? pricingService.getClientWorkBreakdown(selectedClientId)
+        : null,
+    [selectedClientId, reload],
+  );
 
   useEffect(() => {
     if (isClientFocused) setLastSection('client');
@@ -483,7 +477,7 @@ const View = ({height}) => {
           <Box width={30} marginLeft={2}>
             <WorkTargets
               breakdown={workBreakdown}
-              loading={workBreakdownLoading}
+              loading={!workBreakdown && !!selectedClientId}
             />
           </Box>
         </Box>
